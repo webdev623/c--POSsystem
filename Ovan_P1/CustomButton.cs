@@ -10,6 +10,8 @@ namespace Ovan_P1
 {
     class CustomButton
     {
+        public int borderSizeGlobal = 0;
+        public Color borderColorGlobal = Color.Transparent;
         public Button CreateButton(string btnText, string btnName, int btnLeft, int btnTop, int btnWidth, int btnHeight, Color backColor, Color borderColor, int borderSize, int radiusValue = 20, int fontSize = 12, FontStyle fontStyle = FontStyle.Regular, Color foreColor = default(Color), ContentAlignment textAlign = ContentAlignment.MiddleCenter)
         {
             RoundedButton btn = new RoundedButton();
@@ -22,15 +24,17 @@ namespace Ovan_P1
             btn.Width = btnWidth;
             btn.Height = btnHeight;
             btn.BackColor = backColor;
-            // btn.FlatStyle = FlatStyle.Flat;
+            //btn.FlatStyle = FlatStyle.Flat;
+            btn.Cursor = Cursors.Hand;
             // btn.FlatAppearance.BorderColor = borderColor;
             // btn.FlatAppearance.BorderSize = borderSize;
-
+            borderSizeGlobal = borderSize;
             btn.Font = new Font("Seri", fontSize, fontStyle);
             btn.TextAlign = ContentAlignment.MiddleCenter;
             btn.radiusValue = radiusValue;
-            btn.borderColor = borderColor;
-            btn.borderSize = borderSize;
+            borderColorGlobal = borderColor;
+            btn.borderColor = borderColorGlobal;
+            btn.borderSize = borderSizeGlobal;
 
             return btn;
 

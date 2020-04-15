@@ -41,8 +41,8 @@ namespace Ovan_P1
                 this.Region = new Region(GraphPath);
                 using (Pen pen = new Pen(borderColor, borderSize))
                 {
-                    pen.Alignment = PenAlignment.Inset;
-                    e.Graphics.DrawPath(pen, GraphPath);
+                    //pen.Alignment = PenAlignment.Inset;
+                    //e.Graphics.DrawPath(pen, GraphPath);
                 }
             }
         }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -16,8 +17,10 @@ namespace Ovan_P1
         Constant constants = new Constant();
         int height = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Height;
         int width = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Width;
+        PasswordInput passwordInput = new PasswordInput();
+        CustomButton customButton = new CustomButton();
 
-        
+
 
         public void CreateMainMenuScreen(Form1 forms, Panel panels)
         {
@@ -26,6 +29,8 @@ namespace Ovan_P1
 
             FormPanel.Width = width;
             FormPanel.Height = height;
+            passwordInput.initMainMenu(this);
+
 
             /**  Main Page Screen Title */
 
@@ -74,35 +79,86 @@ namespace Ovan_P1
                 FormPanel.Controls.Add(btn);
                 k++;
             }
+
+            Image powerImage = Image.FromFile(constants.powerButton);
+
+            Button backButton = customButton.CreateButtonWithImage(powerImage, "powerButton", "", width - 150, height - 150, 100, 100, 3, 100);
+            backButton.BackgroundImageLayout = ImageLayout.Stretch;
+            backButton.Padding = new Padding(0);
+            FormPanel.Controls.Add(backButton);
+            backButton.Click += new EventHandler(PowerApplication);
+
         }
 
         private void MainMenuBtn(object sender, EventArgs e)
         {
-            FormPanel.Controls.Clear();
 
             Button temp = (Button)sender;
             if (temp.Name == "maintenance")
             {
-                MaintaneceMenu maintaneceMenu = new MaintaneceMenu(FormPanel, Panels);
-                maintaneceMenu.TopLevel = false;
-                Panels.Controls.Add(maintaneceMenu);
-                maintaneceMenu.FormBorderStyle = FormBorderStyle.None;
-                maintaneceMenu.Dock = DockStyle.Fill;
-                Thread.Sleep(200);
-                maintaneceMenu.Show();
+                RegistryKey key = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\WinRegistry");
+                if(key != null && key.GetValue("POSPassword") != null)
+                {
+                    passwordInput.CreateNumberInputDialog("maintenance", temp.Name);
+                }
+
             }
             else if (temp.Name == "salescreen")
             {
+                FormPanel.Controls.Clear();
                 SaleScreen saleScreen = new SaleScreen(FormPanel);
                 saleScreen.TopLevel = false;
-                Panels.Controls.Add(saleScreen);
                 saleScreen.FormBorderStyle = FormBorderStyle.None;
                 saleScreen.Dock = DockStyle.Fill;
+                Panels.Controls.Add(saleScreen);
                 Thread.Sleep(200);
+
                 saleScreen.Show();
             }
             else
-                MessageBox.Show("this is reading menu");
+            {
+                RegistryKey key = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\WinRegistry");
+                if (key != null && key.GetValue("POSPassword") != null)
+                {
+                    passwordInput.CreateNumberInputDialog("readingmenu", temp.Name);
+                }
+            }
+        }
+
+        private void PowerApplication(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+        public void getPassword(string objectName, string passwords)
+        {
+            RegistryKey key = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\WinRegistry");
+            string pwd = key.GetValue("POSPassword").ToString();
+            if(pwd == passwords)
+            {
+                switch (objectName)
+                {
+                    case "maintenance":
+                        FormPanel.Controls.Clear();
+                        MaintaneceMenu maintaneceMenu = new MaintaneceMenu(FormPanel, Panels);
+                        maintaneceMenu.TopLevel = false;
+                        Panels.Controls.Add(maintaneceMenu);
+                        maintaneceMenu.FormBorderStyle = FormBorderStyle.None;
+                        maintaneceMenu.Dock = DockStyle.Fill;
+                        Thread.Sleep(200);
+                        maintaneceMenu.Show();
+                        break;
+                    case "readingmenu":
+                        FormPanel.Controls.Clear();
+                        MenuReading menuReading = new MenuReading(FormPanel, Panels);
+                        menuReading.TopLevel = false;
+                        Panels.Controls.Add(menuReading);
+                        menuReading.FormBorderStyle = FormBorderStyle.None;
+                        menuReading.Dock = DockStyle.Fill;
+                        Thread.Sleep(200);
+                        menuReading.Show();
+                        break;
+                }
+            }
         }
     }
 }

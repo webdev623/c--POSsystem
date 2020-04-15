@@ -21,6 +21,9 @@ namespace Ovan_P1
             labelItem.Size = new Size(labelWidth, labelHeight);
             labelItem.Text = labelText;
             labelItem.Name = labelName;
+            labelItem.Cursor = Cursors.Hand;
+            labelItem.AutoEllipsis = true;
+            labelItem.AllowDrop = true;
             labelItem.BackColor = labelBackColor;
             labelItem.ForeColor = labelForeColor;
             labelItem.Margin = new Padding(5, 5, 5, 5);
@@ -35,7 +38,7 @@ namespace Ovan_P1
             labelPanel.Controls.Add(labelItem);
             return labelItem;
         }
-        public Label CreateLabels(FlowLayoutPanel labelPanel, string labelName, string labelText, int labelLeft, int labelTop, int labelWidth, int labelHeight, Color labelBackColor, Color labelForeColor, int labelFontSize, bool borderFlag = false, ContentAlignment labelTextAlignment = ContentAlignment.MiddleCenter, Padding labelMargin = default(Padding), int labelThickness = 4, Color labelBorderColor = default(Color))
+        public Label CreateLabels(FlowLayoutPanel labelPanel, string labelName, string labelText, int labelLeft, int labelTop, int labelWidth, int labelHeight, Color labelBackColor, Color labelForeColor, int labelFontSize, bool borderFlag = false, ContentAlignment labelTextAlignment = ContentAlignment.MiddleCenter, Padding labelMargin = default(Padding), int labelThickness = 4, Color labelBorderColor = default(Color), string labelBorderStyle = "rectangle")
         {
             Label labelItem = new Label();
             thickness = labelThickness;
@@ -43,6 +46,9 @@ namespace Ovan_P1
             labelItem.Size = new Size(labelWidth, labelHeight);
             labelItem.Text = labelText;
             labelItem.Name = labelName;
+            labelItem.Cursor = Cursors.Hand;
+            labelItem.AutoEllipsis = true;
+            labelItem.AllowDrop = true;
             labelItem.BackColor = labelBackColor;
             labelItem.ForeColor = labelForeColor;
             labelItem.Margin = labelMargin;
@@ -54,11 +60,26 @@ namespace Ovan_P1
                 
                 labelBorderColors = labelBorderColor;
                 labelGlobal = labelItem;
-                labelItem.Paint += new PaintEventHandler(this.labelBorder_Paint);
+                if(labelBorderStyle == "rectangle")
+                {
+                    labelItem.Paint += new PaintEventHandler(this.labelBorder_Paint);
+                }
+                else if(labelBorderStyle == "top_bottom_line")
+                {
+                    labelItem.Paint += new PaintEventHandler(this.labelBorder_Top_Bottom_Paint);
+                }
             }
             labelPanel.Controls.Add(labelItem);
+            labelItem.MouseHover += new EventHandler(this.HoverStyle);
             return labelItem;
         }
+
+        private void HoverStyle(object sender, EventArgs e)
+        {
+            Label lbTemp = (Label)sender;
+            
+        }
+
         public void labelBorder_Paint(object sender, PaintEventArgs e)
         {
             //  if (labelGlobal.BorderStyle == BorderStyle.FixedSingle)
@@ -74,6 +95,38 @@ namespace Ovan_P1
             }
             //   }
         }
+        public void labelBorder_Top_Bottom_Paint(object sender, PaintEventArgs e)
+        {
+            //  if (labelGlobal.BorderStyle == BorderStyle.FixedSingle)
+            //  {
+            Label lbTemp = (Label)sender;
+            int halfThickness = thickness / 2;
+            using (Pen p = new Pen(labelBorderColors, thickness))
+            {
+                e.Graphics.DrawLine(p, halfThickness, halfThickness, lbTemp.Width - thickness, halfThickness);
+                e.Graphics.DrawLine(p, halfThickness, lbTemp.Height - thickness, lbTemp.Width - thickness, lbTemp.Height - thickness);
+            }
+            //   }
+        }
+
+        public BorderLabel CreateBorderLabel(int nX, int nY, int W, int H, string name, string text, Color borderClr, int borderSize, Font font, Color foreClr, ContentAlignment textAlign = ContentAlignment.MiddleCenter)
+        {
+            BorderLabel bl = new BorderLabel();
+
+            //bl.AutoSize = true;
+            bl.BackColor = Color.Transparent;
+            bl.BorderColor = borderClr;
+            bl.BorderSize = borderSize;
+            bl.Font = font;
+            bl.ForeColor = foreClr;
+            bl.Location = new Point(nX, nY);
+            bl.Size = new Size(W, H);
+            bl.Name = name;
+            bl.Text = text;
+            bl.TextAlign = textAlign;
+            return bl;
+        }
+
 
     }
 }

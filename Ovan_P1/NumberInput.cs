@@ -30,7 +30,7 @@ namespace Ovan_P1
             objectHandlerNameGlobal = objectHandlerName;
             objectNameGlobal = objectName;
             Form dialogForm = new Form();
-            dialogForm.Size = new Size(width / 5, height * 2 / 5);
+            dialogForm.Size = new Size(width / 5, height * 2 / 5 + 30);
             dialogForm.BackColor = Color.White;
             dialogForm.StartPosition = FormStartPosition.CenterParent;
             dialogForm.WindowState = FormWindowState.Normal;
@@ -48,10 +48,15 @@ namespace Ovan_P1
             inputValueShow.TextAlign = HorizontalAlignment.Right;
             mainPanel.Controls.Add(inputValueShow);
             inputValueGlobal = inputValueShow;
+            if(objectName == "soldoutSetting1")
+            {
+                Label notifyLabel = createLabel.CreateLabelsInPanel(mainPanel, "notifyLabel", "限定数を入力 0～200 \n 0:無制限", mainPanel.Width / 9, inputValueShow.Bottom + 10, mainPanel.Width * 7 / 9, 40, Color.Transparent, Color.Violet, 12, false, ContentAlignment.TopLeft);
+                inputValueShow.Text = limitAmount.ToString();
+                inputValueShow.SelectionStart = inputValueShow.Text.Length;
+                inputValueShow.SelectionLength = 0;
+            }
 
-            Label notifyLabel = createLabel.CreateLabelsInPanel(mainPanel, "notifyLabel", "限定数を入力 0～200 \n 0:無制限", mainPanel.Width / 9, inputValueShow.Bottom + 10, mainPanel.Width * 7 / 9, 40, Color.Transparent, Color.Violet, 12, false, ContentAlignment.TopLeft);
-
-            Panel keyboardPanel = createPanel.CreateSubPanel(mainPanel, mainPanel.Width / 9, notifyLabel.Bottom + 10, mainPanel.Width * 7 / 9, mainPanel.Height - notifyLabel.Bottom - 30, BorderStyle.FixedSingle, Color.FromArgb(255, 0, 176, 80));
+            Panel keyboardPanel = createPanel.CreateSubPanel(mainPanel, mainPanel.Width / 9, inputValueShow.Bottom + 70, mainPanel.Width * 7 / 9, mainPanel.Height - inputValueShow.Bottom - 100, BorderStyle.FixedSingle, Color.FromArgb(255, 0, 176, 80));
 
             for(int k = 3; k >= 0; k--)
             {
@@ -92,17 +97,26 @@ namespace Ovan_P1
             dialogForm.ShowDialog();
         }
 
+        private void GetFocus(object sender, EventArgs e)
+        {
+            TextBox tbBox = (TextBox)sender;
+            inputValueGlobal = tbBox;
+            inputValueGlobal.SelectionLength = 0;
+
+        }
+
         private void InputValueAdd(object sender, EventArgs e)
         {
             Label keyLabel = (Label)sender;
             string keyText = keyLabel.Text;
             if(keyText != "Del" && keyText != "Ok")
             {
-              //  int keyValue = int.Parse(keyText);
-                string inputValue = inputValueGlobal.Text;
-                inputValue += keyText;
-                inputValueGlobal.Text = inputValue;
-                inputValueGlobal.Anchor = AnchorStyles.Right;
+                int selectionIndex = inputValueGlobal.SelectionStart;
+                inputValueGlobal.Text = inputValueGlobal.Text.Insert(selectionIndex, keyText);
+                inputValueGlobal.Focus();
+                inputValueGlobal.SelectionStart = selectionIndex + 1;
+                inputValueGlobal.SelectionLength = 0;
+
             }
             else
             {

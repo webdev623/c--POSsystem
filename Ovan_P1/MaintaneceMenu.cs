@@ -25,6 +25,8 @@ namespace Ovan_P1
 
         public MaintaneceMenu(Form1 mainForm, Panel mainPanel)
         {
+            mainForm.Width = width;
+            mainForm.Height = height;
             mainFormGlobal = mainForm;
             mainPanelGlobal = mainPanel;
             Panel headerPanel = createPanel.CreateMainPanel(mainForm, 0, 0, width, height / 4, BorderStyle.None, Color.Transparent);
@@ -52,6 +54,14 @@ namespace Ovan_P1
                 menuButton_3.Click += new EventHandler(this.showSetting);
 
             }
+
+            Image backImage = Image.FromFile(constants.backButton);
+
+            Button backButton = customButton.CreateButtonWithImage(backImage, "backButton", "", bodyPanel.Width - 150, bodyPanel.Height - 150, 100, 100, 3, 100);
+            backButton.BackgroundImageLayout = ImageLayout.Stretch;
+            backButton.Padding = new Padding(0);
+            bodyPanel.Controls.Add(backButton);
+            backButton.Click += new EventHandler(BackShow);
         }
 
         private void buttonHover(object sender, EventArgs e)
@@ -63,8 +73,21 @@ namespace Ovan_P1
             buttonObj.FlatStyle = FlatStyle.Flat;
             buttonObj.FlatAppearance.BorderColor = Color.FromArgb(0, 255, 255, 255);
             buttonObj.FlatAppearance.BorderSize = 0;
+
             //menuFlowLayoutPanelGlobal[int.Parse(buttonObjNameArray[1])].Controls.Add(buttonObj);
 
+        }
+        public void BackShow(object sender, EventArgs e)
+        {
+            mainFormGlobal.Controls.Clear();
+            MainMenu mainMenu = new MainMenu();
+            mainMenu.CreateMainMenuScreen(mainFormGlobal, mainPanelGlobal);
+            //frm.TopLevel = false;
+            //mainFormGlobal.Controls.Add(frm);
+            //frm.FormBorderStyle = FormBorderStyle.None;
+            //frm.Dock = DockStyle.Fill;
+            //Thread.Sleep(200);
+            //frm.Show();
         }
 
         private void showSetting(object sender, EventArgs e)
@@ -121,6 +144,45 @@ namespace Ovan_P1
                     Thread.Sleep(200);
                     categoryList.Show();
                     break;
+                case "menuButton_1_3":
+                    GroupList groupList = new GroupList(mainFormGlobal, mainPanelGlobal);
+                    groupList.TopLevel = false;
+                    mainFormGlobal.Controls.Add(groupList);
+                    groupList.FormBorderStyle = FormBorderStyle.None;
+                    groupList.Dock = DockStyle.Fill;
+                    Thread.Sleep(200);
+                    groupList.Show();
+                    break;
+                case "menuButton_2_1":
+                    TimeSetting timeSetting = new TimeSetting(mainFormGlobal, mainPanelGlobal);
+                    timeSetting.TopLevel = false;
+                    mainFormGlobal.Controls.Add(timeSetting);
+                    //timeSetting.Owner = 
+                    timeSetting.FormBorderStyle = FormBorderStyle.None;
+                    timeSetting.Dock = DockStyle.Fill;
+                    Thread.Sleep(200);
+                    timeSetting.Show();
+                    break;
+                case "menuButton_2_2":
+                    PasswordSetting passwordSetting = new PasswordSetting(mainFormGlobal, mainPanelGlobal);
+                    passwordSetting.TopLevel = false;
+                    mainFormGlobal.Controls.Add(passwordSetting);
+                    //timeSetting.Owner = 
+                    passwordSetting.FormBorderStyle = FormBorderStyle.None;
+                    passwordSetting.Dock = DockStyle.Fill;
+                    Thread.Sleep(200);
+                    passwordSetting.Show();
+                    break;
+                case "menuButton_2_3":
+                    OpenTimeChange openTimeChange = new OpenTimeChange(mainFormGlobal, mainPanelGlobal);
+                    openTimeChange.TopLevel = false;
+                    mainFormGlobal.Controls.Add(openTimeChange);
+                    //timeSetting.Owner = 
+                    openTimeChange.FormBorderStyle = FormBorderStyle.None;
+                    openTimeChange.Dock = DockStyle.Fill;
+                    Thread.Sleep(200);
+                    openTimeChange.Show();
+                    break;
             }
         }
 
@@ -135,5 +197,6 @@ namespace Ovan_P1
             this.ResumeLayout(false);
 
         }
+
     }
 }

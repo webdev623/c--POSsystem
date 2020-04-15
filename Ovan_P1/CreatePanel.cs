@@ -25,7 +25,7 @@ namespace Ovan_P1
             Panel Panel = new Panel();
             Panel.Size = new Size(PanelWidth, PanelHeight);
             Panel.Location = new Point(PanelLeft, PanelTop);
-          //  Panel.BorderStyle = borderstyle;
+            Panel.BorderStyle = borderstyle;
             Panel.BackColor = color;
             parentPanel.Controls.Add(Panel);
             return Panel;
@@ -43,6 +43,33 @@ namespace Ovan_P1
             FlowPanel.Padding = paddings;
             panel.Controls.Add(FlowPanel);
             return FlowPanel;
+        }
+
+        public Panel CreatePanelForProducts(SaleScreen IAFS, int nX, int nY, int W, int H, string name, bool hasBD, Color bdClr, Color backClr)
+        {
+
+            Panel p = new Panel();
+            p.Location = new Point(nX, nY);
+            p.Size = new Size(W, H);
+            p.Name = name;
+            p.BackColor = backClr;
+            //p.Click += new EventHandler(IAFS.onItemPanelClk);
+
+            return p;
+        }
+
+        public PictureBox CreatePictureBox(int nX, int nY, int W, int H, string name, string imgUrl)
+        {
+            PictureBox pb = new PictureBox();
+            pb.Location = new Point(nX, nY);
+            pb.Name = name;
+            pb.Size = new Size(W, H);
+            pb.BackColor = Color.Transparent;
+            if (imgUrl != null && imgUrl != "")
+                pb.Image = Image.FromFile(@imgUrl);
+
+            pb.SizeMode = PictureBoxSizeMode.StretchImage;
+            return pb;
         }
 
     }

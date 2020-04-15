@@ -1,5 +1,11 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 .vs
+AddTextUsingButtons-master
+TestFolderForOhban
+New Text Document.txt
+Ovan_P1(0410).zip
+.gitignore
+
 # dependencies
 /node_modules
 spec.txt

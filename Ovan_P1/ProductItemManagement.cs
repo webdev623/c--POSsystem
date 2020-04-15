@@ -27,6 +27,11 @@ namespace Ovan_P1
         CustomButton customButton = new CustomButton();
         Panel downPanelGlobal = null;
         DetailView detailView = new DetailView();
+        Label[] columnGlobal1 = null;
+        Label[] columnGlobal2 = null;
+        Label[] columnGlobal3 = null;
+        Label[] columnGlobal4 = null;
+        int totalRowNum = 0;
         public ProductItemManagement(Form1 mainForm, Panel mainPanel)
         {
             InitializeComponent();
@@ -48,23 +53,33 @@ namespace Ovan_P1
             tBodyPanel.AutoScroll = false;
             tBodyPanel.VerticalScroll.Visible = false;
             tBodyPanel.AutoScroll = true;
+            totalRowNum = constants.productBigName[1].Length;
+            columnGlobal1 = new Label[totalRowNum];
+            columnGlobal2 = new Label[totalRowNum];
+            columnGlobal3 = new Label[totalRowNum];
+            columnGlobal4 = new Label[totalRowNum];
             int k = 0;
             foreach(string prodItem in constants.productBigName[1])
             {
                 FlowLayoutPanel tableRowPanel = createPanel.CreateFlowLayoutPanel(tBodyPanel, 0, 50 * k, tBodyPanel.Width, 50, Color.Transparent, new Padding(0));
                 Label tdLabel1 = createLabel.CreateLabels(tableRowPanel, "tdLabel1_" + k, prodItem, 0, 0, tableRowPanel.Width * 2 / 5, 50, Color.White, Color.Black, 16, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+                columnGlobal1[k] = tdLabel1;
                 Label tdLabel2 = createLabel.CreateLabels(tableRowPanel, "tdLabel2_" + k, constants.productBigPrice[1][k].ToString(), tdLabel1.Right, 0, tableRowPanel.Width * 3 / 20, 50, Color.White, Color.Black, 16, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+                columnGlobal2[k] = tdLabel2;
                 Label tdLabel3 = createLabel.CreateLabels(tableRowPanel, "tdLabel3_" + k, "10:00~21:59", tdLabel2.Right, 0, tableRowPanel.Width * 3 / 10, 50, Color.White, Color.Black, 16, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+                columnGlobal3[k] = tdLabel3;
                 Label tdLabel4 = createLabel.CreateLabels(tableRowPanel, "tdLabel4_" + k, constants.productBigSaleAmount[1][k], tdLabel3.Right, 0, tableRowPanel.Width * 3 / 20, 50, Color.White, Color.Black, 16, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+                columnGlobal4[k] = tdLabel4;
 
                 tdLabel1.Click += new EventHandler(this.ShowProductDetail);
                 tdLabel2.Click += new EventHandler(this.ShowProductDetail);
                 tdLabel3.Click += new EventHandler(this.ShowProductDetail);
                 tdLabel4.Click += new EventHandler(this.ShowProductDetail);
 
+
                 k++;
             }
-            Button closeButton = customButton.CreateButton(constants.backText, "closeButton", downPanel.Width - 200, downPanel.Height - 100, 100, 50, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 1, 12, FontStyle.Regular, Color.White);
+            Button closeButton = customButton.CreateButton(constants.backText, "closeButton", downPanel.Width - 150, downPanel.Height - 100, 100, 50, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 1, 12, FontStyle.Regular, Color.White);
             downPanel.Controls.Add(closeButton);
             closeButton.Click += new EventHandler(this.BackShow);
 
@@ -76,6 +91,21 @@ namespace Ovan_P1
         {
             Label prdTemp = (Label)sender;
             int prdID = int.Parse(prdTemp.Name.Split('_')[1]);
+            columnGlobal1[prdID].ForeColor = Color.Red;
+            columnGlobal2[prdID].ForeColor = Color.Red;
+            columnGlobal3[prdID].ForeColor = Color.Red;
+            columnGlobal4[prdID].ForeColor = Color.Red;
+            for (int k = 0; k < totalRowNum; k++)
+            {
+                if (k != prdID)
+                {
+                    columnGlobal1[k].ForeColor = Color.FromArgb(255, 142, 133, 118);
+                    columnGlobal2[k].ForeColor = Color.FromArgb(255, 142, 133, 118);
+                    columnGlobal3[k].ForeColor = Color.FromArgb(255, 142, 133, 118);
+                    columnGlobal4[k].ForeColor = Color.FromArgb(255, 142, 133, 118);
+                }
+            }
+
             downPanelGlobal.Controls.Clear();
             Panel detailPanel = createPanel.CreateSubPanel(downPanelGlobal, 50, 10, downPanelGlobal.Width / 2 - 100, downPanelGlobal.Height - 100, BorderStyle.FixedSingle, Color.Transparent);
 
@@ -147,6 +177,7 @@ namespace Ovan_P1
             Thread.Sleep(200);
             frm.Show();
         }
+
 
     }
 }
