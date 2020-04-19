@@ -37,6 +37,7 @@
             this.subContent1 = new System.Windows.Forms.Label();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.fileSystemWatcher1 = new System.IO.FileSystemWatcher();
+            this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.headerPanel.SuspendLayout();
             this.bodyPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.fileSystemWatcher1)).BeginInit();
@@ -161,5 +162,6 @@
         private RoundedButton cancelButton;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.IO.FileSystemWatcher fileSystemWatcher1;
+        private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
     }
 }

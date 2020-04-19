@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.SQLite;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -15,12 +17,8 @@ namespace Ovan_P1
     {
         Form1 mainFormGlobal = null;
         Panel mainPanelGlobal = null;
-        Panel PanelGlobal = null;
-        Panel PanelGlobal1 = null;
-        PictureBox pBoxGlobal = null;
-        Panel MainPanel = null;
-        PictureBox MainPicture = null;
-        Label MainMenuLabel = null;
+        Panel LeftPanelGlobal = null;
+        Panel MainBodyPanelGlobal = null;
         Constant constants = new Constant();
         CustomButton customButton = new CustomButton();
 
@@ -29,26 +27,55 @@ namespace Ovan_P1
         OrderDialog orderDialog = new OrderDialog();
 
         int categoryIDGlobal = 0;
+        string[] categoryNameList = null;
+        int[] categoryIDList = null;
+        int[] categoryDisplayPositionList = null;
+        int[] categoryLayoutList = null;
 
- 
+        private Bitmap BackgroundBitmap = null;
+        Color borderClr = Color.FromArgb(255, 23, 55, 94);
+        Pen borderPen = null;
+        Color penClr = Color.FromArgb(255, 23, 55, 94);
+        int nWidth = 0, nHeight = 0;
+        int nWidth1 = 0, nHeight1 = 0;
+        int nWidth2 = 0, nHeight2 = 0;
+        int nWidth3 = 0, nHeight3 = 0;
+        Rectangle rc = new Rectangle(0, 0, 0, 0);
+        Panel[] p_ProductCon = null;
+        PictureBox[] pb_Image = null;
+        BorderLabel[] bl_Name = null;
+        BorderLabel[] bl_Price = null;
+        bool bLoad = false;
+        int curProduct = 0;
+
+
         int height = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Height;
         int width = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Width;
 
-        public PreviewSalePage(Form1 mainForm, Panel mainPanel, int categoryID)
+        SQLiteConnection sqlite_conn;
+
+        public PreviewSalePage(Form1 mainForm, Panel mainPanel, int categoryIndex, int[] categoryIDArray, string[] categoryNameArray, int[] categoryDisplayPositionArray, int[] categoryLayoutArray)
         {
             InitializeComponent();
 
-            categoryIDGlobal = categoryID;
+            categoryIDGlobal = categoryIndex;
+            categoryIDList = categoryIDArray;
+            categoryNameList = categoryNameArray;
+            categoryDisplayPositionList = categoryDisplayPositionArray;
+            categoryLayoutList = categoryLayoutArray;
+            sqlite_conn = CreateConnection(constants.dbName);
 
             mainFormGlobal = mainForm;
             mainPanelGlobal = mainPanel;
 
             Panel LeftPanel = createPanel.CreateMainPanel(mainForm, 0, 0, 3 * width / 4, height, BorderStyle.FixedSingle, Color.FromArgb(255, 255, 255, 204));
+            LeftPanelGlobal = LeftPanel;
             Panel RightPanel = createPanel.CreateMainPanel(mainForm, width * 3 / 4, 0, width / 4, height, BorderStyle.FixedSingle, Color.White);
-            FlowLayoutPanel FlowButtonLayout = createPanel.CreateFlowLayoutPanel(LeftPanel, 0, height / 7, LeftPanel.Width / 6, height * 4 / 7, Color.FromArgb(255, 255, 204), new Padding(20, 10, 0, 0));
-            FlowLayoutPanel FlowTitleLayout = createPanel.CreateFlowLayoutPanel(LeftPanel, LeftPanel.Width / 6, 0, (LeftPanel.Width * 5) / 6, height / 7, Color.FromArgb(255, 255, 204), new Padding(10, 70, 0, 0));
-            Panel MenuBodyLayout = createPanel.CreateSubPanel(LeftPanel, LeftPanel.Width / 6, height / 7, (LeftPanel.Width * 5) / 6, height * 6 / 7, BorderStyle.FixedSingle, Color.FromArgb(255, 255, 204));
+            FlowLayoutPanel FlowButtonLayout = createPanel.CreateFlowLayoutPanel(LeftPanel, 0, height / 7, LeftPanel.Width / 6, height * 4 / 7, Color.Transparent, new Padding(20, 10, 0, 0));
+            FlowLayoutPanel FlowTitleLayout = createPanel.CreateFlowLayoutPanel(LeftPanel, LeftPanel.Width / 6, 0, (LeftPanel.Width * 5) / 6, height / 7, Color.Transparent, new Padding(10, 70, 0, 0));
+            Panel MenuBodyLayout = createPanel.CreateSubPanel(LeftPanel, LeftPanel.Width / 6, height / 7, (LeftPanel.Width * 5) / 6, height * 6 / 7, BorderStyle.FixedSingle, Color.Transparent);
 
+            MainBodyPanelGlobal = MenuBodyLayout;
 
             /**  Top Screen Title */
 
@@ -69,32 +96,21 @@ namespace Ovan_P1
             Color[] saleCategoryButtonColor = constants.getSaleCategoryButtonColor();
             Color[] saleCategoryButtonBorderColor = constants.getSaleCategoryButtonBorderColor();
 
-            int k = 0;
-            foreach (string category in constants.saleCategories)
+            CreateCategoryList(FlowButtonLayout);
+            if (categoryLayoutList[categoryIDGlobal] == 13)
             {
-                string categoryButtonText = category;
-                string categoryButtonName = constants.saleCategories_btnName[k];
-                Color backColor = saleCategoryButtonColor[k];
-                Color borderColor = saleCategoryButtonBorderColor[k];
-                if (k == categoryID)
-                {
-                    borderColor = Color.Red;
-                }
-                int btnLeft = FlowButtonLayout.Left + 10;
-                int btnTop = (FlowButtonLayout.Top + 10) + (FlowButtonLayout.Height / 5) * k;
-                int btnWidth = FlowButtonLayout.Width - 25;
-                int btnHeight = FlowButtonLayout.Height / 5 - 10;
-                int borderSize = 5;
-                Button btn = customButton.CreateButton(categoryButtonText, categoryButtonName, btnLeft, btnTop, btnWidth, btnHeight, backColor, borderColor, borderSize);
-                FlowButtonLayout.Controls.Add(btn);
-                /* btn.Click += new System.EventHandler(this.btnSettingSubClick); */
-                k++;
+                CreateProductsList13();
+            }
+            else if (categoryLayoutList[categoryIDGlobal] == 11)
+            {
+                CreateProductsList11();
+            }
+            else
+            {
+                CreateProductsList();
             }
 
             /** Main Product Panel layout */
-
-            CreateMainProductPanel(MenuBodyLayout);
-            CreateSubProductPanel(MenuBodyLayout);
 
             /** right panel  */
             RightPanel.Padding = new Padding(10, 0, 10, 0);
@@ -105,201 +121,1074 @@ namespace Ovan_P1
 
         }
 
-        private void CreateMainProductPanel(Panel parentPanel)
+        Color[] colorPattn = new Color[8];
+
+        private void CreateCategoryList(FlowLayoutPanel listPanel)
         {
-            int i = 0;
-            int m = 0;
-            for (int k = 0; k < 4; k++)
+            DateTime now = DateTime.Now;
+            string week = now.ToString("ddd");
+            string currentTime = now.ToString("HH:mm");
+            Color[][] colorPattern = constants.pattern_Clr;
+            colorPattn = colorPattern[0];
+            int categoryAmount = categoryNameList.Length;
+            int k = 0;
+            foreach(string categoryName in categoryNameList)
             {
-                Panel Panels = new Panel();
-                Panels.Name = "panel_big_" + k.ToString();
-                Panels.Size = new Size((parentPanel.Width * 2 / 5) - 30, (parentPanel.Height / 3) - 30);
-                if (k % 2 == 0)
+                Color backColor = colorPattern[0][k % 4 + 4];
+                Color borderColor = colorPattern[0][k % 4];
+
+                if (categoryIDGlobal == k)
                 {
-                    Panels.Location = new Point(20, 20 + ((parentPanel.Height / 3) - 10) * i);
-                    i++;
+                    backColor = colorPattern[0][k % 4];
+                    borderColor = Color.Red;
+                    LeftPanelGlobal.BackColor = colorPattern[0][k % 4 + 4];
+                    int btnLeft = listPanel.Left + 10;
+                    int btnTop = (listPanel.Top + 10) + (listPanel.Height / 5) * k;
+                    int btnWidth = listPanel.Width - 25;
+                    int btnHeight = listPanel.Height / categoryAmount - 10;
+                    if (categoryAmount < 6)
+                    {
+                        btnHeight = listPanel.Height / 6 - 10;
+                    }
+
+                    Button_WOC btn = new Button_WOC();
+                    btn.Location = new Point(btnLeft, btnTop);
+                    btn.Size = new Size(btnWidth, btnHeight);
+                    btn.Text = categoryName;
+
+                    btn.Name = "category_" + k;
+                    btn.BackColor = colorPattern[0][categoryIDGlobal % 4 + 4];
+                    btn.ButtonColor = backColor;
+                    btn.FlatAppearance.BorderSize = 0;
+                    btn.FlatStyle = FlatStyle.Flat;
+                    btn.OnHoverButtonColor = colorPattern[0][k % 4 + 4];
+                    btn.OnHoverBorderColor = borderColor;
+                    btn.BorderColor = borderColor;
+                    btn.Font = new Font("Seri", 18F, FontStyle.Bold);
+                    listPanel.Controls.Add(btn);
+                    btn.Invalidate();
+                }
+                else if(categoryDisplayPositionList[k] != categoryDisplayPositionList[categoryIDGlobal])
+                {
+                    if(k == 0)
+                    {
+                        int btnLeft = listPanel.Left + 10;
+                        int btnTop = (listPanel.Top + 10) + (listPanel.Height / 5) * k;
+                        int btnWidth = listPanel.Width - 25;
+                        int btnHeight = listPanel.Height / categoryAmount - 10;
+                        if (categoryAmount < 6)
+                        {
+                            btnHeight = listPanel.Height / 6 - 10;
+                        }
+
+                        Button_WOC btn = new Button_WOC();
+                        btn.Location = new Point(btnLeft, btnTop);
+                        btn.Size = new Size(btnWidth, btnHeight);
+                        btn.Text = categoryName;
+
+                        btn.Name = "category_" + k;
+                        btn.BackColor = colorPattern[0][categoryIDGlobal % 4 + 4];
+                        btn.ButtonColor = backColor;
+                        btn.FlatAppearance.BorderSize = 0;
+                        btn.FlatStyle = FlatStyle.Flat;
+                        btn.OnHoverButtonColor = colorPattern[0][k % 4 + 4];
+                        btn.OnHoverBorderColor = borderColor;
+                        btn.BorderColor = borderColor;
+                        btn.Font = new Font("Seri", 18F, FontStyle.Bold);
+                        listPanel.Controls.Add(btn);
+                        btn.Invalidate();
+                    }
+                    else if(categoryDisplayPositionList[k-1] != categoryDisplayPositionList[k])
+                    {
+                        int btnLeft = listPanel.Left + 10;
+                        int btnTop = (listPanel.Top + 10) + (listPanel.Height / 5) * k;
+                        int btnWidth = listPanel.Width - 25;
+                        int btnHeight = listPanel.Height / categoryAmount - 10;
+                        if (categoryAmount < 6)
+                        {
+                            btnHeight = listPanel.Height / 6 - 10;
+                        }
+
+                        Button_WOC btn = new Button_WOC();
+                        btn.Location = new Point(btnLeft, btnTop);
+                        btn.Size = new Size(btnWidth, btnHeight);
+                        btn.Text = categoryName;
+
+                        btn.Name = "category_" + k;
+                        btn.BackColor = colorPattern[0][categoryIDGlobal % 4 + 4];
+                        btn.ButtonColor = backColor;
+                        btn.FlatAppearance.BorderSize = 0;
+                        btn.FlatStyle = FlatStyle.Flat;
+                        btn.OnHoverButtonColor = colorPattern[0][k % 4 + 4];
+                        btn.OnHoverBorderColor = borderColor;
+                        btn.BorderColor = borderColor;
+                        btn.Font = new Font("Seri", 18F, FontStyle.Bold);
+                        listPanel.Controls.Add(btn);
+                        btn.Invalidate();
+                    }
+                }
+
+                k++;
+
+
+            }
+
+        }
+
+
+        private void CreateProductsList11()
+        {
+            MainBodyPanelGlobal.Controls.Clear();
+            int w1 = (MainBodyPanelGlobal.Width - 100) / 5;
+            int h1 = (MainBodyPanelGlobal.Height - 80) / 5;
+            nWidth = 3 * w1 + 40;
+            nHeight = 3 * h1 + 40;
+            nHeight1 = h1;
+            nWidth1 = w1;
+            nHeight2 = 2 * h1 + 20;
+            nWidth2 = 2 * w1 + 20;
+            nHeight3 = h1;
+            nWidth3 = 2 * w1 + 20;
+            DateTime now = DateTime.Now;
+            string week = now.ToString("ddd");
+            string currentTime = now.ToString("HH:mm");
+
+            p_ProductCon = new Panel[categoryLayoutList[categoryIDGlobal]];
+            pb_Image = new PictureBox[categoryLayoutList[categoryIDGlobal]];
+            bl_Name = new BorderLabel[categoryLayoutList[categoryIDGlobal]];
+            bl_Price = new BorderLabel[categoryLayoutList[categoryIDGlobal]];
+
+
+            for (int i = 0; i < categoryLayoutList[categoryIDGlobal]; i++)
+            {
+                string bgColor = "ffffff00";
+                string foreColor = "ff000000";
+                string borderColor = "ff223300";
+                int prdID = 0;
+                string prdName = "";
+                int prdLimitedCnt = 0;
+                int prdPrice = 0;
+                string prdImageUrl = "";
+                int prdImageX = 0;
+                int prdImageY = 0;
+                int prdImageWidth = 0;
+                int prdImageHeight = 0;
+                int prdBadgeX = 0;
+                int prdBadgeY = 0;
+                int prdBadgeWidth = 0;
+                int prdBadgeHeight = 0;
+                string prdBadgeUrl = "";
+                int prdNameX = 0;
+                int prdNameY = 0;
+                int prdPriceX = 0;
+                int prdPriceY = 0;
+                int soldFlag = 0;
+                int prdRestAmount = 0;
+
+                if (sqlite_conn.State == ConnectionState.Closed)
+                {
+                    sqlite_conn.Open();
+                }
+                SQLiteDataReader sqlite_datareader;
+                SQLiteCommand sqlite_cmd;
+                sqlite_cmd = sqlite_conn.CreateCommand();
+                string queryCmd = "SELECT * FROM " + constants.tbNames[2] + " WHERE CategoryID=@CategoryID and CardNumber=@CardNumber ORDER BY CardNumber";
+                sqlite_cmd.CommandText = queryCmd;
+                sqlite_cmd.Parameters.AddWithValue("@CategoryID", categoryIDList[categoryIDGlobal]);
+                sqlite_cmd.Parameters.AddWithValue("@CardNumber", i + 1);
+
+                sqlite_datareader = sqlite_cmd.ExecuteReader();
+
+                while (sqlite_datareader.Read())
+                {
+                    string openTime = "";
+                    if (week == "Sat")
+                    {
+                        openTime = sqlite_datareader.GetString(6);
+                    }
+                    else if (week == "Sun")
+                    {
+                        openTime = sqlite_datareader.GetString(7);
+                    }
+                    else
+                    {
+                        openTime = sqlite_datareader.GetString(5);
+                    }
+                    string[] openTimeArr = openTime.Split('/');
+                    foreach (string openTimeArrItem in openTimeArr)
+                    {
+                        string[] openTimeSubArr = openTimeArrItem.Split('-');
+                        if (String.Compare(openTimeSubArr[0], currentTime) <= 0 && String.Compare(openTimeSubArr[1], currentTime) >= 0)
+                        {
+                            prdID = sqlite_datareader.GetInt32(0);
+                            prdName = sqlite_datareader.GetString(3);
+                            prdPrice = sqlite_datareader.GetInt32(8);
+                            prdLimitedCnt = sqlite_datareader.GetInt32(9);
+                            prdImageUrl = sqlite_datareader.GetString(11);
+                            prdImageX = sqlite_datareader.GetInt32(15);
+                            prdImageY = sqlite_datareader.GetInt32(16);
+                            prdImageWidth = sqlite_datareader.GetInt32(17);
+                            prdImageHeight = sqlite_datareader.GetInt32(18);
+                            prdBadgeX = sqlite_datareader.GetInt32(19);
+                            prdBadgeY = sqlite_datareader.GetInt32(20);
+                            prdBadgeWidth = sqlite_datareader.GetInt32(21);
+                            prdBadgeHeight = sqlite_datareader.GetInt32(22);
+                            prdBadgeUrl = sqlite_datareader.GetString(23);
+                            prdNameX = sqlite_datareader.GetInt32(24);
+                            prdNameY = sqlite_datareader.GetInt32(25);
+                            prdPriceX = sqlite_datareader.GetInt32(26);
+                            prdPriceY = sqlite_datareader.GetInt32(27);
+                            bgColor = sqlite_datareader.GetString(28);
+                            foreColor = sqlite_datareader.GetString(29);
+                            borderColor = sqlite_datareader.GetString(30);
+                            soldFlag = sqlite_datareader.GetInt32(31);
+                            SQLiteDataReader sqlite_datareader1;
+                            SQLiteCommand sqlite_cmd1;
+                            sqlite_cmd1 = sqlite_conn.CreateCommand();
+                            string queryCmd1 = "SELECT SUM(prdAmount) as prdRestAmount FROM " + constants.tbNames[3] + " WHERE categoryID=@CategoryID and prdID=@prdID";
+                            sqlite_cmd1.CommandText = queryCmd1;
+                            sqlite_cmd1.Parameters.AddWithValue("@CategoryID", categoryIDList[categoryIDGlobal]);
+                            sqlite_cmd1.Parameters.AddWithValue("@prdID", prdID);
+
+                            sqlite_datareader1 = sqlite_cmd1.ExecuteReader();
+                            while (sqlite_datareader1.Read())
+                            {
+                                if (prdLimitedCnt != 0)
+                                {
+                                    if (!sqlite_datareader1.IsDBNull(0))
+                                    {
+                                        prdRestAmount = prdLimitedCnt - sqlite_datareader1.GetInt32(0);
+                                    }
+                                    else
+                                    {
+                                        prdRestAmount = prdLimitedCnt;
+                                    }
+                                }
+                                else
+                                {
+                                    prdRestAmount = 10000;
+                                }
+                            }
+
+                            break;
+                        }
+                    }
+
+                }
+
+                Panel p = new Panel();
+                borderPen = new Pen(borderClr, 3);
+                BackgroundBitmap = null;
+                if (i == 0)
+                {
+                    p = createPanel.CreatePanelForProducts(0, 0, nWidth, nHeight, i.ToString(), true, borderClr, Color.White);
+                    BackgroundBitmap = new Bitmap(nWidth, nHeight);
+                    p.Paint += new PaintEventHandler(panelbordercolor2_Paint);
+                }
+                else if (i == 1)
+                {
+                    p = createPanel.CreatePanelForProducts(nWidth + 20, 0, nWidth2, nHeight2, i.ToString(), true, borderClr, Color.White);
+                    BackgroundBitmap = new Bitmap(nWidth2, nHeight2);
+                    p.Paint += new PaintEventHandler(panelbordercolor3_Paint);
+                }
+                else if (i == 2 || i == 6 || i == 10)
+                {
+                    int hh = 2 * h1 + 40;
+                    if (i == 6) hh = 3 * h1 + 60;
+                    if (i == 10) hh = 4 * h1 + 80;
+                    p = createPanel.CreatePanelForProducts(nWidth + 20, hh, nWidth3, nHeight3, i.ToString(), true, borderClr, Color.White);
+                    BackgroundBitmap = new Bitmap(nWidth3, nHeight3);
+                    p.Paint += new PaintEventHandler(panelbordercolor4_Paint);
+                }
+                else if (i < 6)
+                {
+                    p = createPanel.CreatePanelForProducts((i - 3) * w1 + (i - 3) * 20, nHeight + 20, w1, h1, i.ToString(), true, borderClr, Color.White);
+                    BackgroundBitmap = new Bitmap(w1, h1);
+                    p.Paint += new PaintEventHandler(panelbordercolor_Paint);
                 }
                 else
                 {
-                    Panels.Location = new Point((parentPanel.Width * 2 / 5) + 10, 20 + ((parentPanel.Height / 3) - 10) * m);
-                    m++;
+                    p = createPanel.CreatePanelForProducts((i - 7) * w1 + (i - 7) * 20, nHeight + h1 + 40, w1, h1, i.ToString(), true, borderClr, Color.White);
+                    BackgroundBitmap = new Bitmap(w1, h1);
+                    p.Paint += new PaintEventHandler(panelbordercolor_Paint);
                 }
-                Panels.BorderStyle = BorderStyle.FixedSingle;
-                Panels.BackColor = Color.White;
+                int h = p.Width - 100 > p.Height - 60 ? (p.Height - 60) / 5 : (p.Width - 100) / 5 - 10;
+                h = (h == 0) ? 11 : h;
+                int y = (p.Height - 60) / 5;
+                if (p.Width - 100 < p.Height - 60) y = (p.Height - 60 - h - 3) / 4;
+                int ftSize = 2 * h / 3;
 
-                PanelGlobal1 = Panels;
-                Panels.Paint += new PaintEventHandler(this.panel_Paint1);
+                Color clr = bgColor != null ? HexToColor(bgColor) : Color.White;
+                SetBackgroundColor(clr);
 
-                parentPanel.Controls.Add(Panels);
+                pb_Image[i] = createPanel.CreatePictureBox(3, 3, p.Width - 6, p.Height - 6, i.ToString(), null);
 
-                string productName = constants.productBigName[categoryIDGlobal][k];
-                int productPrice = constants.productBigPrice[categoryIDGlobal][k];
+                rc.X = p.Width / 6;
+                rc.Y = p.Height / 6;
+                rc.Width = 2 * p.Width / 3;
+                rc.Height = 2 * p.Height / 3;
 
-                // add Images into menu panel
-                if (constants.productBigImageUrl[k] != "")
+                if (prdImageWidth != 0 && prdImageHeight != 0)
+                    rc = new Rectangle(prdImageX, prdImageY, prdImageWidth, prdImageHeight);
+
+                Bitmap bm = null;
+                if (prdImageUrl != "" && prdImageUrl != null)
+                    bm = ShowCombinedImage(BackgroundBitmap, new Bitmap(prdImageUrl) /*imgUrl[i]*/, rc);
+
+                rc.X = p.Width / 2;
+                rc.Y = p.Height / 6;
+                rc.Width = p.Width / 3;
+                rc.Height = p.Height / 3;
+
+                if (prdBadgeWidth != 0 && prdBadgeHeight != 0)
+                    rc = new Rectangle(prdBadgeX, prdBadgeY, prdBadgeWidth, prdBadgeHeight);
+
+                if (prdBadgeUrl != "" && prdBadgeUrl != null)
                 {
-                    string bigImageUrl = constants.productBigImageUrl[k];
-                    AddImageOnPanel(Panels, bigImageUrl, productName, productPrice, k, "big");
-                }
-                if (constants.productBigBadgeImageUrl[k] != "")
-                {
-                    string badgeImageUrl = constants.productBigBadgeImageUrl[k];
-                    AddImageOnPanelBadge(Panels, badgeImageUrl, k, "big");
+                    string markPath = prdBadgeUrl;
+                    bm = ShowCombinedImage(bm, (Bitmap)Image.FromFile(@markPath), rc);
                 }
 
-                // modal dialog show
-                MainPanel = Panels;
+                if (soldFlag == 1 || (prdLimitedCnt != 0 && prdRestAmount == 0))
+                {
+                    rc.X = p.Width / 6;
+                    rc.Y = p.Height / 6;
+                    rc.Width = 2 * p.Width / 3;
+                    rc.Height = 2 * p.Height / 3;
+
+                    if (prdImageWidth != 0 && prdImageHeight != 0)
+                        rc = new Rectangle(prdImageX, prdImageY, prdImageWidth, prdImageHeight);
+                    bm = ShowCombinedImage(bm, (Bitmap)Image.FromFile(constants.soldoutBadge), rc);
+                    pb_Image[i].Enabled = false;
+
+                }
+
+                pb_Image[i].Image = bm;
+
+                Font font = new Font("Series", ftSize, FontStyle.Bold, GraphicsUnit.Point, ((byte)(0)));
+                Point pt = new Point(p.Width / 2 - /*category[0, i].Length/2*/4 * ftSize - 7, 3 * (pb_Image[i].Height) / 5);
+                if (prdNameX != 0 && prdNameY != 0)
+                    pt = new Point(prdNameX, prdNameY);
+
+                bl_Name[i] = createLabel.CreateBorderLabel(pt.X, pt.Y, ftSize * 8/*category[0,i].Length*/ , pb_Image[i].Height / 5, i.ToString(), /*category[0, i], */ prdName, HexToColor(borderColor), 1, font, HexToColor(foreColor));
+
+                pt = new Point(p.Width / 2 - /*category[1, i].Length/2*/1 * ftSize - 7, 4 * (pb_Image[i].Height) / 5);
+                if (prdPriceX != 0 && prdPriceY != 0)
+                    pt = new Point(prdPriceX, prdPriceY);
+
+                string prdPriceStr = (prdPrice == 0) ? "" : prdPrice.ToString();
+
+                bl_Price[i] = createLabel.CreateBorderLabel(pt.X, pt.Y, ftSize * 3/*category[1,i].Length*/ + 20, pb_Image[i].Height / 5, i.ToString(), /*category[1, i], */ prdPriceStr, HexToColor(borderColor), 1, font, HexToColor(foreColor));
+
+                if (prdName == "" || prdPriceStr == "")
+                {
+                    pb_Image[i].Enabled = false;
+                    bl_Name[i].Enabled = false;
+                    bl_Price[i].Enabled = false;
+                }
+
+                pb_Image[i].Controls.Add(bl_Name[i]);
+                pb_Image[i].Controls.Add(bl_Price[i]);
+
+                p.Controls.Add(pb_Image[i]);
+
+                MainBodyPanelGlobal.Controls.Add(p);
+                p_ProductCon[i] = p;
             }
-            // return Panel;
         }
 
-
-        private void CreateSubProductPanel(Panel parentPanel)
+        private void CreateProductsList13()
         {
-            for (int k = 0; k < 4; k++)
+            MainBodyPanelGlobal.Controls.Clear();
+            int w1 = (MainBodyPanelGlobal.Width - 100) / 5;
+            int h1 = (MainBodyPanelGlobal.Height - 80) / 5;
+            nWidth = 2 * w1 + 20;
+            nHeight = 2 * h1 + 20;
+            nHeight1 = h1;
+            nWidth1 = w1;
+            DateTime now = DateTime.Now;
+            string week = now.ToString("ddd");
+            string currentTime = now.ToString("HH:mm");
+
+            p_ProductCon = new Panel[categoryLayoutList[categoryIDGlobal]];
+            pb_Image = new PictureBox[categoryLayoutList[categoryIDGlobal]];
+            bl_Name = new BorderLabel[categoryLayoutList[categoryIDGlobal]];
+            bl_Price = new BorderLabel[categoryLayoutList[categoryIDGlobal]];
+
+
+            for (int i = 0; i < categoryLayoutList[categoryIDGlobal]; i++)
             {
-                Panel Panel0 = new Panel();
-                Panel0.Name = "panel_small_" + k.ToString();
+                string bgColor = "ffffff00";
+                string foreColor = "ff000000";
+                string borderColor = "ff223300";
+                int prdID = 0;
+                string prdName = "";
+                int prdLimitedCnt = 0;
+                int prdPrice = 0;
+                string prdImageUrl = "";
+                int prdImageX = 0;
+                int prdImageY = 0;
+                int prdImageWidth = 0;
+                int prdImageHeight = 0;
+                int prdBadgeX = 0;
+                int prdBadgeY = 0;
+                int prdBadgeWidth = 0;
+                int prdBadgeHeight = 0;
+                string prdBadgeUrl = "";
+                int prdNameX = 0;
+                int prdNameY = 0;
+                int prdPriceX = 0;
+                int prdPriceY = 0;
+                int soldFlag = 0;
+                int prdRestAmount = 0;
 
-                Panel0.Size = new Size((parentPanel.Width / 5) - 25, (parentPanel.Height / 6) - 25);
-                Panel0.Location = new Point((parentPanel.Width * 4 / 5), 20 + (parentPanel.Height / 6 - 5) * k);
-                Panel0.BorderStyle = BorderStyle.FixedSingle;
-                Panel0.BackColor = Color.White;
-
-                Panel0.Paint += new PaintEventHandler(this.panel_Paint);
-                PanelGlobal = Panel0;
-                //Color.FromArgb(255, 79, 129, 189);
-                parentPanel.Controls.Add(Panel0);
-
-                string productName = constants.productSmallName[k];
-                int productPrice = constants.productSmallPrice[k];
-
-                if (constants.productSmallImageUrl[k] != "")
+                if (sqlite_conn.State == ConnectionState.Closed)
                 {
-                    string smallImageUrl = constants.productSmallImageUrl[k];
-                    AddImageOnPanel(Panel0, smallImageUrl, productName, productPrice, k, "small");
+                    sqlite_conn.Open();
                 }
-                if (constants.productSmallBadgeImageUrl[k] != "")
+                SQLiteDataReader sqlite_datareader;
+                SQLiteCommand sqlite_cmd;
+                sqlite_cmd = sqlite_conn.CreateCommand();
+                string queryCmd = "SELECT * FROM " + constants.tbNames[2] + " WHERE CategoryID=@CategoryID and CardNumber=@CardNumber ORDER BY CardNumber";
+                sqlite_cmd.CommandText = queryCmd;
+                sqlite_cmd.Parameters.AddWithValue("@CategoryID", categoryIDList[categoryIDGlobal]);
+                sqlite_cmd.Parameters.AddWithValue("@CardNumber", i + 1);
+
+                sqlite_datareader = sqlite_cmd.ExecuteReader();
+
+                while (sqlite_datareader.Read())
                 {
-                    string smallImageUrl = constants.productSmallBadgeImageUrl[k];
-                    AddImageOnPanelBadge(Panel0, smallImageUrl, k, "small");
+                    string openTime = "";
+                    if (week == "Sat")
+                    {
+                        openTime = sqlite_datareader.GetString(6);
+                    }
+                    else if (week == "Sun")
+                    {
+                        openTime = sqlite_datareader.GetString(7);
+                    }
+                    else
+                    {
+                        openTime = sqlite_datareader.GetString(5);
+                    }
+                    string[] openTimeArr = openTime.Split('/');
+                    foreach (string openTimeArrItem in openTimeArr)
+                    {
+                        string[] openTimeSubArr = openTimeArrItem.Split('-');
+                        if (String.Compare(openTimeSubArr[0], currentTime) <= 0 && String.Compare(openTimeSubArr[1], currentTime) >= 0)
+                        {
+                            prdID = sqlite_datareader.GetInt32(0);
+                            prdName = sqlite_datareader.GetString(3);
+                            prdPrice = sqlite_datareader.GetInt32(8);
+                            prdLimitedCnt = sqlite_datareader.GetInt32(9);
+                            prdImageUrl = sqlite_datareader.GetString(11);
+                            prdImageX = sqlite_datareader.GetInt32(15);
+                            prdImageY = sqlite_datareader.GetInt32(16);
+                            prdImageWidth = sqlite_datareader.GetInt32(17);
+                            prdImageHeight = sqlite_datareader.GetInt32(18);
+                            prdBadgeX = sqlite_datareader.GetInt32(19);
+                            prdBadgeY = sqlite_datareader.GetInt32(20);
+                            prdBadgeWidth = sqlite_datareader.GetInt32(21);
+                            prdBadgeHeight = sqlite_datareader.GetInt32(22);
+                            prdBadgeUrl = sqlite_datareader.GetString(23);
+                            prdNameX = sqlite_datareader.GetInt32(24);
+                            prdNameY = sqlite_datareader.GetInt32(25);
+                            prdPriceX = sqlite_datareader.GetInt32(26);
+                            prdPriceY = sqlite_datareader.GetInt32(27);
+                            bgColor = sqlite_datareader.GetString(28);
+                            foreColor = sqlite_datareader.GetString(29);
+                            borderColor = sqlite_datareader.GetString(30);
+                            soldFlag = sqlite_datareader.GetInt32(31);
+
+                            SQLiteDataReader sqlite_datareader1;
+                            SQLiteCommand sqlite_cmd1;
+                            sqlite_cmd1 = sqlite_conn.CreateCommand();
+                            string queryCmd1 = "SELECT SUM(prdAmount) as prdRestAmount FROM " + constants.tbNames[3] + " WHERE categoryID=@CategoryID and prdID=@prdID";
+                            sqlite_cmd1.CommandText = queryCmd1;
+                            sqlite_cmd1.Parameters.AddWithValue("@CategoryID", categoryIDList[categoryIDGlobal]);
+                            sqlite_cmd1.Parameters.AddWithValue("@prdID", prdID);
+
+                            sqlite_datareader1 = sqlite_cmd1.ExecuteReader();
+                            while (sqlite_datareader1.Read())
+                            {
+                                if (prdLimitedCnt != 0)
+                                {
+                                    if (!sqlite_datareader1.IsDBNull(0))
+                                    {
+                                        prdRestAmount = prdLimitedCnt - sqlite_datareader1.GetInt32(0);
+                                    }
+                                    else
+                                    {
+                                        prdRestAmount = prdLimitedCnt;
+                                    }
+                                }
+                                else
+                                {
+                                    prdRestAmount = 1000;
+                                }
+                            }
+
+                            break;
+                        }
+                    }
+
                 }
 
-
-            }
-            for (int k = 0; k < 5; k++)
-            {
-                Panel Panel1 = new Panel();
-                Panel1.Name = "panel_small_" + (k + 4).ToString();
-                Panel1.Size = new Size((parentPanel.Width / 5) - 25, (parentPanel.Height / 6) - 25);
-                Panel1.Location = new Point(20 + ((parentPanel.Width / 5) - 5) * k, (parentPanel.Height * 2 / 3));
-                Panel1.BorderStyle = BorderStyle.FixedSingle;
-                Panel1.BackColor = Color.White;
-                PanelGlobal = Panel1;
-                Panel1.Paint += new PaintEventHandler(this.panel_Paint);
-                //Color.FromArgb(255, 79, 129, 189);
-                parentPanel.Controls.Add(Panel1);
-
-                string productName = constants.productSmallName[k + 4];
-                int productPrice = constants.productSmallPrice[k + 4];
-
-                if (constants.productSmallImageUrl[k + 4] != "")
+                Panel p = new Panel();
+                borderPen = new Pen(borderClr, 3);
+                BackgroundBitmap = null;
+                if (i == 0 || i == 1)
                 {
-                    string smallImageUrl = constants.productSmallImageUrl[k + 4];
-                    AddImageOnPanel(Panel1, smallImageUrl, productName, productPrice, k + 4, "small");
+                    p = createPanel.CreatePanelForProducts(i * (2 * w1 + 20) + i * 20, 0, 2 * w1 + 20, 2 * h1 + 20, i.ToString(), true, borderClr, Color.White);
+                    BackgroundBitmap = new Bitmap(2 * w1 + 20, 2 * h1 + 20);
+                    p.Paint += new PaintEventHandler(panelbordercolor2_Paint);
                 }
-                if (constants.productSmallBadgeImageUrl[k + 4] != "")
+                else if (i == 2 || i == 3)
                 {
-                    string smallImageUrl = constants.productSmallBadgeImageUrl[k + 4];
-                    AddImageOnPanelBadge(Panel1, smallImageUrl, k + 4, "small");
+                    p = createPanel.CreatePanelForProducts(2 * (2 * w1 + 20) + 2 * 20, (i - 2) * (h1 + 20), w1, h1, i.ToString(), true, borderClr, Color.White);
+                    BackgroundBitmap = new Bitmap(w1, h1);
+                    p.Paint += new PaintEventHandler(panelbordercolor_Paint);
+                }
+                else if (i == 4 || i == 5)
+                {
+                    p = createPanel.CreatePanelForProducts((i - 4) * (2 * w1 + 20) + (i - 4) * 20, 2 * h1 + 40, 2 * w1 + 20, 2 * h1 + 20, i.ToString(), true, borderClr, Color.White);
+                    BackgroundBitmap = new Bitmap(2 * w1 + 20, 2 * h1 + 20);
+                    p.Paint += new PaintEventHandler(panelbordercolor2_Paint);
+                }
+                else if (i == 6 || i == 7)
+                {
+                    p = createPanel.CreatePanelForProducts(2 * (2 * w1 + 20) + 2 * 20, (i - 4) * (h1 + 20), w1, h1, i.ToString(), true, borderClr, Color.White);
+                    BackgroundBitmap = new Bitmap(w1, h1);
+                    p.Paint += new PaintEventHandler(panelbordercolor_Paint);
+                }
+                else
+                {
+                    p = createPanel.CreatePanelForProducts((i - 8) * w1 + (i - 8) * 20, 2 * (2 * h1 + 40), w1, h1, i.ToString(), true, borderClr, Color.White);
+                    BackgroundBitmap = new Bitmap(w1, h1);
+                    p.Paint += new PaintEventHandler(panelbordercolor_Paint);
                 }
 
+                // Get font size to fit the specified card...
+                int h = p.Width - 100 > p.Height - 60 ? (p.Height - 60) / 5 : (p.Width - 100) / 5 - 10;
+                h = (h == 0) ? 11 : h;
+                int y = (p.Height - 60) / 5;
+                if (p.Width - 100 < p.Height - 60) y = (p.Height - 60 - h - 3) / 4;
+
+                int ftSize = 2 * h / 3;
+                ///////////////////////////////////////////////////////////
+                ///
+                Color clr = bgColor != null ? HexToColor(bgColor) : Color.White;
+                SetBackgroundColor(clr);
+
+                pb_Image[i] = createPanel.CreatePictureBox(3, 3, p.Width - 6, p.Height - 6, i.ToString(), null);
+
+                rc.X = p.Width / 6;
+                rc.Y = p.Height / 6;
+                rc.Width = 2 * p.Width / 3;
+                rc.Height = 2 * p.Height / 3;
+
+                if (prdImageWidth != 0 && prdImageHeight != 0)
+                    rc = new Rectangle(prdImageX, prdImageY, prdImageWidth, prdImageHeight);
+
+                Bitmap bm = null;
+                if (prdImageUrl != "" && prdImageUrl != null)
+                    bm = ShowCombinedImage(BackgroundBitmap, new Bitmap(prdImageUrl) /*imgUrl[i]*/, rc);
+
+                rc.X = p.Width / 2;
+                rc.Y = p.Height / 6;
+                rc.Width = p.Width / 3;
+                rc.Height = p.Height / 3;
+
+                if (prdBadgeWidth != 0 && prdBadgeHeight != 0)
+                    rc = new Rectangle(prdBadgeX, prdBadgeY, prdBadgeWidth, prdBadgeHeight);
+
+                if (prdBadgeUrl != "" && prdBadgeUrl != null)
+                {
+                    string markPath = prdBadgeUrl;
+                    bm = ShowCombinedImage(bm, (Bitmap)Image.FromFile(@markPath), rc);
+                }
+
+                if (soldFlag == 1 || (prdLimitedCnt != 0 && prdRestAmount == 0))
+                {
+                    rc.X = p.Width / 6;
+                    rc.Y = p.Height / 6;
+                    rc.Width = 2 * p.Width / 3;
+                    rc.Height = 2 * p.Height / 3;
+
+                    if (prdImageWidth != 0 && prdImageHeight != 0)
+                        rc = new Rectangle(prdImageX, prdImageY, prdImageWidth, prdImageHeight);
+                    bm = ShowCombinedImage(bm, (Bitmap)Image.FromFile(constants.soldoutBadge), rc);
+                    pb_Image[i].Enabled = false;
+
+                }
+
+
+                pb_Image[i].Image = bm;
+
+                Font font = new Font("Series", ftSize, FontStyle.Bold, GraphicsUnit.Point, ((byte)(0)));
+                Point pt = new Point(p.Width / 2 - /*category[0, i].Length/2*/4 * ftSize - 7, 3 * (pb_Image[i].Height) / 5);
+                if (prdNameX != 0 && prdNameY != 0)
+                    pt = new Point(prdNameX, prdNameY);
+
+                bl_Name[i] = createLabel.CreateBorderLabel(pt.X, pt.Y, ftSize * 8/*category[0,i].Length*/ , pb_Image[i].Height / 5, i.ToString(), /*category[0, i], */ prdName, HexToColor(borderColor), 1, font, HexToColor(foreColor));
+
+                pt = new Point(p.Width / 2 - /*category[1, i].Length/2*/1 * ftSize - 7, 4 * (pb_Image[i].Height) / 5);
+                if (prdPriceX != 0 && prdPriceY != 0)
+                    pt = new Point(prdPriceX, prdPriceY);
+
+                string prdPriceStr = (prdPrice == 0) ? "" : prdPrice.ToString();
+                bl_Price[i] = createLabel.CreateBorderLabel(pt.X, pt.Y, ftSize * 3/*category[1,i].Length*/ + 20, pb_Image[i].Height / 5, i.ToString(), /*category[1, i], */ prdPriceStr, HexToColor(borderColor), 1, font, HexToColor(foreColor));
+
+                if (prdName == "" || prdPriceStr == "")
+                {
+                    pb_Image[i].Enabled = false;
+                    bl_Name[i].Enabled = false;
+                    bl_Price[i].Enabled = false;
+                }
+
+                pb_Image[i].Controls.Add(bl_Name[i]);
+                pb_Image[i].Controls.Add(bl_Price[i]);
+
+                p.Controls.Add(pb_Image[i]);
+                MainBodyPanelGlobal.Controls.Add(p);
+
+                p_ProductCon[i] = p;
             }
         }
 
-        private void panel_Paint(object sender, PaintEventArgs e)
+
+        private void CreateProductsList()
         {
-            if (PanelGlobal.BorderStyle == BorderStyle.FixedSingle)
+            MainBodyPanelGlobal.Controls.Clear();
+            int nWD = 0, nHD = 0;
+            if (categoryLayoutList[categoryIDGlobal] == 25 || categoryLayoutList[categoryIDGlobal] == 16 || categoryLayoutList[categoryIDGlobal] == 9 || categoryLayoutList[categoryIDGlobal] == 4)
+                nWD = nHD = (int)Math.Sqrt((double)categoryLayoutList[categoryIDGlobal]);
+            if (categoryLayoutList[categoryIDGlobal] == 10) { nWD = 2; nHD = 5; }
+            if (categoryLayoutList[categoryIDGlobal] == 6) { nWD = 3; nHD = 2; }
+            if (categoryLayoutList[categoryIDGlobal] == 8) { nWD = 4; nHD = 2; }
+            if (categoryLayoutList[categoryIDGlobal] == 20) { nWD = 5; nHD = 4; }
+
+            int w1 = (MainBodyPanelGlobal.Width - 20 * nWD) / nWD;
+            int h1 = (MainBodyPanelGlobal.Height - 20 * (nHD - 1)) / nHD;
+            if (categoryLayoutList[categoryIDGlobal] == 10)
+                w1 = (MainBodyPanelGlobal.Width - 50 * nWD) / nWD;
+
+            nHeight1 = h1;
+            nWidth1 = w1;
+            DateTime now = DateTime.Now;
+            string week = now.ToString("ddd");
+            string currentTime = now.ToString("HH:mm");
+
+            p_ProductCon = new Panel[categoryLayoutList[categoryIDGlobal]];
+            pb_Image = new PictureBox[categoryLayoutList[categoryIDGlobal]];
+            bl_Name = new BorderLabel[categoryLayoutList[categoryIDGlobal]];
+            bl_Price = new BorderLabel[categoryLayoutList[categoryIDGlobal]];
+
+            for (int i = 0; i < categoryLayoutList[categoryIDGlobal]; i++)
             {
-                int thickness = 5;//it's up to you
-                int halfThickness = thickness / 2;
-                using (Pen p = new Pen(Color.FromArgb(255, 79, 129, 189), thickness))
+                string bgColor = "ffffff00";
+                string foreColor = "ff000000";
+                string borderColor = "ff223300";
+                int prdID = 0;
+                string prdName = "";
+                int prdPrice = 0;
+                string prdImageUrl = "";
+                int prdImageX = 0;
+                int prdImageY = 0;
+                int prdImageWidth = 0;
+                int prdImageHeight = 0;
+                int prdBadgeX = 0;
+                int prdBadgeY = 0;
+                int prdBadgeWidth = 0;
+                int prdBadgeHeight = 0;
+                string prdBadgeUrl = "";
+                int prdNameX = 0;
+                int prdNameY = 0;
+                int prdPriceX = 0;
+                int prdPriceY = 0;
+                int soldFlag = 0;
+                int prdLimitedCnt = 0;
+                int prdRestAmount = 0;
+
+                if (sqlite_conn.State == ConnectionState.Closed)
                 {
-                    e.Graphics.DrawRectangle(p, new Rectangle(halfThickness,
-                                                              halfThickness,
-                                                              PanelGlobal.ClientSize.Width - thickness,
-                                                              PanelGlobal.ClientSize.Height - thickness));
+                    sqlite_conn.Open();
+                }
+                SQLiteDataReader sqlite_datareader;
+                SQLiteCommand sqlite_cmd;
+                sqlite_cmd = sqlite_conn.CreateCommand();
+                string queryCmd = "SELECT * FROM " + constants.tbNames[2] + " WHERE CategoryID=@CategoryID and CardNumber=@CardNumber ORDER BY CardNumber";
+                sqlite_cmd.CommandText = queryCmd;
+                sqlite_cmd.Parameters.AddWithValue("@CategoryID", categoryIDList[categoryIDGlobal]);
+                sqlite_cmd.Parameters.AddWithValue("@CardNumber", i + 1);
+
+                sqlite_datareader = sqlite_cmd.ExecuteReader();
+
+                while (sqlite_datareader.Read())
+                {
+                    string openTime = "";
+                    if (week == "Sat")
+                    {
+                        openTime = sqlite_datareader.GetString(6);
+                    }
+                    else if (week == "Sun")
+                    {
+                        openTime = sqlite_datareader.GetString(7);
+                    }
+                    else
+                    {
+                        openTime = sqlite_datareader.GetString(5);
+                    }
+                    string[] openTimeArr = openTime.Split('/');
+                    foreach (string openTimeArrItem in openTimeArr)
+                    {
+                        string[] openTimeSubArr = openTimeArrItem.Split('-');
+                        if (String.Compare(openTimeSubArr[0], currentTime) <= 0 && String.Compare(openTimeSubArr[1], currentTime) >= 0)
+                        {
+                            prdID = sqlite_datareader.GetInt32(0);
+                            prdName = sqlite_datareader.GetString(3);
+                            prdPrice = sqlite_datareader.GetInt32(8);
+                            prdLimitedCnt = sqlite_datareader.GetInt32(9);
+                            prdImageUrl = sqlite_datareader.GetString(11);
+                            prdImageX = sqlite_datareader.GetInt32(15);
+                            prdImageY = sqlite_datareader.GetInt32(16);
+                            prdImageWidth = sqlite_datareader.GetInt32(17);
+                            prdImageHeight = sqlite_datareader.GetInt32(18);
+                            prdBadgeX = sqlite_datareader.GetInt32(19);
+                            prdBadgeY = sqlite_datareader.GetInt32(20);
+                            prdBadgeWidth = sqlite_datareader.GetInt32(21);
+                            prdBadgeHeight = sqlite_datareader.GetInt32(22);
+                            prdBadgeUrl = sqlite_datareader.GetString(23);
+                            prdNameX = sqlite_datareader.GetInt32(24);
+                            prdNameY = sqlite_datareader.GetInt32(25);
+                            prdPriceX = sqlite_datareader.GetInt32(26);
+                            prdPriceY = sqlite_datareader.GetInt32(27);
+                            bgColor = sqlite_datareader.GetString(28);
+                            foreColor = sqlite_datareader.GetString(29);
+                            borderColor = sqlite_datareader.GetString(30);
+                            soldFlag = sqlite_datareader.GetInt32(31);
+                            SQLiteDataReader sqlite_datareader1;
+                            SQLiteCommand sqlite_cmd1;
+                            sqlite_cmd1 = sqlite_conn.CreateCommand();
+                            string queryCmd1 = "SELECT SUM(prdAmount) as prdRestAmount FROM " + constants.tbNames[3] + " WHERE categoryID=@CategoryID and prdID=@prdID";
+                            sqlite_cmd1.CommandText = queryCmd1;
+                            sqlite_cmd1.Parameters.AddWithValue("@CategoryID", categoryIDList[categoryIDGlobal]);
+                            sqlite_cmd1.Parameters.AddWithValue("@prdID", prdID);
+
+                            sqlite_datareader1 = sqlite_cmd1.ExecuteReader();
+                            while (sqlite_datareader1.Read())
+                            {
+                                if (prdLimitedCnt != 0)
+                                {
+                                    if (!sqlite_datareader1.IsDBNull(0))
+                                    {
+                                        prdRestAmount = prdLimitedCnt - sqlite_datareader1.GetInt32(0);
+                                    }
+                                    else
+                                    {
+                                        prdRestAmount = prdLimitedCnt;
+                                    }
+                                }
+                                else
+                                {
+                                    prdRestAmount = 1000;
+                                }
+                            }
+
+                            break;
+                        }
+                    }
+
+                }
+
+
+                int x = i % nWD;
+                int yy = i / nWD;
+                int d = 20;
+                if (categoryDisplayPositionList[categoryIDGlobal] == 10) d = 50;
+                BackgroundBitmap = null;
+                Panel p = createPanel.CreatePanelForProducts(x * (w1 + d), yy * (h1 + 20), w1, h1, i.ToString(), true, borderClr, Color.White);
+                BackgroundBitmap = new Bitmap(w1, h1);
+                borderPen = new Pen(borderClr, 3);
+                p.Paint += new PaintEventHandler(panelbordercolor_Paint);
+
+                int h = p.Width - 100 > p.Height - 60 ? (p.Height - 60) / 5 : (p.Width - 100) / 5 - 10;
+                h = (h == 0) ? 11 : h;
+                int y = (p.Height - 60) / 5;
+                if (p.Width - 100 < p.Height - 60) y = (p.Height - 60 - h - 3) / 4;
+                int ftSize = 2 * h / 3;
+
+                Color clr = bgColor != null ? HexToColor(bgColor) : Color.White;
+                SetBackgroundColor(clr);
+
+                int temp = p.Width;
+
+                pb_Image[i] = createPanel.CreatePictureBox(3, 3, p.Width - 6, p.Height - 6, i.ToString(), null);
+
+                //MessageBox.Show(p.Height.ToString());
+
+                rc.X = p.Width / 6;
+                rc.Y = p.Height / 6;
+                rc.Width = 2 * p.Width / 3;
+                rc.Height = 2 * p.Height / 3;
+                //rc = new Rectangle(p.Width / 6, p.Height / 6, 2 * p.Width / 3, 2 * p.Height / 3);
+
+                if (prdImageWidth != 0 && prdImageHeight != 0)
+                    rc = new Rectangle(prdImageX, prdImageY, prdImageWidth, prdImageHeight);
+                Bitmap bm = null;
+                if (prdImageUrl != "" && prdImageUrl != null)
+                {
+                    bm = ShowCombinedImage(BackgroundBitmap, new Bitmap(prdImageUrl) /*imgUrl[i]*/, rc);
+                }
+
+                rc.X = p.Width / 2;
+                rc.Y = p.Height / 6;
+                rc.Width = p.Width / 3;
+                rc.Height = p.Height / 3;
+
+                if (prdBadgeWidth != 0 && prdBadgeHeight != 0)
+                    rc = new Rectangle(prdBadgeX, prdBadgeY, prdBadgeWidth, prdBadgeHeight);
+
+                if (prdBadgeUrl != "" && prdBadgeUrl != null)
+                {
+                    string markPath = prdBadgeUrl;
+                    bm = ShowCombinedImage(bm, (Bitmap)Image.FromFile(@markPath), rc);
+                }
+
+                if (soldFlag == 1 || (prdLimitedCnt != 0 && prdRestAmount == 0))
+                {
+                    rc.X = p.Width / 6;
+                    rc.Y = p.Height / 6;
+                    rc.Width = 2 * p.Width / 3;
+                    rc.Height = 2 * p.Height / 3;
+
+                    if (prdImageWidth != 0 && prdImageHeight != 0)
+                        rc = new Rectangle(prdImageX, prdImageY, prdImageWidth, prdImageHeight);
+                    bm = ShowCombinedImage(bm, (Bitmap)Image.FromFile(constants.soldoutBadge), rc);
+                    pb_Image[i].Enabled = false;
+
+                }
+
+                pb_Image[i].Image = bm;
+
+
+
+                Font font = new Font("Series", ftSize, FontStyle.Bold, GraphicsUnit.Point, ((byte)(0)));
+                Point pt = new Point(p.Width / 2 - /*category[0, i].Length/2*/4 * ftSize - 7, 3 * (pb_Image[i].Height) / 5);
+                if (prdNameX != 0 && prdNameY != 0)
+                    pt = new Point(prdNameX, prdNameY);
+
+                bl_Name[i] = createLabel.CreateBorderLabel(pt.X, pt.Y, ftSize * 8/*category[0,i].Length*/ , pb_Image[i].Height / 5, i.ToString(), /*category[0, i], */ prdName, HexToColor(borderColor), 1, font, HexToColor(foreColor));
+
+
+                pt = new Point(p.Width / 2 - /*category[1, i].Length/2*/1 * ftSize - 7, 4 * (pb_Image[i].Height) / 5);
+                if (prdPriceX != 0 && prdPriceY != 0)
+                    pt = new Point(prdPriceX, prdPriceY);
+                string prdPriceStr = (prdPrice == 0) ? "" : prdPrice.ToString();
+                bl_Price[i] = createLabel.CreateBorderLabel(pt.X, pt.Y, ftSize * 3/*category[1,i].Length*/ + 20, pb_Image[i].Height / 5, i.ToString(), /*category[1, i], */ prdPriceStr, HexToColor(borderColor), 1, font, HexToColor(foreColor));
+
+                if (prdName == "" || prdPriceStr == "")
+                {
+                    pb_Image[i].Enabled = false;
+                    bl_Name[i].Enabled = false;
+                    bl_Price[i].Enabled = false;
+                }
+
+                pb_Image[i].Controls.Add(bl_Name[i]);
+                pb_Image[i].Controls.Add(bl_Price[i]);
+
+                p.Controls.Add(pb_Image[i]);
+                MainBodyPanelGlobal.Controls.Add(p);
+                p_ProductCon[i] = p;
+            }
+        }
+        public static Color HexToColor(string hexString)
+        {
+            //replace # occurences
+            if (hexString.IndexOf('#') != -1)
+                hexString = hexString.Replace("#", "");
+
+            int a, r, g, b = 0;
+
+            a = int.Parse(hexString.Substring(0, 2), NumberStyles.AllowHexSpecifier);
+            r = int.Parse(hexString.Substring(2, 2), NumberStyles.AllowHexSpecifier);
+            g = int.Parse(hexString.Substring(4, 2), NumberStyles.AllowHexSpecifier);
+            b = int.Parse(hexString.Substring(6, 2), NumberStyles.AllowHexSpecifier);
+
+            return Color.FromArgb(a, r, g, b);
+        }
+        private Bitmap ShowCombinedImage(Bitmap back, Bitmap over, Rectangle rc)
+        {
+            if (back == null) return null;
+            Bitmap CombinedBitmap = new Bitmap(back);
+            if (over != null)
+                using (Graphics gr = Graphics.FromImage(CombinedBitmap))
+                    gr.DrawImage(over, rc);
+            return CombinedBitmap;
+        }
+
+        private void SetBackgroundColor(Color clr)
+        {
+            for (int i = 0; i < BackgroundBitmap.Width; i++)
+                for (int j = 0; j < BackgroundBitmap.Height; j++)
+                    BackgroundBitmap.SetPixel(i, j, clr);
+        }
+
+        private void panelbordercolor_Paint(object sender, PaintEventArgs e)
+        {
+
+            Panel p = (Panel)sender;
+            int index = int.Parse(p.Name);
+            if (!bLoad)
+            {
+                Graphics g = e.Graphics;
+                g.DrawLine(borderPen, 0, 1, nWidth1, 1);
+                g.DrawLine(borderPen, 1, 0, 1, nHeight1);
+                g.DrawLine(borderPen, nWidth1 - 2, 0, nWidth1 - 2, nHeight1);
+                g.DrawLine(borderPen, 0, nHeight1 - 2, nWidth1, nHeight1 - 2);
+                g.Dispose();
+            }
+            else
+            {
+                if (curProduct == index)
+                {
+                    borderPen = new Pen(Color.Red, 3);
+                    Graphics g = e.Graphics;
+                    g.DrawLine(borderPen, 0, 1, nWidth1, 1);
+                    g.DrawLine(borderPen, 1, 0, 1, nHeight1);
+                    g.DrawLine(borderPen, nWidth1 - 2, 0, nWidth1 - 2, nHeight1);
+                    g.DrawLine(borderPen, 0, nHeight1 - 2, nWidth1, nHeight1 - 2);
+                    g.Dispose();
+                }
+                else
+                {
+                    Pen pp = new Pen(borderClr, 3);
+                    Graphics g = e.Graphics;
+                    g.DrawLine(pp, 0, 1, nWidth1, 1);
+                    g.DrawLine(pp, 1, 0, 1, nHeight1);
+                    g.DrawLine(pp, nWidth1 - 2, 0, nWidth1 - 2, nHeight1);
+                    g.DrawLine(pp, 0, nHeight1 - 2, nWidth1, nHeight1 - 2);
+                    g.Dispose();
+                }
+            }
+
+        }
+
+        private void panelbordercolor2_Paint(object sender, PaintEventArgs e)
+        {
+
+            Panel p = (Panel)sender;
+            int index = int.Parse(p.Name);
+
+            if (!bLoad)
+            {
+                Graphics g = e.Graphics;
+                g.DrawLine(borderPen, 0, 1, nWidth, 1);
+                g.DrawLine(borderPen, 1, 0, 1, nHeight);
+                g.DrawLine(borderPen, nWidth - 2, 0, nWidth - 2, nHeight);
+                g.DrawLine(borderPen, 0, nHeight - 2, nWidth, nHeight - 2);
+                g.Dispose();
+            }
+            else
+            {
+                if (curProduct == index)
+                {
+                    borderPen = new Pen(Color.Red, 3);
+                    Graphics g = e.Graphics;
+                    g.DrawLine(borderPen, 0, 1, nWidth, 1);
+                    g.DrawLine(borderPen, 1, 0, 1, nHeight);
+                    g.DrawLine(borderPen, nWidth - 2, 0, nWidth - 2, nHeight);
+                    g.DrawLine(borderPen, 0, nHeight - 2, nWidth, nHeight - 2);
+                    g.Dispose();
+                }
+                else
+                {
+                    Pen pp = new Pen(borderClr, 3);
+                    Graphics g = e.Graphics;
+                    g.DrawLine(pp, 0, 1, nWidth, 1);
+                    g.DrawLine(pp, 1, 0, 1, nHeight);
+                    g.DrawLine(pp, nWidth - 2, 0, nWidth - 2, nHeight);
+                    g.DrawLine(pp, 0, nHeight - 2, nWidth, nHeight - 2);
+                    g.Dispose();
+                }
+
+            }
+        }
+        private void panelbordercolor3_Paint(object sender, PaintEventArgs e)
+        {
+            Panel p = (Panel)sender;
+            int index = int.Parse(p.Name);
+            if (!bLoad)
+            {
+                Graphics g = e.Graphics;
+                g.DrawLine(borderPen, 0, 1, nWidth2, 1);
+                g.DrawLine(borderPen, 1, 0, 1, nHeight2);
+                g.DrawLine(borderPen, nWidth2 - 2, 0, nWidth2 - 2, nHeight2);
+                g.DrawLine(borderPen, 0, nHeight2 - 2, nWidth2, nHeight2 - 2);
+                g.Dispose();
+            }
+            else
+            {
+                if (curProduct == index)
+                {
+                    borderPen = new Pen(Color.Red, 3);
+                    Graphics g = e.Graphics;
+                    g.DrawLine(borderPen, 0, 1, nWidth2, 1);
+                    g.DrawLine(borderPen, 1, 0, 1, nHeight2);
+                    g.DrawLine(borderPen, nWidth2 - 2, 0, nWidth2 - 2, nHeight2);
+                    g.DrawLine(borderPen, 0, nHeight2 - 2, nWidth2, nHeight2 - 2);
+                    g.Dispose();
+                }
+                else
+                {
+                    Pen pp = new Pen(borderClr, 3);
+                    Graphics g = e.Graphics;
+                    g.DrawLine(pp, 0, 1, nWidth2, 1);
+                    g.DrawLine(pp, 1, 0, 1, nHeight2);
+                    g.DrawLine(pp, nWidth2 - 2, 0, nWidth2 - 2, nHeight2);
+                    g.DrawLine(pp, 0, nHeight2 - 2, nWidth2, nHeight2 - 2);
+                    g.Dispose();
+                }
+            }
+        }
+        private void panelbordercolor4_Paint(object sender, PaintEventArgs e)
+        {
+            Panel p = (Panel)sender;
+            int index = int.Parse(p.Name);
+            if (!bLoad)
+            {
+                Graphics g = e.Graphics;
+                g.DrawLine(borderPen, 0, 1, nWidth3, 1);
+                g.DrawLine(borderPen, 1, 0, 1, nHeight3);
+                g.DrawLine(borderPen, nWidth3 - 2, 0, nWidth3 - 2, nHeight3);
+                g.DrawLine(borderPen, 0, nHeight3 - 2, nWidth3, nHeight3 - 2);
+                g.Dispose();
+            }
+            else
+            {
+                if (curProduct == index)
+                {
+                    borderPen = new Pen(Color.Red, 3);
+                    Graphics g = e.Graphics;
+                    g.DrawLine(borderPen, 0, 1, nWidth3, 1);
+                    g.DrawLine(borderPen, 1, 0, 1, nHeight3);
+                    g.DrawLine(borderPen, nWidth3 - 2, 0, nWidth3 - 2, nHeight3);
+                    g.DrawLine(borderPen, 0, nHeight3 - 2, nWidth3, nHeight3 - 2);
+                    g.Dispose();
+                }
+                else
+                {
+                    Pen pp = new Pen(borderClr, 3);
+                    Graphics g = e.Graphics;
+                    g.DrawLine(pp, 0, 1, nWidth3, 1);
+                    g.DrawLine(pp, 1, 0, 1, nHeight3);
+                    g.DrawLine(pp, nWidth3 - 2, 0, nWidth3 - 2, nHeight3);
+                    g.DrawLine(pp, 0, nHeight3 - 2, nWidth3, nHeight3 - 2);
+                    g.Dispose();
                 }
             }
         }
 
-        private void panel_Paint1(object sender, PaintEventArgs e)
-        {
-            if (PanelGlobal1.BorderStyle == BorderStyle.FixedSingle)
-            {
-                int thickness = 5;//it's up to you
-                int halfThickness = thickness / 2;
-                using (Pen p = new Pen(Color.FromArgb(255, 79, 129, 189), thickness))
-                {
-                    e.Graphics.DrawRectangle(p, new Rectangle(halfThickness,
-                                                              halfThickness,
-                                                              PanelGlobal1.ClientSize.Width - thickness,
-                                                              PanelGlobal1.ClientSize.Height - thickness));
-                }
-            }
-        }
-
-        private void AddImageOnPanel(Panel pnl, string imageUrl, string productName, int productPrice, int index, string panelSize)
-        {
-            PictureBox pBox = new PictureBox();
-            pBox.Name = "pBox_" + panelSize + "_" + index.ToString();
-            pBox.Width = pnl.Width * 6 / 7 - 10;
-            pBox.Height = pnl.Height * 4 / 5 - 10;
-            pBox.SizeMode = PictureBoxSizeMode.StretchImage;
-            pBox.BackColor = Color.White;
-
-            pBox.Location = new Point((pnl.Width - pBox.Width) / 2, 5);
-            pBox.ImageLocation = imageUrl; // @"D:\\ovan\\Ovan_P1\\images\\category1.png";
-            pBoxGlobal = pBox;
-
-            pnl.Controls.Add(pBox);
-
-            Label categoryLabel = new Label();
-
-            categoryLabel.Name = "label_" + panelSize + "_" + index.ToString();
-            if (panelSize == "big")
-            {
-                categoryLabel.Text = productName + "\n" + productPrice + constants.unit;
-            }
-            else if (panelSize == "small")
-            {
-                categoryLabel.Text = productName + productPrice + constants.unit;
-            }
-            categoryLabel.Location = new Point(15, pnl.Height * 4 / 5);
-            categoryLabel.Size = new Size(pnl.Width - 30, pnl.Height / 5 - 10);
-            pnl.Controls.Add(categoryLabel);
-            // modal dialog show
-            MainMenuLabel = categoryLabel;
-
-            MainPicture = pBox;
-        }
-
-        private void AddImageOnPanelBadge(Panel pnl, string imageUrl, int index, string panelSize)
-        {
-            PictureBox pBox = new PictureBox();
-            pBox.Name = "pBox_" + panelSize + "_" + index.ToString();
-            pBox.Width = pnl.Width * 2 / 7;
-            pBox.Height = pnl.Height * 1 / 3;
-            pBox.BackColor = Color.Transparent;
-            pBox.SizeMode = PictureBoxSizeMode.StretchImage;
-            pBox.Location = new Point(pnl.Width * 4 / 7, 10);
-            pBox.ImageLocation = imageUrl; // @"D:\\ovan\\Ovan_P1\\images\\badge1.png";
-            pBoxGlobal.Controls.Add(pBox);
-
-            // modal dialog show
-            MainPicture = pBox;
-
-        }
 
         public void BackShow(object sender, EventArgs e)
         {
@@ -311,6 +1200,23 @@ namespace Ovan_P1
             frm.Dock = DockStyle.Fill;
             Thread.Sleep(200);
             frm.Show();
+        }
+        static SQLiteConnection CreateConnection(string dbName)
+        {
+
+            SQLiteConnection sqlite_conn;
+            // Create a new database connection:
+            sqlite_conn = new SQLiteConnection("Data Source=" + dbName + ".db; Version = 3; New = True; Compress = True; ");
+            // Open the connection:
+            try
+            {
+                sqlite_conn.Open();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            return sqlite_conn;
         }
 
 

@@ -74,15 +74,15 @@ namespace Ovan_P1
                 {
                     if (week == "Sat")
                     {
-                        storeEndTime = (sqlite_datareader.GetString(7)).Split('/')[1];
+                        storeEndTime = (sqlite_datareader.GetString(6)).Split('/')[1];
                     }
                     else if (week == "Sun")
                     {
-                        storeEndTime = (sqlite_datareader.GetString(7)).Split('/')[2];
+                        storeEndTime = (sqlite_datareader.GetString(6)).Split('/')[2];
                     }
                     else
                     {
-                        storeEndTime = (sqlite_datareader.GetString(7)).Split('/')[0];
+                        storeEndTime = (sqlite_datareader.GetString(6)).Split('/')[0];
                     }
 
                 }
@@ -107,7 +107,7 @@ namespace Ovan_P1
             }
             catch (Exception e)
             {
-                MessageBox.Show("Database Error");
+                MessageBox.Show("Database Error" + e);
             }
 
             sqlite_conn.Close();
@@ -252,7 +252,7 @@ namespace Ovan_P1
                 {
                     int prdID = sqlite_datareader.GetInt32(1);
                     SQLiteCommand sqlite_cmdss;
-                    string sumQueryss = "UPDATE " + constants.tbNames[3] + " SET sumFlag='false', sumDate='' WHERE saleDate>=@sumDayTime1 AND saleDate<=@sumDayTime2 and realPrdID=@realPrdID";
+                    string sumQueryss = "UPDATE " + constants.tbNames[3] + " SET sumFlag='false', sumDate='' WHERE saleDate>=@sumDayTime1 AND saleDate<=@sumDayTime2 and prdRealID=@realPrdID";
                     sqlite_cmdss = sqlite_conn.CreateCommand();
                     sqlite_cmdss.CommandText = sumQueryss;
                     sqlite_cmdss.Parameters.AddWithValue("@sumDayTime1", sumDayTime1);
@@ -303,7 +303,7 @@ namespace Ovan_P1
                 string week = now.ToString("ddd");
                 string currentTime = now.ToString("HH:mm");
 
-                string saleTBquery = "SELECT prdName, prdPrice, sum(prdAmount), realPrdID FROM " + constants.tbNames[3] + " WHERE saleDate>=@sumDayTime1 AND saleDate<=@sumDayTime2 GROUP BY realPrdID";
+                string saleTBquery = "SELECT prdName, prdPrice, sum(prdAmount), prdRealID FROM " + constants.tbNames[3] + " WHERE saleDate>=@sumDayTime1 AND saleDate<=@sumDayTime2 GROUP BY prdRealID";
                 sqlite_cmd = sqlite_conn.CreateCommand();
                 sqlite_cmd.CommandText = saleTBquery;
                 sqlite_cmd.Parameters.AddWithValue("@sumDayTime1", sumDayTime1);
@@ -331,7 +331,7 @@ namespace Ovan_P1
                         sqlite_cmds.Parameters.AddWithValue("@sumDate", sumDate);
                         sqlite_cmds.ExecuteNonQuery();
                         SQLiteCommand sqlite_cmdss;
-                        string sumQuerys = "UPDATE " + constants.tbNames[3] + " SET sumFlag='true', sumDate=@sumDate WHERE saleDate>=@sumDayTime1 AND saleDate<=@sumDayTime2 and realPrdID=@realPrdID";
+                        string sumQuerys = "UPDATE " + constants.tbNames[3] + " SET sumFlag='true', sumDate=@sumDate WHERE saleDate>=@sumDayTime1 AND saleDate<=@sumDayTime2 and prdRealID=@realPrdID";
                         sqlite_cmdss = sqlite_conn.CreateCommand();
                         sqlite_cmdss.CommandText = sumQuerys;
                         sqlite_cmdss.Parameters.AddWithValue("@sumDate", sumDate);
@@ -340,26 +340,21 @@ namespace Ovan_P1
                         sqlite_cmdss.Parameters.AddWithValue("@realPrdID", prdID);
                         sqlite_cmdss.ExecuteNonQuery();
                         Thread.Sleep(50);
-                        backgroundWorker.ReportProgress(j * 3);
+                        backgroundWorker.ReportProgress(j);
                         j++;
                     }
 
                 }
                 sqlite_conn.Close();
-
-                //for (int j = 0; j <= 100; j++)
-                //{
-                //    if (backgroundWorker.CancellationPending == true)
-                //    {
-                //        e.Cancel = true;
-                //        break;
-                //    }
-                //    else
-                //    {
-                //        Thread.Sleep(50);
-                //        backgroundWorker.ReportProgress(j * 1);
-                //    }
-                //}
+                if(j < 100)
+                {
+                    while(j <= 100)
+                    {
+                        Thread.Sleep(50);
+                        backgroundWorker.ReportProgress(j * 1);
+                        j++;
+                    }
+                }
                 countNum++;
             }
         }
@@ -481,7 +476,7 @@ namespace Ovan_P1
             }
             catch (Exception ex)
             {
-
+                Console.WriteLine(ex);
             }
             return sqlite_conn;
         }

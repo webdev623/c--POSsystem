@@ -45,7 +45,7 @@ namespace Ovan_P1
             return FlowPanel;
         }
 
-        public Panel CreatePanelForProducts(SaleScreen IAFS, int nX, int nY, int W, int H, string name, bool hasBD, Color bdClr, Color backClr)
+        public Panel CreatePanelForProducts(int nX, int nY, int W, int H, string name, bool hasBD, Color bdClr, Color backClr)
         {
 
             Panel p = new Panel();
@@ -57,6 +57,7 @@ namespace Ovan_P1
 
             return p;
         }
+
 
         public PictureBox CreatePictureBox(int nX, int nY, int W, int H, string name, string imgUrl)
         {

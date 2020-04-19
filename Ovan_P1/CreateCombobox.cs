@@ -11,16 +11,17 @@ namespace Ovan_P1
     class CreateCombobox
     {
         Constant constants = new Constant();
-        ComboBox dateComboboxGlobal = null;
-        public ComboBox CreateComboboxs(Panel combPanel, string combName, string[] combItems, int combLeft, int combTop, int combWidth, int combHeight, int combItemHeight, Font combFont)
+        public ComboBox CreateComboboxs(Panel combPanel, string combName, string[] combItems, int combLeft, int combTop, int combWidth, int combHeight, int combItemHeight, Font combFont, string selectText)
         {
             ComboBox dateCombobox = new ComboBox();
             dateCombobox.Location = new Point(combLeft, combTop);
-            dateCombobox.DataSource = combItems;
+            //dateCombobox.DataSource = combItems;
             dateCombobox.DrawMode = DrawMode.OwnerDrawVariable;
             dateCombobox.DropDownWidth = combWidth;
             dateCombobox.FormattingEnabled = true;
+            dateCombobox.Items.AddRange(combItems);
             dateCombobox.ItemHeight = combItemHeight;
+            dateCombobox.SelectedIndex = dateCombobox.FindStringExact(selectText);
             dateCombobox.Name = combName;
             dateCombobox.Size = new Size(combWidth, combHeight);
             dateCombobox.Font = combFont;

@@ -1,7 +1,6 @@
 D:\ovan\Ovan_P1\Ovan_P1\bin\Debug\Ovan_P1.exe.config
 D:\ovan\Ovan_P1\Ovan_P1\bin\Debug\Ovan_P1.exe
 D:\ovan\Ovan_P1\Ovan_P1\bin\Debug\Ovan_P1.pdb
-D:\ovan\Ovan_P1\Ovan_P1\obj\Debug\Ovan_P1.csprojAssemblyReference.cache
 D:\ovan\Ovan_P1\Ovan_P1\obj\Debug\Ovan_P1.Properties.Resources.resources
 D:\ovan\Ovan_P1\Ovan_P1\obj\Debug\Ovan_P1.csproj.GenerateResource.cache
 D:\ovan\Ovan_P1\Ovan_P1\obj\Debug\Ovan_P1.exe
@@ -26,8 +25,6 @@ D:\ovan\Ovan_P1\Ovan_P1\obj\Debug\Ovan_P1.TimeSetting.resources
 D:\ovan\Ovan_P1\Ovan_P1\obj\Debug\Ovan_P1.PasswordSetting.resources
 D:\ovan\Ovan_P1\Ovan_P1\obj\Debug\Ovan_P1.OpenTimeChange.resources
 D:\ovan\Ovan_P1\Ovan_P1\obj\Debug\Ovan_P1.MenuReading.resources
-D:\ovan\Ovan_P1\Ovan_P1\bin\Debug\Ovan_P1.exe.manifest
-D:\ovan\Ovan_P1\Ovan_P1\bin\Debug\Ovan_P1.application
 D:\ovan\Ovan_P1\Ovan_P1\bin\Debug\EntityFramework.dll
 D:\ovan\Ovan_P1\Ovan_P1\bin\Debug\EntityFramework.SqlServer.dll
 D:\ovan\Ovan_P1\Ovan_P1\bin\Debug\System.Data.SQLite.dll
@@ -37,9 +34,8 @@ D:\ovan\Ovan_P1\Ovan_P1\bin\Debug\EntityFramework.xml
 D:\ovan\Ovan_P1\Ovan_P1\bin\Debug\EntityFramework.SqlServer.xml
 D:\ovan\Ovan_P1\Ovan_P1\bin\Debug\System.Data.SQLite.xml
 D:\ovan\Ovan_P1\Ovan_P1\bin\Debug\System.Data.SQLite.dll.config
-D:\ovan\Ovan_P1\Ovan_P1\obj\Debug\Ovan_P1.TrustInfo.xml
-D:\ovan\Ovan_P1\Ovan_P1\obj\Debug\Ovan_P1.exe.manifest
-D:\ovan\Ovan_P1\Ovan_P1\obj\Debug\Ovan_P1.application
 D:\ovan\Ovan_P1\Ovan_P1\obj\Debug\Ovan_P1.DetailView.resources
 D:\ovan\Ovan_P1\Ovan_P1\obj\Debug\Ovan_P1.SaleScreen.resources
 D:\ovan\Ovan_P1\Ovan_P1\obj\Debug\Ovan_P1.ProgressDialog.resources
+D:\ovan\Ovan_P1\Ovan_P1\obj\Debug\Ovan_P1.MainMenu.resources
+D:\ovan\Ovan_P1\Ovan_P1\obj\Debug\Ovan_P1.csprojAssemblyReference.cache

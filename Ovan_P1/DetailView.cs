@@ -24,6 +24,7 @@ namespace Ovan_P1
         CustomButton createButton = new CustomButton();
         CreateCombobox createCombobox = new CreateCombobox();
         DropDownMenu dropDownMenu = new DropDownMenu();
+        MessageDialog messageDialog = new MessageDialog();
         Form DialogFormGlobal = null;
         Panel dialogPanelGlobal = null;
         Panel tbodyPanelGlobal = null;
@@ -48,25 +49,15 @@ namespace Ovan_P1
         Label[] columnGlobal2 = null;
         Label[] columnGlobal3 = null;
         Label[] columnGlobal4 = null;
-        Label[] columnGlobal5 = null;
         int totalRowNum = 0;
         PaperSize paperSize = new PaperSize("papersize", 500, 800);//set the paper size
         PrintDocument printDocumentGlobal = null;
         PrintPreviewDialog printPreviewDialogGlobal = null;
         PrintDialog printDialogGlobal = null;
         string logTimeGlobal = "23";
-        int totalNumber = 0;
-        int itemperpage = 0;//this is for no of item per page 
-        int groupIDGlobal = 0;
-        int lineNum = 0;
-        int flagInt = 0;
-        int groupNumber = 0;
         int lineNums = 0;
-        int groupNumbers = 0;
-        int flagInts = 0;
         int itemperpages = 0;
-        int soldPriceSum = 0;
-        int soldAmountSum = 0;
+        int[] productTypes = null;
         SQLiteConnection sqlite_conn;
         string storeEndTime = "00:00";
         DateTime now = DateTime.Now;
@@ -76,7 +67,6 @@ namespace Ovan_P1
 
         TimeSetting timeHandlerGlobal = null;
 
-        int[] bottomPosition = null;
         public DetailView()
         {
             InitializeComponent();
@@ -90,35 +80,42 @@ namespace Ovan_P1
 
             string week = now.ToString("ddd");
             string currentTime = now.ToString("HH:mm");
-
-            string storeEndqurey = "SELECT * FROM " + constants.tbNames[6];
-            sqlite_cmd = sqlite_conn.CreateCommand();
-            sqlite_cmd.CommandText = storeEndqurey;
-            sqlite_datareader = sqlite_cmd.ExecuteReader();
-            while (sqlite_datareader.Read())
+            try
             {
-                if (!sqlite_datareader.IsDBNull(0))
+                string storeEndqurey = "SELECT * FROM " + constants.tbNames[6];
+                sqlite_cmd = sqlite_conn.CreateCommand();
+                sqlite_cmd.CommandText = storeEndqurey;
+                sqlite_datareader = sqlite_cmd.ExecuteReader();
+                while (sqlite_datareader.Read())
                 {
-                    if (week == "Sat")
+                    if (!sqlite_datareader.IsDBNull(0))
                     {
-                        storeEndTime = (sqlite_datareader.GetString(7)).Split('/')[1];
-                    }
-                    else if (week == "Sun")
-                    {
-                        storeEndTime = (sqlite_datareader.GetString(7)).Split('/')[2];
-                    }
-                    else
-                    {
-                        storeEndTime = (sqlite_datareader.GetString(7)).Split('/')[0];
-                    }
+                        if (week == "Sat")
+                        {
+                            storeEndTime = (sqlite_datareader.GetString(6)).Split('/')[1];
+                        }
+                        else if (week == "Sun")
+                        {
+                            storeEndTime = (sqlite_datareader.GetString(6)).Split('/')[2];
+                        }
+                        else
+                        {
+                            storeEndTime = (sqlite_datareader.GetString(6)).Split('/')[0];
+                        }
 
+                    }
                 }
+
+                sumDayTime1 = constants.sumDayTimeStart(storeEndTime);
+                sumDayTime2 = constants.sumDayTimeEnd(storeEndTime);
+
+                sumDate = constants.sumDate(storeEndTime);
             }
-
-            sumDayTime1 = constants.sumDayTimeStart(storeEndTime);
-            sumDayTime2 = constants.sumDayTimeEnd(storeEndTime);
-
-            sumDate = constants.sumDate(storeEndTime);
+            catch (Exception ex)
+            {
+                messageDialog.ShowErrorMessage(constants.systemErrorMsg, constants.systemSubErrorMsg);
+                
+            }
 
             sqlite_conn.Close();
         }
@@ -135,7 +132,6 @@ namespace Ovan_P1
             }
             else if (btnTemp.Name == "processButton_1_2")
             {
-                totalNumber = constants.productBigName[1].Length;
                 PrintDocument printDocument1 = new PrintDocument();
                 PrintDialog printDialog1 = new PrintDialog();
                 PrintPreviewDialog printPreviewDialog1 = new PrintPreviewDialog();
@@ -192,8 +188,6 @@ namespace Ovan_P1
         {
             lineNums = 0;
             itemperpages = 0;
-            soldPriceSum = 0;
-            soldAmountSum = 0;
         }
         public void DailyReport()
         {
@@ -455,9 +449,9 @@ namespace Ovan_P1
                     {
                         if (!sqlite_datareaders.IsDBNull(0))
                         {
-                            string prdName = sqlite_datareaders.GetString(2);
-                            int prdAmount = sqlite_datareaders.GetInt32(4);
-                            int prdPrice = sqlite_datareaders.GetInt32(3);
+                            string prdName = sqlite_datareaders.GetString(3);
+                            int prdAmount = sqlite_datareaders.GetInt32(5);
+                            int prdPrice = sqlite_datareaders.GetInt32(4);
 
                             FlowLayoutPanel productTableBodyContent = createPanel.CreateFlowLayoutPanel(dialogPanel, dialogPanel.Width / 10, productTableBody.Bottom + 41 * m, dialogPanel.Width * 4 / 5, 40, Color.Transparent, new Padding(0));
                             Label prodNameBodyContent1 = createLabel.CreateLabelsInPanel(productTableBodyContent, "prodBody_" + m + "_1", prdName, 0, 0, productTableBodyContent.Width / 3 - 10, productTableBodyContent.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12, false, ContentAlignment.MiddleLeft);
@@ -490,27 +484,6 @@ namespace Ovan_P1
             dialogForm.FormBorderStyle = FormBorderStyle.FixedDialog;
             DialogFormGlobal = dialogForm;
 
-            //connection = new mysqlconnection("datasource=localhost;port=3306;username=root;password=");
-            //connection.open();
-            //string connectionstate = "";
-            //if (connection.state == connectionstate.open)
-            //{
-            //    connectionstate = "connected";
-            //}
-            //else
-            //{
-            //    connectionstate = "disconnected";
-            //}
-
-            //mysqlcommand cmd = new mysqlcommand();
-            //cmd.connection = connection;
-
-            //cmd.commandtext = "create database if not exists possystem;";
-            //cmd.executenonquery();
-
-            //cmd.commandtext = @"create table if not exists possystem.categories(id integer primary key auto_increment,
-            //        name text, price int)";
-            //cmd.executenonquery();
 
             Panel dialogPanel = createPanel.CreateMainPanel(dialogForm, 0, 0, dialogForm.Width, dialogForm.Height - 50, BorderStyle.None, Color.Transparent);
             dialogPanel.HorizontalScroll.Maximum = 0;
@@ -530,56 +503,143 @@ namespace Ovan_P1
             Label prodNameHeader1 = createLabel.CreateLabelsInPanel(productTableHeader, "prodHeader_1", constants.orderTimeField, 0, 0, productTableHeader.Width / 4 + 20, productTableHeader.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12);
             Label prodNameHeader2 = createLabel.CreateLabelsInPanel(productTableHeader, "prodHeader_2", constants.saleNumberField, productTableHeader.Width / 4 + 25, 0, productTableHeader.Width / 4 - 35, productTableHeader.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12);
             Label prodNameHeader3 = createLabel.CreateLabelsInPanel(productTableHeader, "prodHeader_3", constants.prodNameField, productTableHeader.Width / 2, 0, productTableHeader.Width / 4 - 10, productTableHeader.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12);
-            Label prodNameHeader4 = createLabel.CreateLabelsInPanel(productTableHeader, "prodHeader_3", constants.priceField, productTableHeader.Width * 3 / 4, 0, productTableHeader.Width / 4 - 20, productTableHeader.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12);
+            Label prodNameHeader4 = createLabel.CreateLabelsInPanel(productTableHeader, "prodHeader_4", constants.priceField, productTableHeader.Width * 3 / 4, 0, productTableHeader.Width / 4 - 20, productTableHeader.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12);
 
             Panel tbodyPanel = createPanel.CreateSubPanel(dialogPanel, 0, 120, dialogPanel.Width, dialogPanel.Height - 120, BorderStyle.None, Color.Transparent);
             tbodyPanelGlobal = tbodyPanel;
-            ShowProdListForFalsePurchaseCancell(tbodyPanel);
+            ShowProdListForFalsePurchaseCancell(now.ToString("HH"), tbodyPanel);
 
             dialogForm.ShowDialog();
 
         }
 
-        private void ShowProdListForFalsePurchaseCancell(Panel mainPanel)
+        private void ShowProdListForFalsePurchaseCancell(string logTime, Panel mainPanel)
         {
             DateTime now = DateTime.Now;
-            columnGlobal1 = new Label[10];
-            columnGlobal2 = new Label[10];
-            columnGlobal3 = new Label[10];
-            columnGlobal4 = new Label[10];
-            totalRowNum = 10;
-            for (int k = 0; k < 10; k++)
+
+            int k = 0;
+
+            sumDayTime1 = constants.sumDayTimeStart(storeEndTime);
+            sumDayTime2 = constants.currentDateTimeFromTime(logTime + ":00");
+
+            if (sqlite_conn.State == ConnectionState.Closed)
             {
-                FlowLayoutPanel productTableBody = createPanel.CreateFlowLayoutPanel(mainPanel, 10, 61 * k, mainPanel.Width - 20, 60, Color.Transparent, new Padding(0));
-                productTableBody.Name = "prdID_" + k;
-                Label prodNameBody1 = createLabel.CreateLabelsInPanel(productTableBody, "prodBody_" + k + "_1", now.ToLocalTime().ToString(), 0, 0, productTableBody.Width / 4 + 20, productTableBody.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12);
-                prodNameBody1.Margin = new Padding(0);
-
-                columnGlobal1[k] = prodNameBody1;
-                Label prodNameBody2 = createLabel.CreateLabelsInPanel(productTableBody, "prodBody_" + k + "_2", constants.recieptIssueAmount[k].ToString() + constants.amountUnit, productTableBody.Width / 4 + 20, 0, productTableBody.Width / 4 - 35, productTableBody.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12);
-                prodNameBody2.Margin = new Padding(0);
-                columnGlobal2[k] = prodNameBody2;
-                Label prodNameBody3 = createLabel.CreateLabelsInPanel(productTableBody, "prodBody_" + k + "_3", constants.productBigName[1][k].ToString(), productTableBody.Width / 2, 0, productTableBody.Width / 4 - 10, productTableBody.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12);
-                prodNameBody3.Margin = new Padding(0);
-                columnGlobal3[k] = prodNameBody3;
-                Label prodNameBody4 = createLabel.CreateLabelsInPanel(productTableBody, "prodBody_" + k + "_4", constants.recieptIssuePrice[k].ToString() + constants.unit, productTableBody.Width * 3 / 4, 0, productTableBody.Width / 4 - 20, productTableBody.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12);
-                dialogFlowLayout = productTableBody;
-                prodNameBody4.Margin = new Padding(0);
-                columnGlobal4[k] = prodNameBody4;
-
-                prodNameBody1.Click += new EventHandler(this.CancellationSetting);
-                prodNameBody2.Click += new EventHandler(this.CancellationSetting);
-                prodNameBody3.Click += new EventHandler(this.CancellationSetting);
-                prodNameBody4.Click += new EventHandler(this.CancellationSetting);
-
+                sqlite_conn.Open();
+            }
+            SQLiteCommand sqlite_cmd0;
+            SQLiteDataReader sqlite_datareader0;
+            sqlite_cmd0 = sqlite_conn.CreateCommand();
+            string daySumqurey0 = "SELECT count(DISTINCT ticketNo) FROM " + constants.tbNames[3] + " WHERE saleDate>=@saleDate1 and saleDate<=@saleDate2";
+            sqlite_cmd0.CommandText = daySumqurey0;
+            sqlite_cmd0.Parameters.AddWithValue("@saleDate1", sumDayTime1);
+            sqlite_cmd0.Parameters.AddWithValue("@saleDate2", sumDayTime2);
+            sqlite_datareader0 = sqlite_cmd0.ExecuteReader();
+            while (sqlite_datareader0.Read())
+            {
+                if (!sqlite_datareader0.IsDBNull(0))
+                {
+                    totalRowNum = sqlite_datareader0.GetInt32(0);
+                }
             }
 
+            columnGlobal1 = new Label[totalRowNum];
+            columnGlobal2 = new Label[totalRowNum];
+            columnGlobal3 = new Label[totalRowNum];
+            columnGlobal4 = new Label[totalRowNum];
+            productTypes = new int[totalRowNum];
+
+            SQLiteCommand sqlite_cmd;
+            SQLiteDataReader sqlite_datareader;
+
+            sqlite_cmd = sqlite_conn.CreateCommand();
+            string daySumqurey = "SELECT saleDate, sum(prdPrice * prdAmount), ticketNo, count(id) FROM " + constants.tbNames[3] + " WHERE saleDate>=@saleDate1 and saleDate<=@saleDate2 GROUP BY ticketNo ORDER BY saleDate ASC";
+            sqlite_cmd.CommandText = daySumqurey;
+            sqlite_cmd.Parameters.AddWithValue("@saleDate1", sumDayTime1);
+            sqlite_cmd.Parameters.AddWithValue("@saleDate2", sumDayTime2);
+            sqlite_datareader = sqlite_cmd.ExecuteReader();
+
+            while (sqlite_datareader.Read())
+            {
+                if (!sqlite_datareader.IsDBNull(0))
+                {
+                    DateTime saleDate = sqlite_datareader.GetDateTime(0);
+                    int totalPrice = sqlite_datareader.GetInt32(1);
+                    int ticketNo = sqlite_datareader.GetInt32(2);
+                    int countRow = sqlite_datareader.GetInt32(3);
+                    productTypes[k] = countRow;
+                    int PanelRowHeight = 60;
+                    FlowLayoutPanel productTableBody = createPanel.CreateFlowLayoutPanel(mainPanel, 10, 61 * k, mainPanel.Width - 20, PanelRowHeight, Color.Transparent, new Padding(0));
+                    productTableBody.Name = "prdID_" + k;
+                    Label prodNameBody1 = createLabel.CreateLabelsInPanel(productTableBody, "prodBody_" + k + "_1_" + ticketNo, saleDate.ToString("yyyy/MM/dd HH:mm:ss"), 0, 0, productTableBody.Width / 4 + 20, productTableBody.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12);
+                    prodNameBody1.Margin = new Padding(0);
+                    columnGlobal1[k] = prodNameBody1;
+
+                    Label prodNameBody2 = createLabel.CreateLabelsInPanel(productTableBody, "prodBody_" + k + "_2_" + ticketNo, ticketNo.ToString("0000000000"), productTableBody.Width / 4 + 25, 0, productTableBody.Width / 4 - 35, productTableBody.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12);
+                    prodNameBody2.Margin = new Padding(0);
+                    columnGlobal2[k] = prodNameBody2;
+                    prodNameBody1.Click += new EventHandler(this.CancellationSetting);
+                    prodNameBody2.Click += new EventHandler(this.CancellationSetting);
+
+                    int m = 0;
+                    string prdName = "";
+                    SQLiteCommand sqlite_cmds;
+                    SQLiteDataReader sqlite_datareaders;
+
+                    sqlite_cmds = sqlite_conn.CreateCommand();
+                    string daySumqureys = "SELECT * FROM " + constants.tbNames[3] + " WHERE saleDate>=@saleDate1 AND saleDate<=@saleDate2 AND ticketNo=@ticketNo ORDER BY id ASC";
+                    sqlite_cmds.CommandText = daySumqureys;
+                    sqlite_cmds.Parameters.AddWithValue("@saleDate1", sumDayTime1);
+                    sqlite_cmds.Parameters.AddWithValue("@saleDate2", sumDayTime2);
+                    sqlite_cmds.Parameters.AddWithValue("@ticketNo", ticketNo);
+                    sqlite_datareaders = sqlite_cmds.ExecuteReader();
+                    while (sqlite_datareaders.Read())
+                    {
+                        if (!sqlite_datareaders.IsDBNull(0))
+                        {
+                            if (countRow >= 2 && m < 2)
+                            {
+                                if (m == 0)
+                                {
+                                    prdName += sqlite_datareaders.GetString(3) + "\n";
+                                }
+                                else
+                                {
+                                    prdName += sqlite_datareaders.GetString(3);
+                                }
+
+                            }
+                            else if(countRow == 1)
+                            {
+                                prdName += sqlite_datareaders.GetString(3);
+                            }
+                            m++;
+                        }
+                    }
+                    Label prodNameBody3 = createLabel.CreateLabelsInPanel(productTableBody, "prodBody_" + k + "_3_" + ticketNo, prdName, productTableBody.Width / 2, 0, productTableBody.Width / 4 - 10, productTableBody.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12);
+                    prodNameBody3.Margin = new Padding(0);
+                    columnGlobal3[k] = prodNameBody3;
+
+                    prodNameBody3.Click += new EventHandler(this.CancellationSetting);
+
+
+                    Label prodNameBody4 = createLabel.CreateLabelsInPanel(productTableBody, "prodBody_" + k + "_4_" + ticketNo, totalPrice.ToString() + constants.unit, productTableBody.Width * 3 / 4, 0, productTableBody.Width / 4 - 20, productTableBody.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12);
+                    dialogFlowLayout = productTableBody;
+                    prodNameBody4.Margin = new Padding(0);
+                    columnGlobal4[k] = prodNameBody4;
+
+                    prodNameBody4.Click += new EventHandler(this.CancellationSetting);
+
+
+                    k++;
+                }
+            }
         }
         private void CancellationSetting(object sender, EventArgs e)
         {
 
             Label prdTemp = (Label)sender;
             int prdID = int.Parse(prdTemp.Name.Split('_')[1]);
+            int ticketNo = int.Parse(prdTemp.Name.Split('_')[3]);
             columnGlobal1[prdID].BackColor = Color.Red;
             columnGlobal1[prdID].ForeColor = Color.White;
             columnGlobal2[prdID].BackColor = Color.Red;
@@ -603,8 +663,8 @@ namespace Ovan_P1
                 }
             }
 
-            int productTypes = 3;
-            int frmheight = (7 + productTypes) * 50;
+            //int productTypes = 3;
+            int frmheight = (7 + productTypes[prdID]) * 50;
             Form dialogForm = new Form();
             dialogForm.Size = new Size(width / 3, frmheight);
             dialogForm.BackColor = Color.White;
@@ -615,145 +675,79 @@ namespace Ovan_P1
             //DialogFormGlobal = dialogForm;
 
             Panel titlePanel = createPanel.CreateMainPanel(dialogForm, 0, 0, dialogForm.Width, dialogForm.Height / 10, BorderStyle.None, Color.Transparent);
-            Label titleLabel = createLabel.CreateLabelsInPanel(titlePanel, "titleLabel", "取消確認", 0, 0, titlePanel.Width, titlePanel.Height, Color.Transparent, Color.Black, 22, false, ContentAlignment.BottomCenter);
+            Label titleLabel = createLabel.CreateLabelsInPanel(titlePanel, "titleLabel", constants.orderCancelDialogTitle, 0, 0, titlePanel.Width, titlePanel.Height, Color.Transparent, Color.Black, 22, false, ContentAlignment.BottomCenter);
 
             Panel dialogPanel = createPanel.CreateMainPanel(dialogForm, dialogForm.Width / 11, dialogForm.Height / 10, dialogForm.Width * 9 / 11, dialogForm.Height * 7 / 10, BorderStyle.FixedSingle, Color.Transparent);
 
             FlowLayoutPanel leftColumn = createPanel.CreateFlowLayoutPanel(dialogPanel, 0, 0, dialogPanel.Width * 2/ 5, dialogPanel.Height, Color.Transparent, new Padding(0));
             FlowLayoutPanel rightColumn = createPanel.CreateFlowLayoutPanel(dialogPanel, dialogPanel.Width * 2 / 5, 0, dialogPanel.Width * 3 / 5, dialogPanel.Height, Color.Transparent, new Padding(0));
 
-            int rowCount = 4 + productTypes;
+            int rowCount = 4 + productTypes[prdID];
 
-            Label column1 = createLabel.CreateLabels(leftColumn, "orderDateColumn", "注文日", 0, 0, leftColumn.Width, leftColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
-            Label column2 = createLabel.CreateLabels(leftColumn, "orderTimeColumn", "注文時間", 0, column1.Bottom, leftColumn.Width, leftColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
-            Label column3 = createLabel.CreateLabels(leftColumn, "orderNumberColumn", "売上連番", 0, column2.Bottom, leftColumn.Width, leftColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
-            Label column4 = createLabel.CreateLabels(leftColumn, "orderNameColumn", "品目", 0, column3.Bottom, leftColumn.Width, leftColumn.Height * productTypes / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
-            Label column5 = createLabel.CreateLabels(leftColumn, "orderPriceColumn", "合計金額", 0, column4.Bottom, leftColumn.Width, leftColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+            Label column1 = createLabel.CreateLabels(leftColumn, "orderDateColumn", constants.orderDate, 0, 0, leftColumn.Width, leftColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+            Label column2 = createLabel.CreateLabels(leftColumn, "orderTimeColumn", constants.orderTime, 0, column1.Bottom, leftColumn.Width, leftColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+            Label column3 = createLabel.CreateLabels(leftColumn, "orderNumberColumn", constants.saleNumberField, 0, column2.Bottom, leftColumn.Width, leftColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+            Label column4 = createLabel.CreateLabels(leftColumn, "orderNameColumn", constants.orderProductList, 0, column3.Bottom, leftColumn.Width, leftColumn.Height * productTypes[prdID] / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+            Label column5 = createLabel.CreateLabels(leftColumn, "orderPriceColumn", constants.orderSumPrice, 0, column4.Bottom, leftColumn.Width, leftColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
 
-            Label value1 = createLabel.CreateLabels(rightColumn, "orderDateValue", "2020/04/12", 0, 0, rightColumn.Width, rightColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 2, Color.Gray);
-            Label value2 = createLabel.CreateLabels(rightColumn, "orderTimeValue", "12：18：53", 0, column1.Bottom, rightColumn.Width, rightColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 2, Color.Gray);
-            Label value3 = createLabel.CreateLabels(rightColumn, "orderNumberValue", "0000000039", 0, column2.Bottom, rightColumn.Width, rightColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 2, Color.Gray);
-            for (int i = 0; i < productTypes; i++)
+            SQLiteCommand sqlite_cmd;
+            SQLiteDataReader sqlite_datareader;
+            string saleDate = "";
+            string saleTime = "";
+            int saleSum = 0;
+            sqlite_cmd = sqlite_conn.CreateCommand();
+            string daySumqurey = "SELECT sum(prdPrice * prdAmount), saleDate FROM " + constants.tbNames[3] + " WHERE saleDate>=@saleDate1 AND saleDate<=@saleDate2 AND ticketNo=@ticketNo ORDER BY id ASC";
+            sqlite_cmd.CommandText = daySumqurey;
+            sqlite_cmd.Parameters.AddWithValue("@saleDate1", sumDayTime1);
+            sqlite_cmd.Parameters.AddWithValue("@saleDate2", sumDayTime2);
+            sqlite_cmd.Parameters.AddWithValue("@ticketNo", ticketNo);
+            sqlite_datareader = sqlite_cmd.ExecuteReader();
+
+            while (sqlite_datareader.Read())
             {
-                Label values = createLabel.CreateLabels(rightColumn, "orderNameValue_" + i, "味噌ラーメン×1", 0, column3.Bottom + rightColumn.Height * i / rowCount, rightColumn.Width, rightColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 2, Color.Gray);
+                if (!sqlite_datareader.IsDBNull(0))
+                {
+                    saleDate = sqlite_datareader.GetDateTime(1).ToString("yyyy/MM/dd");
+                    saleTime = sqlite_datareader.GetDateTime(1).ToString("HH:mm:ss");
+                    saleSum = sqlite_datareader.GetInt32(0);
+                }
             }
-            Label value = createLabel.CreateLabels(rightColumn, "orderPriceValue", "合計金額", 0, value3.Bottom + rightColumn.Height * productTypes / rowCount, rightColumn.Width, rightColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 2, Color.Gray);
 
-            Button closeButton = createButton.CreateButton("キャンセル", "closeButton", dialogPanel.Left, dialogPanel.Bottom + 20, dialogPanel.Width / 2 - 30, 50, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 1, 12, FontStyle.Regular, Color.White);
+
+            Label value1 = createLabel.CreateLabels(rightColumn, "orderDateValue", saleDate, 0, 0, rightColumn.Width, rightColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 2, Color.Gray);
+            Label value2 = createLabel.CreateLabels(rightColumn, "orderTimeValue", saleTime, 0, column1.Bottom, rightColumn.Width, rightColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 2, Color.Gray);
+            Label value3 = createLabel.CreateLabels(rightColumn, "orderNumberValue", ticketNo.ToString("0000000000"), 0, column2.Bottom, rightColumn.Width, rightColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 2, Color.Gray);
+            int i = 0;
+            SQLiteCommand sqlite_cmds;
+            SQLiteDataReader sqlite_datareaders;
+            sqlite_cmds = sqlite_conn.CreateCommand();
+            string daySumqureys = "SELECT * FROM " + constants.tbNames[3] + " WHERE saleDate>=@saleDate1 AND saleDate<=@saleDate2 AND ticketNo=@ticketNo ORDER BY id ASC";
+            sqlite_cmds.CommandText = daySumqureys;
+            sqlite_cmds.Parameters.AddWithValue("@saleDate1", sumDayTime1);
+            sqlite_cmds.Parameters.AddWithValue("@saleDate2", sumDayTime2);
+            sqlite_cmds.Parameters.AddWithValue("@ticketNo", ticketNo);
+            sqlite_datareaders = sqlite_cmds.ExecuteReader();
+
+            while (sqlite_datareaders.Read())
+            {
+                if (!sqlite_datareaders.IsDBNull(0))
+                {
+                    string prdName = sqlite_datareaders.GetString(2);
+                    int prdAmount = sqlite_datareaders.GetInt32(4);
+                    Label values = createLabel.CreateLabels(rightColumn, "orderNameValue_" + i, prdName + " ×" + prdAmount, 0, column3.Bottom + rightColumn.Height * i / rowCount, rightColumn.Width, rightColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 2, Color.Gray);
+                    i++;
+                }
+            }
+            Label value = createLabel.CreateLabels(rightColumn, "orderPriceValue", saleSum.ToString(), 0, value3.Bottom + rightColumn.Height * productTypes[prdID] / rowCount, rightColumn.Width, rightColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 2, Color.Gray);
+
+            Button closeButton = createButton.CreateButton(constants.cancelLabel, "closeButton", dialogPanel.Left, dialogPanel.Bottom + 20, dialogPanel.Width / 2 - 30, 50, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 1, 12, FontStyle.Regular, Color.White);
             closeButton.Click += new EventHandler(this.CancelCloseDialog);
 
-            Button cancelButton = createButton.CreateButton("取消実行", "cancelButton", dialogPanel.Right - dialogPanel.Width / 2 + 30 , dialogPanel.Bottom + 20, dialogPanel.Width / 2 - 30, 50, Color.Red, Color.Transparent, 0, 1, 12, FontStyle.Regular, Color.White);
+            Button cancelButton = createButton.CreateButton(constants.cancelRun, "cancelButton_" + ticketNo, dialogPanel.Right - dialogPanel.Width / 2 + 30 , dialogPanel.Bottom + 20, dialogPanel.Width / 2 - 30, 50, Color.Red, Color.Transparent, 0, 1, 12, FontStyle.Regular, Color.White);
             cancelDialogFormGlobal = dialogForm;
+            cancelButton.Click += new EventHandler(this.CancelRun);
             dialogForm.Controls.Add(closeButton);
             dialogForm.Controls.Add(cancelButton);
-            dialogForm.ShowDialog();
-        }
-
-        public void CategoryPrintView()
-        {
-            Form dialogForm = new Form();
-            dialogForm.Size = new Size(width / 2, height * 8 / 9);
-            dialogForm.BackColor = Color.White;
-            dialogForm.StartPosition = FormStartPosition.CenterParent;
-            dialogForm.WindowState = FormWindowState.Normal;
-            dialogForm.ControlBox = false;
-            dialogForm.FormBorderStyle = FormBorderStyle.FixedDialog;
-            DialogFormGlobal = dialogForm;
-
-            Panel dialogPanel = createPanel.CreateMainPanel(dialogForm, 0, 0, dialogForm.Width, dialogForm.Height, BorderStyle.None, Color.Transparent);
-            dialogPanel.AutoScroll = true;
-
-            FlowLayoutPanel dialogTopPanel = createPanel.CreateFlowLayoutPanel(dialogPanel, 0, 0, dialogPanel.Width - 30, 50, Color.Transparent, new Padding(dialogPanel.Width - 65, 5, 0, 0));
-
-            Button closeButton = createButton.CreateButton("x", "closeButton", 0, 0, 30, 30, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 1);
-            closeButton.ForeColor = Color.White;
-            //closeButton.Dock = DockStyle.Right;
-            dialogTopPanel.Controls.Add(closeButton);
-            closeButton.Click += new EventHandler(this.CloseDialog);
-
-            FlowLayoutPanel dialogTitlePanel1 = createPanel.CreateFlowLayoutPanel(dialogPanel, 0, 50, dialogPanel.Width, 50, Color.Transparent, new Padding(0));
-            Label dialogTitle1 = createLabel.CreateLabelsInPanel(dialogTitlePanel1, "dialogTitle1", constants.categoryListPrintTitle, 0, 0, dialogTitlePanel1.Width, 50, Color.Transparent, Color.Black, 22);
-            FlowLayoutPanel dialogTitlePanel2 = createPanel.CreateFlowLayoutPanel(dialogPanel, 0, 100, dialogPanel.Width, 50, Color.Transparent, new Padding(0));
-            Label dialogTitle2 = createLabel.CreateLabelsInPanel(dialogTitlePanel2, "dialogTitle2", "2020/04/18　　22:05:59", 0, 0, dialogTitlePanel2.Width, 50, Color.Transparent, Color.Black, 22);
-            FlowLayoutPanel dialogTitlePanel3 = createPanel.CreateFlowLayoutPanel(dialogPanel, 0, 150, dialogPanel.Width, 50, Color.Transparent, new Padding(0));
-            Label dialogTitle3 = createLabel.CreateLabelsInPanel(dialogTitlePanel3, "dialogTitle3", constants.storeName, 0, 0, dialogTitlePanel3.Width, 50, Color.Transparent, Color.Black, 22);
-
-            int m = 0;
-            int topPosition = 210;
-            foreach (string categoryItem in constants.saleCategories)
-            {
-              //  int n = (m == 0) ? m : m - 1;
-                FlowLayoutPanel productTableBody1 = createPanel.CreateFlowLayoutPanel(dialogPanel, 0, topPosition, dialogPanel.Width, 50, Color.Transparent, new Padding(30, 0, 0, 0));
-                Label categoryLabel1 = createLabel.CreateLabelsInPanel(productTableBody1, "categoryNameLabel_" + m + "_1", "表示位置" + (m + 1) + "／カテゴリー" + (m + 1), 0, 0, productTableBody1.Width / 4 - 10, productTableBody1.Height, Color.Transparent, Color.FromArgb(255, 47, 44, 39), 12, false, ContentAlignment.MiddleLeft);
-                Label categoryLabel2 = createLabel.CreateLabelsInPanel(productTableBody1, "categoryName_" + m + "_1", categoryItem, productTableBody1.Width / 3, 0, productTableBody1.Width / 3, productTableBody1.Height, Color.Transparent, Color.FromArgb(255, 47, 44, 39), 12, false, ContentAlignment.MiddleLeft);
-                FlowLayoutPanel productTableBody2 = createPanel.CreateFlowLayoutPanel(dialogPanel, 0, topPosition + 50, dialogPanel.Width, 50, Color.Transparent, new Padding(30, 0, 0, 0));
-                Label categoryTimeLabel = createLabel.CreateLabelsInPanel(productTableBody2, "categoryTimeLabel_" + m + "_2", "販売時刻: ", 0, 0, productTableBody2.Width / 4 - 10, productTableBody2.Height, Color.Transparent, Color.FromArgb(255, 47, 44, 39), 12, false, ContentAlignment.MiddleLeft);
-                Label categoryTimeValue = createLabel.CreateLabelsInPanel(productTableBody2, "categoryTimeValue_" + m + "_2", "10：00～21:59", productTableBody2.Width / 3, 0, productTableBody2.Width / 3 - 10, productTableBody2.Height, Color.Transparent, Color.FromArgb(255, 47, 44, 39), 12, false, ContentAlignment.MiddleLeft);
-
-                int k = 0;
-                foreach (string prodItem in constants.productBigName[m])
-                {
-                    FlowLayoutPanel productTableBody = createPanel.CreateFlowLayoutPanel(dialogPanel, 0, topPosition + 100 + 50 * k, dialogPanel.Width, 50, Color.Transparent, new Padding(30, 0, 0, 0));
-                    Label prodNameBody1 = createLabel.CreateLabelsInPanel(productTableBody, "prodBody_" + k + "_1", prodItem, 0, 0, productTableBody.Width / 3 - 50, productTableBody.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12, false, ContentAlignment.MiddleLeft);
-                    Label prodNameBody2 = createLabel.CreateLabelsInPanel(productTableBody, "prodBody_" + k + "_2", constants.productBigPrice[m][k].ToString() + constants.unit, productTableBody.Width / 3, 0, productTableBody.Width / 3 - 50, productTableBody.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12);
-                    Label prodNameBody3 = createLabel.CreateLabelsInPanel(productTableBody, "prodBody_" + k + "_3", constants.productBigSaleAmount[m][k].ToString(), productTableBody.Width * 2 / 3, 0, productTableBody.Width / 3 - 50, productTableBody.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12);
-                    dialogFlowLayout = productTableBody;
-                    k++;
-               }
-                topPosition += 100 + 50 * constants.productBigName[m].Length;
-                m++;
-            }
-            dialogForm.ShowDialog();
-        }
-        public void GroupPrintView()
-        {
-            Form dialogForm = new Form();
-            dialogForm.Size = new Size(width / 2, height * 8 / 9);
-            dialogForm.BackColor = Color.White;
-            dialogForm.StartPosition = FormStartPosition.CenterParent;
-            dialogForm.WindowState = FormWindowState.Normal;
-            dialogForm.ControlBox = false;
-            dialogForm.FormBorderStyle = FormBorderStyle.FixedDialog;
-            DialogFormGlobal = dialogForm;
-
-            Panel dialogPanel = createPanel.CreateMainPanel(dialogForm, 0, 0, dialogForm.Width, dialogForm.Height, BorderStyle.None, Color.Transparent);
-            dialogPanel.AutoScroll = true;
-
-            FlowLayoutPanel dialogTopPanel = createPanel.CreateFlowLayoutPanel(dialogPanel, 0, 0, dialogPanel.Width - 30, 50, Color.Transparent, new Padding(dialogPanel.Width - 65, 5, 0, 0));
-
-            Button closeButton = createButton.CreateButton("x", "closeButton", 0, 0, 30, 30, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 1);
-            closeButton.ForeColor = Color.White;
-            //closeButton.Dock = DockStyle.Right;
-            dialogTopPanel.Controls.Add(closeButton);
-            closeButton.Click += new EventHandler(this.CloseDialog);
-
-            FlowLayoutPanel dialogTitlePanel1 = createPanel.CreateFlowLayoutPanel(dialogPanel, 0, 50, dialogPanel.Width, 50, Color.Transparent, new Padding(0));
-            Label dialogTitle1 = createLabel.CreateLabelsInPanel(dialogTitlePanel1, "dialogTitle1", constants.groupListPrintTitle, 0, 0, dialogTitlePanel1.Width, 50, Color.Transparent, Color.Black, 22);
-            FlowLayoutPanel dialogTitlePanel2 = createPanel.CreateFlowLayoutPanel(dialogPanel, 0, 100, dialogPanel.Width, 50, Color.Transparent, new Padding(0));
-            Label dialogTitle2 = createLabel.CreateLabelsInPanel(dialogTitlePanel2, "dialogTitle2", "2020/04/18　　22:05:59", 0, 0, dialogTitlePanel2.Width, 50, Color.Transparent, Color.Black, 22);
-            FlowLayoutPanel dialogTitlePanel3 = createPanel.CreateFlowLayoutPanel(dialogPanel, 0, 150, dialogPanel.Width, 50, Color.Transparent, new Padding(0));
-            Label dialogTitle3 = createLabel.CreateLabelsInPanel(dialogTitlePanel3, "dialogTitle3", constants.storeName, 0, 0, dialogTitlePanel3.Width, 50, Color.Transparent, Color.Black, 22);
-
-            int m = 0;
-            int topPosition = 210;
-            foreach (string categoryItem in constants.saleCategories)
-            {
-                //  int n = (m == 0) ? m : m - 1;
-                FlowLayoutPanel productTableBody1 = createPanel.CreateFlowLayoutPanel(dialogPanel, 0, topPosition, dialogPanel.Width, 50, Color.Transparent, new Padding(30, 0, 0, 0));
-                Label categoryLabel1 = createLabel.CreateLabelsInPanel(productTableBody1, "categoryNameLabel_" + m + "_1", constants.groupTitleLabel + (m + 1) + ": " + categoryItem, 0, 0, productTableBody1.Width / 4 - 10, productTableBody1.Height, Color.Transparent, Color.FromArgb(255, 47, 44, 39), 12, false, ContentAlignment.MiddleLeft);
-
-                int k = 0;
-                foreach (string prodItem in constants.productBigName[m])
-                {
-                    FlowLayoutPanel productTableBody = createPanel.CreateFlowLayoutPanel(dialogPanel, 0, topPosition + 50 + 50 * k, dialogPanel.Width, 50, Color.Transparent, new Padding(30, 0, 0, 0));
-                    Label prodNameBody1 = createLabel.CreateLabelsInPanel(productTableBody, "prodBody_" + k + "_1", prodItem, 0, 0, productTableBody.Width / 2 - 50, productTableBody.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12, false, ContentAlignment.MiddleLeft);
-                    Label prodNameBody2 = createLabel.CreateLabelsInPanel(productTableBody, "prodBody_" + k + "_2", constants.productBigPrice[m][k].ToString() + constants.unit, productTableBody.Width / 2, 0, productTableBody.Width / 2 - 50, productTableBody.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12, false, ContentAlignment.MiddleLeft);
-                    dialogFlowLayout = productTableBody;
-                    k++;
-                }
-                topPosition += 60 + 50 * constants.productBigName[m].Length;
-                m++;
-            }
             dialogForm.ShowDialog();
         }
 
@@ -924,6 +918,41 @@ namespace Ovan_P1
             cancelDialogFormGlobal.Close();
         }
 
+        public void CancelRun(object sender, EventArgs e)
+        {
+            Button prdTemp = (Button)sender;
+            int ticketNo = int.Parse(prdTemp.Name.Split('_')[1]);
+            SQLiteCommand sqlite_cmd;
+
+            sqlite_cmd = sqlite_conn.CreateCommand();
+            string daySumqurey = "INSERT INTO " + constants.tbNames[9] + "(saleID, prdID, prdName, prdPrice, prdAmount, ticketNo, saleDate, sumFlag, sumDate, categoryID, serialNo, realPrdID) SELECT * FROM " + constants.tbNames[3] + " WHERE saleDate>=@saleDate1 AND saleDate<=@saleDate2 AND ticketNo=@ticketNo";
+            sqlite_cmd.CommandText = daySumqurey;
+            sqlite_cmd.Parameters.AddWithValue("@saleDate1", sumDayTime1);
+            sqlite_cmd.Parameters.AddWithValue("@saleDate2", sumDayTime2);
+            sqlite_cmd.Parameters.AddWithValue("@ticketNo", ticketNo);
+            sqlite_cmd.ExecuteNonQuery();
+
+            string daySumqurey1 = "UPDATE " + constants.tbNames[9] + " SET cancelDate=@cancelDate WHERE saleDate>=@saleDate1 AND saleDate<=@saleDate2 AND ticketNo=@ticketNo";
+            sqlite_cmd.CommandText = daySumqurey1;
+            sqlite_cmd.Parameters.AddWithValue("@cancelDate", now.ToString("yyyy-MM-dd"));
+            sqlite_cmd.Parameters.AddWithValue("@saleDate1", sumDayTime1);
+            sqlite_cmd.Parameters.AddWithValue("@saleDate2", sumDayTime2);
+            sqlite_cmd.Parameters.AddWithValue("@ticketNo", ticketNo);
+            sqlite_cmd.ExecuteNonQuery();
+
+            string daySumqureys = "DELETE FROM " + constants.tbNames[3] + " WHERE saleDate>=@saleDate1 AND saleDate<=@saleDate2 AND ticketNo=@ticketNo";
+            sqlite_cmd.CommandText = daySumqureys;
+            sqlite_cmd.Parameters.AddWithValue("@saleDate1", sumDayTime1);
+            sqlite_cmd.Parameters.AddWithValue("@saleDate2", sumDayTime2);
+            sqlite_cmd.Parameters.AddWithValue("@ticketNo", ticketNo);
+            sqlite_cmd.ExecuteNonQuery();
+
+            cancelDialogFormGlobal.Close();
+            tbodyPanelGlobal.Controls.Clear();
+            ShowProdListForFalsePurchaseCancell(logTimeGlobal, tbodyPanelGlobal);
+
+
+        }
         public void YearSelect(object sender, MouseEventArgs e)
         {
             int currentYear = int.Parse(currentYearGlobal.Text);
@@ -1225,7 +1254,7 @@ namespace Ovan_P1
             {
                 if (!sqlite_datareader.IsDBNull(0))
                 {
-                    if(lineNums < k)
+                    if(lineNums <= k)
                     {
                         string prdName = sqlite_datareader.GetString(2);
                         int prdPrice = sqlite_datareader.GetInt32(3);
@@ -1255,7 +1284,7 @@ namespace Ovan_P1
                         e.Graphics.DrawString(prdTotalPrice.ToString() + constants.unit, DefaultFont, Brushes.Black, rect5, format5);//print each item
                         currentY += 30;
 
-                        if (itemperpages < 26) // check whether  the number of item(per page) is more than 20 or not
+                        if (itemperpages < 21) // check whether  the number of item(per page) is more than 20 or not
                         {
                             itemperpages += 1; // increment itemperpage by 1
                             e.HasMorePages = false; // set the HasMorePages property to false , so that no other page will not be added
@@ -1265,7 +1294,7 @@ namespace Ovan_P1
                         {
                             itemperpages = 0; //initiate itemperpage to 0 .
                             e.HasMorePages = true; //e.HasMorePages raised the PrintPage event once per page .
-                            lineNums = k;
+                            lineNums = k + 1;
                             return;//It will call PrintPage event again
 
                         }
@@ -1393,7 +1422,7 @@ namespace Ovan_P1
             if(dropdownHandler == "falsePurchase")
             {
                 tbodyPanelGlobal.Controls.Clear();
-                ShowProdListForFalsePurchaseCancell(tbodyPanelGlobal);
+                ShowProdListForFalsePurchaseCancell(logTimeGlobal, tbodyPanelGlobal);
             }
             else if(dropdownHandler == "logReport")
             {
@@ -1415,7 +1444,7 @@ namespace Ovan_P1
             }
             catch (Exception ex)
             {
-
+                Console.WriteLine(ex);
             }
             return sqlite_conn;
         }

@@ -14,7 +14,6 @@ namespace Ovan_P1
         private string productName = "";
         private int productPriceValue = 0;
 
-        int selectedCategoryIndex = 0;
         int height = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Height;
         int width = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Width;
         Constant constants = new Constant();
@@ -108,7 +107,6 @@ namespace Ovan_P1
             DialogFormGlobal = dialogForm;
             string dialogTitleText = constants.orderDialogRunText;
             string dialogInstructionText = constants.dialogInstruction;
-            Image productImage = null;
 
 
             Panel dialogPanel = createPanel.CreateMainPanel(dialogForm, dialogForm.Width / 15, 10, dialogForm.Width * 13 / 15, dialogForm.Height - 20, BorderStyle.None, Color.White);

@@ -28,7 +28,6 @@ namespace Ovan_P1
         Color subButtonColor = default(Color);
         string objecNameGlobal = "";
 
-        SQLiteConnection sqlite_conn;
 
         public void initSoldoutSetting(SoldoutSetting1 sendHandler)
         {
@@ -215,6 +214,78 @@ namespace Ovan_P1
 
             return mainPanels;
         }
+        public Panel CreateCategoryDropDown1(string objectName, Panel mainPanel, string[] menuItemArray, int[] menuIDArray, int[] menuDisplayPositionArray, int[] menuStateArray, int left, int top, int width, int height, int maxWidth, int maxHeight, int minWidth, int minHeight, Color mainItemBackColor, Color subItemBackColor)
+        {
+            initValue();
+            objecNameGlobal = objectName;
+            Panel mainPanels = createPanel.CreateSubPanel(mainPanel, left, top, width, height, BorderStyle.None, Color.Transparent);
+            mainPanels.MaximumSize = new Size(maxWidth, maxHeight);
+            mainPanels.MinimumSize = new Size(minWidth, minHeight);
+            Panel subPanels = createPanel.CreateSubPanel(mainPanels, 0, height, width, height, BorderStyle.None, Color.Transparent);
+            subPanels.MaximumSize = new Size(maxWidth, maxHeight);
+            subPanels.MinimumSize = new Size(minWidth, 0);
+            mainPanelGlobal = mainPanels;
+            subPanelGlobal = subPanels;
+
+            int buttonWidth = maxWidth;
+            int buttonHeight = maxHeight / (menuItemArray.Length + 1);
+
+            Button mainButton = new Button();
+            mainButton.BackColor = mainItemBackColor;
+            mainButton.Dock = DockStyle.Top;
+            mainButton.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(0)));
+            //   mainButton.Image = Image.FromFile(constants.dropdownArrowDownIcon);
+            //   mainButton.Image = new Bitmap(Image.FromFile(constants.dropdownArrowDownIcon));
+            mainButton.BackgroundImage = Image.FromFile(constants.dropdownArrowDownIcon);
+            mainButton.BackgroundImageLayout = ImageLayout.Stretch;
+            mainButton.ImageAlign = ContentAlignment.MiddleRight;
+            mainButton.Padding = new Padding(0, 0, 10, 0);
+            mainButton.Location = new Point(0, 0);
+            mainButton.Name = "mainButton";
+            mainButton.Size = new Size(buttonWidth, buttonHeight);
+            mainButton.TabIndex = 0;
+            mainButton.Text = menuDisplayPositionArray[0].ToString() + "-" + menuIDArray[0] + "  " + menuItemArray[0];
+            mainPanels.Controls.Add(mainButton);
+            mainButtonGlobal = mainButton;
+            mainButton.Click += new EventHandler(this.showDropDown);
+            // mainButton.UseVisualStyleBackColor = false;
+            mainButtonColor = mainItemBackColor;
+            subButtonColor = subItemBackColor;
+            //  mainButton.Click += new EventHandler(this.button1_Click);
+            int k = 0;
+            int len = menuItemArray.Length;
+            submenuButton = new Button[len];
+
+            foreach (string menuItem in menuItemArray)
+            {
+                Button submenuButtons = new Button();
+                //submenuButtons.Dock = DockStyle.Top;
+                if (k == 0)
+                {
+                    submenuButtons.BackColor = mainItemBackColor;
+                    submenuButtons.ForeColor = Color.White;
+                }
+                else
+                {
+                    submenuButtons.BackColor = subItemBackColor;
+                    submenuButtons.ForeColor = Color.Black;
+                    submenuButtons.Enabled = true;
+                }
+                submenuButtons.Location = new Point(0, buttonHeight * k);
+                submenuButtons.Name = "submenuButton_" + k;
+                submenuButtons.Size = new Size(buttonWidth, buttonHeight);
+                submenuButtons.TabIndex = k + 1;
+                submenuButtons.Text = menuDisplayPositionArray[k].ToString() + "-" + menuIDArray[k] + "  " + menuItemArray[k];
+                //submenuButtons.UseVisualStyleBackColor = true;
+                subPanels.Controls.Add(submenuButtons);
+                submenuButtons.Click += new EventHandler(this.showTable);
+                submenuButton[k] = submenuButtons;
+
+                k++;
+            }
+
+            return mainPanels;
+        }
 
         private void timer_Tick(object sender, EventArgs e)
         {
@@ -332,7 +403,7 @@ namespace Ovan_P1
             }
             catch (Exception ex)
             {
-
+                Console.WriteLine(ex);
             }
             return sqlite_conn;
         }

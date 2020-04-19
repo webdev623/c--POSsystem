@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,8 +28,35 @@ namespace Ovan_P1
         Label tableDateValueGlobal = null;
         Label tableTimeValueGlobal = null;
         DetailView detailView = new DetailView();
+        int yearGlobal = DateTime.Now.Year;
+        int monthGlobal = DateTime.Now.Month;
+        int dayGlobal = DateTime.Now.Day;
+        int hourGlobal = DateTime.Now.Hour;
+        int minuteGlobal = DateTime.Now.Minute;
+
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SYSTEMTIME
+        {
+            public ushort wYear;
+            public ushort wMonth;
+            public ushort wDay;
+            public ushort wDayOfWeek;
+            public ushort wHour;
+            public ushort wMinute;
+            public ushort wSecond;
+            public ushort wMilliseconds;
+        }
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool GetLocalTime(out SYSTEMTIME st);
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern uint GetLastError();
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool SetLocalTime(ref SYSTEMTIME st);
         public TimeSetting(Form1 mainForm, Panel mainPanel)
         {
+
             InitializeComponent();
             mainForm.Width = width;
             mainForm.Height = height;
@@ -78,15 +106,58 @@ namespace Ovan_P1
 
         public void setVal(string setItem, string setValue)
         {
+            DateTime now = DateTime.Now;
             if(setItem == "setDate")
             {
                 string[] getData = setValue.Split('_');
                 tableDateValueGlobal.Text = getData[0] + "年 " + getData[1] + "月 " + getData[2] + "日";
+                tableTimeValueGlobal.Text = hourGlobal.ToString("00") + "時 " + minuteGlobal.ToString("00") + "分";
+                yearGlobal = int.Parse(getData[0]);
+                monthGlobal = int.Parse(getData[1]);
+                dayGlobal = int.Parse(getData[2]);
+                try
+                {
+                    SYSTEMTIME st = new SYSTEMTIME();
+
+                    st.wYear = Convert.ToUInt16(yearGlobal); // must be ushort
+                    st.wMonth = Convert.ToUInt16(monthGlobal);
+                    st.wDayOfWeek = Convert.ToUInt16(dayGlobal);
+                    st.wHour = Convert.ToUInt16(hourGlobal); // must be ushort
+                    st.wMinute = Convert.ToUInt16(minuteGlobal);
+                    st.wSecond = 0;
+                    st.wMilliseconds = 0;
+
+                    var ret = SetLocalTime(ref st);
+                    Console.WriteLine("SetSystemTime return : " + ret);
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+                
+                
             }
             else if(setItem == "setTime")
             {
                 string[] getData = setValue.Split('_');
+                tableDateValueGlobal.Text = yearGlobal.ToString("00") + "年 " + monthGlobal.ToString("00") + "月 " + dayGlobal.ToString("00") + "日";
                 tableTimeValueGlobal.Text = getData[0] + "時 " + getData[1] + "分";
+                hourGlobal = int.Parse(getData[0]);
+                minuteGlobal = int.Parse(getData[1]);
+                SYSTEMTIME st = new SYSTEMTIME();
+
+                st.wYear = Convert.ToUInt16(yearGlobal); // must be ushort
+                st.wMonth = Convert.ToUInt16(monthGlobal);
+                st.wDayOfWeek = Convert.ToUInt16(dayGlobal);
+                st.wHour = Convert.ToUInt16(hourGlobal); // must be ushort
+                st.wMinute = Convert.ToUInt16(minuteGlobal);
+                st.wSecond = 0;
+                st.wMilliseconds = 0;
+
+                var ret = SetLocalTime(ref st);
+                Console.WriteLine("SetSystemTime return : " + ret);
+
             }
         }
 

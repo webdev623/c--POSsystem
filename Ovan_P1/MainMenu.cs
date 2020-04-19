@@ -105,15 +105,22 @@ namespace Ovan_P1
             }
             else if (temp.Name == "salescreen")
             {
-                FormPanel.Controls.Clear();
-                SaleScreen saleScreen = new SaleScreen(FormPanel);
-                saleScreen.TopLevel = false;
-                saleScreen.FormBorderStyle = FormBorderStyle.None;
-                saleScreen.Dock = DockStyle.Fill;
-                Panels.Controls.Add(saleScreen);
-                Thread.Sleep(200);
+                try
+                {
+                    FormPanel.Controls.Clear();
+                    SaleScreen saleScreen = new SaleScreen(FormPanel);
+                    saleScreen.TopLevel = false;
+                    saleScreen.FormBorderStyle = FormBorderStyle.None;
+                    saleScreen.Dock = DockStyle.Fill;
+                    Panels.Controls.Add(saleScreen);
+                    Thread.Sleep(200);
 
-                saleScreen.Show();
+                    saleScreen.Show();
+                }
+                catch(Exception ex)
+                {
+                    MessageBox.Show(ex.ToString());
+                }
             }
             else
             {
@@ -159,6 +166,18 @@ namespace Ovan_P1
                         break;
                 }
             }
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            // 
+            // MainMenu
+            // 
+            this.ClientSize = new System.Drawing.Size(862, 261);
+            this.Name = "MainMenu";
+            this.ResumeLayout(false);
+
         }
     }
 }

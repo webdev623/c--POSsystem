@@ -26,8 +26,6 @@ namespace Ovan_P1
         CreateLabel createLabel = new CreateLabel();
         CustomButton customButton = new CustomButton();
         CreateTextBox createTextBox = new CreateTextBox();
-        Label tableDateValueGlobal = null;
-        Label tableTimeValueGlobal = null;
         DetailView detailView = new DetailView();
 
         private TextBox[] tbBoxGlobal = new TextBox[3];

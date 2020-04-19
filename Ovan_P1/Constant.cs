@@ -10,7 +10,7 @@ namespace Ovan_P1
     class Constant
     {
         public string storeName = "ラーメン世代";
-        public string dbName = "ovanp1";
+        public string dbName = "obanp1";
         public string yesStr = "はい";
         public string noStr = "いいえ";
         public string unit = "円";
@@ -21,15 +21,19 @@ namespace Ovan_P1
         public string dayLabel = "日";
         public string hourLabel = "時";
         public string minuteLabel = "分";
-        public string cancelLabel = "取消";
+        public string cancelLabel = "キャンセル";
+        public string cancelRun = "取消実行";
         public string categoryListPrintMessage = "全てのカテゴリーを印刷 しても宜しいですか？";
         public string categoryListPrintTitle = "カテゴリー一覧印刷";
         public string categoryListTitleLabel = "表示位置/カテゴリーNo";
+        public string categoryDiplayLabel = "表示位置";
+        public string categoryLabel = "カテゴリー";
         public string groupListTitleLabel = "グループ名";
         public string groupTitleLabel = "グループ";
         public string groupListPrintMessage = "全てのグループを印刷 しても宜しいですか？";
         public string groupListPrintTitle = "グループ一覧";
         public string TimeLabel = "販売時間";
+        public string SaleTimeLabel = "販売時刻";
         public string prevButtonLabel = "プレビュー";
         public string printButtonLabel = "一覧印刷";
         public string printProductNameField = "印刷品目名";
@@ -38,6 +42,7 @@ namespace Ovan_P1
         public string saleStatusLabel = "販売中";
         public string saleStopLabel = "中止";
         public string saleStopText = "利用停止";
+        public string saleStopStatusText = "販売停止";
         public string currentDateLabel = "現在の日付";
         public string currentTimeLabel = "現在の時刻";
         public string timeSettingLabel = "時刻設定";
@@ -92,6 +97,41 @@ namespace Ovan_P1
 
         public string sumProgressAlert = "締め処理中です。終わるまでお待ちください";
 
+        public string orderCancelDialogTitle = "取消確認";
+        public string orderDate = "注文日";
+        public string orderTime = "注文時間";
+        public string orderProductList = "品目";
+        public string orderSumPrice = "合計金額";
+
+
+
+        public string cancelErrorMessage = "締め処理を行った後は取消出来ません";
+        public string cancelResultErrorMessage = "データが無いか、日付が誤っています";
+
+        public string prdCategoryField = "所属カテゴリー";
+        public string prdPriceFieldIncludTax = "販売価格(税込)";
+        public string prdSaleTimeField = "販売時刻設定";
+        public string prdScreenText = "画面メッセージ";
+        public string prdPrintText = "印刷メッセージ";
+
+        public string errorMsgTitle = "係員をお呼びください。";
+        public string systemErrorMsg = "システムエラーが発生しました。";
+        public string systemSubErrorMsg = "マニュアルに従ってサービスをご依頼ください。";
+        public string printErrorMsg = "レシート用紙切れです。\nロール紙を補充してください。";
+        public string printSubErrorMsg = "完了しましたらエラー解除ボタンを押してください。";
+
+        public string unChanged = "未変更";
+        public string dayTypeBefore = "デフォルトの曜日タイプ";
+        public string dayTypeAfter = "変更後の曜日タイプ";
+        public string startTimeBefore = "デフォルトの開始時間";
+        public string startTimeAfter = "変更御の開始時間";
+        public string endTimeBefore = "デフォルトの終了時間";
+        public string endTimeAfter = "変更後の終了時間";
+        public string openTimeInstruction1 = "曜日タイプが変更された場合、指定された曜日の販売時間設定、\n商品構成に切り替わります。";
+        public string openTimeInstruction2 = "デフォルトの開始時間より前に設定された場合、\nデフォルトの販売開始時間に販売される商品が早期開始対象になります。";
+        public string openTimeInstruction3 = "デフォルトの終了時間より後に変更された場合、\nデフォルトの販売終了時間の直前に販売されている商品が延長対象になります。\n（売り切れ商品はそのまま）";
+        public string gettingLabel = "了解";
+
         public int singleticketPrintPaperWidth = 500;
         public int singleticketPrintPaperHeight = 35 * 9;
         public int multiticketPrintPaperWidth = 500;
@@ -104,11 +144,16 @@ namespace Ovan_P1
         public int receiptReportPrintPaperWidth = 500;
         public int receiptReportPrintPaperHeight = 800;
 
+        public int categorylistPrintPaperWidth = 500;
+        public int categorylistPrintPaperHeight = 800;
+        public int grouplistPrintPaperWidth = 500;
+        public int grouplistPrintPaperHeight = 800;
+
         public int fontSizeBig = 14;
         public int fontSizeMedium = 10;
         public int fontSizeSmall = 8;
 
-        public string[] tbNames = new string[] { "CategoryTB", "ProductTB", "ProductTempTB", "SaleTB", "SetTicketTable", "SetReceiptTable", "SetStoreTable", "DaySaleTB", "ReceiptTB" };
+        public string[] tbNames = new string[] { "CategoryTB", "ProductTB", "CategoryDetailTB", "SaleTB", "TableSetTicket", "TableSetReceipt", "TableSetStore", "DaySaleTB", "ReceiptTB", "CancelOrderTB", "TableGroupName", "TableGroupDetail", "GeneralTB", "TableSetAudio" };
 
         public string[] dayTypeValue = new string[] { "平日", "土曜", "日曜" };
 
@@ -127,107 +172,6 @@ namespace Ovan_P1
         public string[] saleCategories_btnName = new string[] { "category_1", "category_2", "category_3", "category_4", "category_5" };
         public string[] transactionLabelName = new string[] { "投入 金額", "購入 金額", "釣銭" };
         public string[] productAmount = new string[] { "1 枚", "2 枚", "3 枚", "4 枚", "5 枚", "6 枚", "7 枚", "8 枚", "9 枚" };
-        public string[] productBigImageUrl = new string[]
-        {
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png"
-       };
-        public string[] productSmallImageUrl = new string[]
-        {
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\category1.png"
-        };
-        public string[] productBigBadgeImageUrl = new string[]
-        {
-            @"D:\\ovan\\Ovan_P1\\images\\badge1.png",
-            "",
-            "",
-            @"D:\\ovan\\Ovan_P1\\images\\badge1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\badge1.png",
-            "",
-            "",
-            @"D:\\ovan\\Ovan_P1\\images\\badge1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\badge1.png",
-            "",
-            "",
-            @"D:\\ovan\\Ovan_P1\\images\\badge1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\badge1.png",
-            "",
-            "",
-            @"D:\\ovan\\Ovan_P1\\images\\badge1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\badge1.png",
-            "",
-            "",
-            @"D:\\ovan\\Ovan_P1\\images\\badge1.png",
-        };
-        public string[] productSmallBadgeImageUrl = new string[]
-        {
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
-        };
-
-
-
-        public string[][] productBigName = new string[][]{
-            new string[] { "醤油ラーメン", "塩ラーメン", "味噌ラーメン", "つけ麺", "チャーシュー麺", "特製ラーメン", "全部乗せラーメン", "特製つけ麺", "油そば", "チャーシュー", "メンマ" },
-            new string[] { "味噌ラーメン", "塩ラーメン", "つけ麺", "全部乗せラーメン", "チャーシュー麺", "醤油ラーメン", "特製ラーメン", "全部乗せラーメン", "特製つけ麺", "油そば", "チャーシュー", "メンマ"},
-            new string[] {  "チャーシュー", "醤油ラーメン", "特製ラーメン", "塩ラーメン", "味噌ラーメン", "つけ麺", "チャーシュー麺", "全部乗せラーメン", "特製つけ麺", "メンマ" },
-            new string[] { "塩ラーメン", "味噌ラーメン", "つけ麺", "チャーシュー麺", "醤油ラーメン", "特製ラーメン", "全部乗せラーメン", "特製つけ麺", "油そば", "チャーシュー", "メンマ"  },
-            new string[] { "塩ラーメン", "醤油ラーメン", "味噌ラーメン", "メンマ", "チャーシュー麺", "特製ラーメン", "全部乗せラーメン", "つけ麺", "油そば", "チャーシュー" },
-        };
-        public string[] productSmallName = new string[] { "ご飯（小）", "ご飯（大)", "替え麺", "大盛り ", "コーン", "玉子", "メンマ", "焼き海苔", "焼き豚" };
-        public int[][] productBigPrice = new int[][]{
-           new int[] { 700, 600, 900, 700, 900, 900, 1100, 700, 800, 700, 600 },
-           new int[] { 700, 900, 600, 900, 700, 900, 1100, 700, 800, 700, 600, 800 },
-           new int[] { 600, 900, 700, 900, 900, 1100, 700, 800, 700, 600 },
-           new int[] { 900, 700, 600, 700, 900, 900, 1100, 700, 800, 700, 600 },
-           new int[] { 900, 900, 700, 900, 900, 1100, 700, 800, 700, 600 },
-        };
-        public string[][] productBigSaleAmount = new string[][]{
-            new string[] { "0", "0", "10", "10", "1", "10", "1", "10", "3", "15", "0" },
-            new string[] { "10", "0", "1", "0", "12", "0", "3", "9", "10", "10", "0", "2" },
-            new string[] { "0", "10", "3", "3", "2", "11", "10", "2", "5", "0" },
-            new string[] { "10", "0", "0", "10", "3", "1", "21", "14", "2", "1", "0" },
-            new string[] { "0", "0", "10", "3", "1", "27", "15", "10", "31", "1" },
-        };
-        public string[][] productBigSaleStatus = new string[][]{
-            new string[] { "販売中", "販売中", "販売中", "販売中", "中止", "販売中", "販売中", "販売中", "販売中", "中止", "販売中" },
-            new string[] { "販売中", "販売中", "販売中", "中止", "販売中", "中止", "販売中", "販売中", "販売中", "販売中", "中止", "販売中" },
-            new string[] { "販売中", "販売中", "販売中", "中止", "販売中", "販売中", "販売中", "販売中", "中止", "販売中" },
-            new string[] { "販売中", "販売中", "販売中", "販売中", "販売中", "販売中", "中止", "販売中", "販売中", "中止", "販売中" },
-            new string[] { "販売中", "販売中", "販売中", "販売中", "中止", "販売中", "販売中", "販売中", "中止", "販売中" },
-        };
-        public int[] productSmallPrice = new int[] { 100, 200, 150, 100, 100, 100, 200, 100, 100 };
-
-        public int[] productSoldAmount = new int[] { 100, 20, 15, 10, 10, 14, 22, 10, 10, 30, 20, 10 };
-
-        public int[] recieptIssuePrice = new int[] { 700, 900, 600, 900, 700, 900, 1100, 700, 800, 700, 600, 800 };
-        public int[] recieptIssueAmount = new int[] { 10, 2, 15, 1, 1, 4, 2, 1, 1, 3, 2, 2 };
 
         public string dialogTitle = "注文メニュー";
         public string dialogInstruction = "複数注文時はプルダウンで選ん\n決定ボタンを押して下さい。";
@@ -344,7 +288,14 @@ namespace Ovan_P1
         {
             DateTime sumDayTime = DateTime.Now;
             sumDayTime = new DateTime(int.Parse(DateTime.Now.ToString("yyyy")), int.Parse(DateTime.Now.ToString("MM")), int.Parse(DateTime.Now.ToString("dd")), int.Parse(storeEndTime.Split(':')[0]), 00, 00);
-            sumDayTime = sumDayTime.AddSeconds(-1);
+            if(storeEndTime.Split(':')[0] == "00")
+            {
+                sumDayTime = sumDayTime.AddDays(1).AddSeconds(-1);
+            }
+            else
+            {
+                sumDayTime = sumDayTime.AddSeconds(-1);
+            }
 
             return sumDayTime;
         }

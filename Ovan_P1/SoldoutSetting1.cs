@@ -44,8 +44,6 @@ namespace Ovan_P1
         public SoldoutSetting1(Form1 mainForm, Panel mainPanel)
         {
             sqlite_conn = CreateConnection(constants.dbName);
-            SQLiteCommand sqlite_cmd;
-            SQLiteDataReader sqlite_datareader;
             this.GetCategoryList();
 
             mainForm.Width = width;
@@ -63,7 +61,7 @@ namespace Ovan_P1
             Label subTitleLabel = createLabel.CreateLabelsInPanel(bodyPanel, "SoldoutSetting_subTitle", constants.categorylistLabel, 80, 0, width / 2 - 300, 50, Color.White, Color.Red, 24, false, ContentAlignment.MiddleRight);
 
 
-            dropDownMenu.CreateCategoryDropDown("soldoutSetting1", bodyPanel, categoryNameList, categoryIDList, categoryDisplayPositionList, categorySoldStateList, width / 2 - 150, 0, 200, 50, 200, 50 * (constants.saleCategories.Length + 1), 200, 50, Color.Red, Color.Yellow);
+            dropDownMenu.CreateCategoryDropDown("soldoutSetting1", bodyPanel, categoryNameList, categoryIDList, categoryDisplayPositionList, categorySoldStateList, width / 2 - 150, 0, 200, 50, 200, 50 * (categoryRowCount + 1), 200, 50, Color.Red, Color.Yellow);
 
             Button saleStateButton = customButton.CreateButton(constants.saleStatusLabel, "saleSateButton", width / 2 + 200, 0, 200, 50, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 10, 14, FontStyle.Bold, Color.White);
             saleStateButton.Click += new EventHandler(this.SaleSateSwitching);
@@ -112,9 +110,9 @@ namespace Ovan_P1
             {
                 if (!sqlite_datareader.IsDBNull(0))
                 {
-                    string prdName = sqlite_datareader.GetString(4);
-                    int prdPrice = sqlite_datareader.GetInt32(9);
-                    int prdLimitedCnt = sqlite_datareader.GetInt32(10);
+                    string prdName = sqlite_datareader.GetString(3);
+                    int prdPrice = sqlite_datareader.GetInt32(8);
+                    int prdLimitedCnt = sqlite_datareader.GetInt32(9);
                     int prdID = sqlite_datareader.GetInt32(2);
                     int rowID = sqlite_datareader.GetInt32(0);
                     int soldFlag = sqlite_datareader.GetInt32(31);
@@ -357,22 +355,22 @@ namespace Ovan_P1
             {
                 if (!sqlite_datareader.IsDBNull(0))
                 {
-                    categoryIDList[k] = sqlite_datareader.GetInt32(0);
-                    categoryNameList[k] = sqlite_datareader.GetString(1);
-                    categoryDisplayPositionList[k] = sqlite_datareader.GetInt32(5);
+                    categoryIDList[k] = sqlite_datareader.GetInt32(1);
+                    categoryNameList[k] = sqlite_datareader.GetString(2);
+                    categoryDisplayPositionList[k] = sqlite_datareader.GetInt32(6);
                     bool saleFlag = false;
                     string openTime = "";
                     if (week == "Sat")
                     {
-                        openTime = sqlite_datareader.GetString(3);
+                        openTime = sqlite_datareader.GetString(4);
                     }
                     else if (week == "Sun")
                     {
-                        openTime = sqlite_datareader.GetString(4);
+                        openTime = sqlite_datareader.GetString(5);
                     }
                     else
                     {
-                        openTime = sqlite_datareader.GetString(2);
+                        openTime = sqlite_datareader.GetString(3);
                     }
                     string[] openTimeArr = openTime.Split('/');
                     foreach (string openTimeArrItem in openTimeArr)
@@ -389,7 +387,7 @@ namespace Ovan_P1
                     {
                         categorySoldStateList[k] = 0;
                     }
-                    if(sqlite_datareader.GetInt32(8) == 1)
+                    if(sqlite_datareader.GetInt32(10) == 1)
                     {
                         soldoutCategoryIndex.Add(k + 1);
                     }
@@ -413,7 +411,7 @@ namespace Ovan_P1
             }
             catch (Exception ex)
             {
-
+                Console.WriteLine(ex);
             }
             return sqlite_conn;
         }

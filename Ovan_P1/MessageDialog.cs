@@ -18,7 +18,6 @@ namespace Ovan_P1
         CreatePanel createPanel = new CreatePanel();
         CreateLabel createLabel = new CreateLabel();
         CustomButton createButton = new CustomButton();
-        DetailView detailView = new DetailView();
         CategoryList categoryList = null;
         GroupList groupList = null;
         MenuReading menuReading = null;
@@ -139,6 +138,34 @@ namespace Ovan_P1
 
             dialogForm.ShowDialog();
         }
+        public void ShowErrorMessage(string errorMsg1, string errorMsg2)
+        {
+            Form dialogForm = new Form();
+            dialogForm.Size = new Size(width * 2 / 5, height / 3);
+            dialogForm.BackColor = Color.White;
+            dialogForm.StartPosition = FormStartPosition.CenterParent;
+            dialogForm.WindowState = FormWindowState.Normal;
+            dialogForm.ControlBox = false;
+            dialogForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+            DialogFormGlobal = dialogForm;
+
+            Panel mainPanel = createPanel.CreateMainPanel(dialogForm, 0, 0, dialogForm.Width, dialogForm.Height, BorderStyle.None, Color.FromArgb(255, 255, 153, 204));
+
+            Label messageLabel1 = createLabel.CreateLabelsInPanel(mainPanel, "messageLabel1", constants.errorMsgTitle, 50, 30, mainPanel.Width - 100, (mainPanel.Height - 150) / 3, Color.Red, Color.White, constants.fontSizeBig, false, ContentAlignment.MiddleCenter);
+            messageLabel1.Padding = new Padding(30, 0, 30, 0);
+            Label messageLabel2 = createLabel.CreateLabelsInPanel(mainPanel, "messageLabel2", errorMsg1, 50, (mainPanel.Height - 100) / 3, mainPanel.Width - 100, (mainPanel.Height - 160) * 1 / 3, Color.Transparent, Color.Black, constants.fontSizeMedium, false, ContentAlignment.MiddleCenter);
+            messageLabel2.Padding = new Padding(30, 0, 30, 0);
+            Label messageLabel3 = createLabel.CreateLabelsInPanel(mainPanel, "messageLabel2", errorMsg2, mainPanel.Width / 4, (mainPanel.Height - 100) * 2 / 3, mainPanel.Width / 2, (mainPanel.Height - 180) * 1 / 3, Color.FromArgb(255, 255, 255, 204), Color.Black, constants.fontSizeSmall, false, ContentAlignment.MiddleCenter);
+            messageLabel3.Padding = new Padding(30, 0, 30, 0);
+
+
+            Button closeButton = createButton.CreateButton(constants.noStr, "closeButton", mainPanel.Width / 2 - 75, mainPanel.Height - 100, 150, 50, Color.Red, Color.Transparent, 0, 1);
+            closeButton.ForeColor = Color.White;
+            mainPanel.Controls.Add(closeButton);
+            closeButton.Click += new EventHandler(this.BackShow);
+
+            dialogForm.ShowDialog();
+        }
 
         private void BackShow(object sender, EventArgs e)
         {
@@ -161,6 +188,30 @@ namespace Ovan_P1
             DialogFormGlobal.Close();
             groupList.btnprintpreview_Click();
             //detailView.GroupPrintView();
+        }
+
+        public void CancelOrderMessage(object sender, EventArgs e)
+        {
+            Form dialogForm = new Form();
+            dialogForm.Size = new Size(width * 2 / 5, height / 3);
+            dialogForm.BackColor = Color.White;
+            dialogForm.StartPosition = FormStartPosition.CenterParent;
+            dialogForm.WindowState = FormWindowState.Normal;
+            dialogForm.ControlBox = false;
+            dialogForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+            DialogFormGlobal = dialogForm;
+
+            Panel mainPanel = createPanel.CreateMainPanel(dialogForm, 0, 0, dialogForm.Width, dialogForm.Height, BorderStyle.None, Color.White);
+
+            Label messageLabel = createLabel.CreateLabelsInPanel(mainPanel, "messageLabel", constants.cancelErrorMessage, 50, 0, mainPanel.Width - 100, mainPanel.Height - 100, Color.White, Color.Black, 18, false, ContentAlignment.MiddleCenter);
+            messageLabel.Padding = new Padding(30, 0, 30, 0);
+
+            Button closeButton = createButton.CreateButton(constants.yesStr, "closeButton", mainPanel.Width / 2 - 75, mainPanel.Height - 100, 150, 50, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 1);
+            closeButton.ForeColor = Color.White;
+            mainPanel.Controls.Add(closeButton);
+            closeButton.Click += new EventHandler(this.BackShow);
+
+            dialogForm.ShowDialog();
         }
     }
 }

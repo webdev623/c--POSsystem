@@ -10,7 +10,6 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Threading;
-using System.IO;
 
 namespace Ovan_P1
 {
@@ -18,13 +17,16 @@ namespace Ovan_P1
     {
 
         //  Form FormPanel = null;
-        Form1 mainFormGlobal = null;
+        Panel PanelGlobal = null;
+        Panel PanelGlobal1 = null;
+        PictureBox pBoxGlobal = null;
+        Panel MainPanel = null;
         Panel LeftPanelGlobal = null;
         Panel MainBodyPanelGlobal = null;
-        Panel mainPanelGlobal = null;
+        PictureBox MainPicture = null;
+        Label MainMenuLabel = null;
         Constant constants = new Constant();
         CustomButton customButton = new CustomButton();
-        MessageDialog messageDialog = new MessageDialog();
 
         CreatePanel createPanel = new CreatePanel();
         CreateLabel createLabel = new CreateLabel();
@@ -114,8 +116,6 @@ namespace Ovan_P1
         int lineNumber = 0;
         int lineNumberPrint = 0;
 
-        string currentDir = "";
-
         int height = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Height;
         int width = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Width;
         SQLiteConnection sqlite_conn;
@@ -124,39 +124,34 @@ namespace Ovan_P1
         public static extern bool SetDefaultPrinter(string Name);
         public SaleScreen(Form1 panel)
         {
-            mainFormGlobal = panel;
             orderDialog.initValue(this);
             InitIntArray(productRestAmountArray);
-            currentDir = Directory.GetCurrentDirectory();
-            foreach (var item in PrinterSettings.InstalledPrinters)
-            {
-                MessageBox.Show(item.ToString());
-            }
+
+            //foreach (var item in PrinterSettings.InstalledPrinters)
+            //{
+            //    MessageBox.Show(item.ToString());
+            //}
 
             sqlite_conn = CreateConnection(constants.dbName);
             SQLiteCommand sqlite_cmd;
             SQLiteDataReader sqlite_datareader;
-            DateTime now = DateTime.Now;
-            string week = now.ToString("ddd");
-            string currentTime = now.ToString("HH:mm");
 
-
-            string Createsql = "CREATE TABLE IF NOT EXISTS " + constants.tbNames[3] + " (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, prdID INTEGER NOT NULL, prdRealID INT(10) NOT NULL DEFAULT 0, prdName VARCHAR(200) NOT NULL, prdPrice INTEGER NOT NULL DEFAULT 0, prdAmount INTEGER NOT NULL DEFAULT 0, ticketNo INTEGER NOT NULL DEFAULT 0, saleDate DATETIME, sumFlag BOOLEAN NOT NULL DEFAULT 'false', sumDate DATETIME, categoryID  INTEGER NOT NULL DEFAULT 0, serialNo INTEGER NOT NULL DEFAULT 1)";
+            string Createsql = "CREATE TABLE IF NOT EXISTS SaleTB (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, prdID INTEGER NOT NULL, prdRealID INT(10) NOT NULL DEFAULT 0, prdName VARCHAR(200) NOT NULL, prdPrice INTEGER NOT NULL DEFAULT 0, prdAmount INTEGER NOT NULL DEFAULT 0, ticketNo INTEGER NOT NULL DEFAULT 0, saleDate DATETIME, sumFlag BOOLEAN NOT NULL DEFAULT 'false', sumDate DATETIME, categoryID  INTEGER NOT NULL DEFAULT 0, serialNo INTEGER NOT NULL DEFAULT 1)";
             sqlite_cmd = sqlite_conn.CreateCommand();
             sqlite_cmd.CommandText = Createsql;
             sqlite_cmd.ExecuteNonQuery();
 
-            string Createticketesql = "CREATE TABLE IF NOT EXISTS " + constants.tbNames[4] + " (PurchaseType INT(2) NOT NULL DEFAULT 1, ReturnTime INT(4) NOT NULL DEFAULT 30, MultiPurchase INT(2) NOT NULL DEFAULT 1, PurchaseAmount INT(4) NOT NULL DEFAULT 10, SerialNo INT(2) NOT NULL DEFAULT 1, StartSerialNo INT(4) NOT NULL DEFAULT 0, NoAfterTight INT(4) NOT NULL DEFAULT 1, FontSize INT(2) NOT NULL DEFAULT 1, ValidDate INT(2) NOT NULL DEFAULT 1, TicketMsg1 VARCHAR(16) NOT NULL, TicketMsg2 VARCHAR(16) NOT NULL)";
+            string Createticketesql = "CREATE TABLE IF NOT EXISTS SetTicketTable (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, PurchaseType INT(2) NOT NULL DEFAULT 0, ReturnTime INT(4) NOT NULL DEFAULT 30, MultiPurchase INT(2) NOT NULL DEFAULT 1, PurchaseAmount INT(4) NOT NULL DEFAULT 10, SerialNo INT(2) NOT NULL DEFAULT 1, StartSerialNo INT(4) NOT NULL DEFAULT 1, NoAfterTight INT(4) NOT NULL DEFAULT 1, FontSize INT(2) NOT NULL DEFAULT 1, ValidDate INT(2) NOT NULL DEFAULT 0, TicketingMsg1 VARCHAR(16) NOT NULL, TicketingMsg2 VARCHAR(16) NOT NULL)";
             sqlite_cmd = sqlite_conn.CreateCommand();
             sqlite_cmd.CommandText = Createticketesql;
             sqlite_cmd.ExecuteNonQuery();
 
-            string CreateReceiptesql = "CREATE TABLE IF NOT EXISTS " + constants.tbNames[5] + " (ReceiptValid VARCHAR(8) NOT NULL, TicketTime VARCHAR(4) NOT NULL, StoreName VARCHAR(64) NOT NULL, Address VARCHAR(64) NOT NULL, PhoneNumber VARCHAR(64) NOT NULL, Other1 VARCHAR(64) NOT NULL, Other2 VARCHAR(64) NOT NULL)";
+            string CreateReceiptesql = "CREATE TABLE IF NOT EXISTS SetReceiptTable (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, ReceiptValid VARCHAR(8) NOT NULL, TicketTime VARCHAR(4) NOT NULL, StoreName VARCHAR(64) NOT NULL, Address VARCHAR(64) NOT NULL, PhoneNumber VARCHAR(64) NOT NULL, Other1 VARCHAR(64) NOT NULL, Other2 VARCHAR(64) NOT NULL)";
             sqlite_cmd = sqlite_conn.CreateCommand();
             sqlite_cmd.CommandText = CreateReceiptesql;
             sqlite_cmd.ExecuteNonQuery();
 
-            string selectTicketSql = "SELECT * FROM " + constants.tbNames[4];
+            string selectTicketSql = "SELECT * FROM SetTicketTable";
             sqlite_cmd = sqlite_conn.CreateCommand();
             sqlite_cmd.CommandText = selectTicketSql;
             sqlite_datareader = sqlite_cmd.ExecuteReader();
@@ -164,21 +159,21 @@ namespace Ovan_P1
             {
                 if (!sqlite_datareader.IsDBNull(0))
                 {
-                    PurchaseType = sqlite_datareader.GetInt32(0);
-                    ReturnTime = sqlite_datareader.GetInt32(1);
-                    MultiPurchase = sqlite_datareader.GetInt32(2);
-                    PurchaseAmount = sqlite_datareader.GetInt32(3);
-                    SerialNo = sqlite_datareader.GetInt32(4);
-                    StartSerialNo = sqlite_datareader.GetInt32(5);
-                    NoAfterTight = sqlite_datareader.GetInt32(6);
-                    FontSize = sqlite_datareader.GetInt32(7);
-                    ValidDate = sqlite_datareader.GetInt32(8);
-                    TicketMsg1 = sqlite_datareader.GetString(9);
-                    TicketMsg2 = sqlite_datareader.GetString(10);
+                    PurchaseType = sqlite_datareader.GetInt32(1);
+                    ReturnTime = sqlite_datareader.GetInt32(2);
+                    MultiPurchase = sqlite_datareader.GetInt32(3);
+                    PurchaseAmount = sqlite_datareader.GetInt32(4);
+                    SerialNo = sqlite_datareader.GetInt32(5);
+                    StartSerialNo = sqlite_datareader.GetInt32(6);
+                    NoAfterTight = sqlite_datareader.GetInt32(7);
+                    FontSize = sqlite_datareader.GetInt32(8);
+                    ValidDate = sqlite_datareader.GetInt32(9);
+                    TicketMsg1 = sqlite_datareader.GetString(10);
+                    TicketMsg2 = sqlite_datareader.GetString(11);
                 }
             }
 
-            string selectReceiptSql = "SELECT * FROM " + constants.tbNames[5];
+            string selectReceiptSql = "SELECT * FROM SetReceiptTable";
             sqlite_cmd = sqlite_conn.CreateCommand();
             sqlite_cmd.CommandText = selectReceiptSql;
             sqlite_datareader = sqlite_cmd.ExecuteReader();
@@ -186,56 +181,20 @@ namespace Ovan_P1
             {
                 if (!sqlite_datareader.IsDBNull(0))
                 {
-                    ReceiptValid = sqlite_datareader.GetString(0);
-                    TicketTime = sqlite_datareader.GetString(1);
-                    StoreName = sqlite_datareader.GetString(2);
-                    Address = sqlite_datareader.GetString(3);
-                    PhoneNumber = sqlite_datareader.GetString(4);
-                    Other1 = sqlite_datareader.GetString(5);
-                    Other2 = sqlite_datareader.GetString(6);
+                    ReceiptValid = sqlite_datareader.GetString(1);
+                    TicketTime = sqlite_datareader.GetString(2);
+                    StoreName = sqlite_datareader.GetString(3);
+                    Address = sqlite_datareader.GetString(4);
+                    PhoneNumber = sqlite_datareader.GetString(5);
+                    Other1 = sqlite_datareader.GetString(6);
+                    Other2 = sqlite_datareader.GetString(7);
                 }
             }
 
-            try
-            {
-                string queryCmd = "SELECT * FROM " + constants.tbNames[0] + " ORDER BY id";
-                sqlite_cmd = sqlite_conn.CreateCommand();
-                sqlite_cmd.CommandText = queryCmd;
-                sqlite_datareader = sqlite_cmd.ExecuteReader();
-                while (sqlite_datareader.Read())
-                {
-                    string openTime = "";
-                    if (week == "Sat")
-                    {
-                        openTime = sqlite_datareader.GetString(4);
-                    }
-                    else if (week == "Sun")
-                    {
-                        openTime = sqlite_datareader.GetString(5);
-                    }
-                    else
-                    {
-                        openTime = sqlite_datareader.GetString(3);
-                    }
-                    string[] openTimeArr = openTime.Split('/');
-                    foreach (string openTimeArrItem in openTimeArr)
-                    {
-                        string[] openTimeSubArr = openTimeArrItem.Split('-');
-                        if (String.Compare(openTimeSubArr[0], currentTime) <= 0 && String.Compare(openTimeSubArr[1], currentTime) >= 0)
-                        {
-                            categoryDisAmount++;
-                            break;
-                        }
-                    }
-                }
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine(ex);
-                messageDialog.ShowErrorMessage(constants.systemErrorMsg, constants.systemSubErrorMsg);
-                this.BackShow();
-            }
-
+            sqlite_cmd = sqlite_conn.CreateCommand();
+            string queryCmd = "SELECT count(*) FROM " + constants.tbNames[0];
+            sqlite_cmd.CommandText = queryCmd;
+            categoryDisAmount = Convert.ToInt32(sqlite_cmd.ExecuteScalar());
 
             Panel LeftPanel = createPanel.CreateMainPanel(panel, 0, 0, 3 * width / 4, height, BorderStyle.FixedSingle, Color.FromArgb(255, 255, 255, 204));
             LeftPanelGlobal = LeftPanel;
@@ -276,6 +235,8 @@ namespace Ovan_P1
             int upButtonTop = 50;
             int upButtonWidth = RightPanel.Width - 30;
             int upButtonHeight = (RightPanel.Height * 2 / 5 - 10) / 7;
+            int upButtonBorderSize = 0;
+            int upButtonRadiusValue = 1;
 
             Button topButton = customButton.CreateButton("▲   上  へ", upButtonName, upButtonLeft, upButtonTop, upButtonWidth, upButtonHeight, Color.Gray, Color.White, 0, 1, 22, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter);
 
@@ -323,6 +284,8 @@ namespace Ovan_P1
             int downButtonTop = TableBackPanel.Bottom + 10;
             int downButtonWidth = RightPanel.Width - 30;
             int downButtonHeight = (RightPanel.Height * 2 / 5 - 10) / 7;
+            int downButtonBorderSize = 0;
+            int downButtonRadiusValue = 1;
 
             Button downButton = customButton.CreateButton("▼   下  へ", downButtonName, downButtonLeft, downButtonTop, downButtonWidth, downButtonHeight, Color.Gray, Color.White, 0, 1, 22, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter);
 
@@ -393,105 +356,92 @@ namespace Ovan_P1
             SQLiteDataReader sqlite_datareader;
             SQLiteCommand sqlite_cmd;
             sqlite_cmd = sqlite_conn.CreateCommand();
-            try
+            string queryCmd = "SELECT * FROM " + constants.tbNames[0] + " ORDER BY id";
+            sqlite_cmd.CommandText = queryCmd;
+
+            sqlite_datareader = sqlite_cmd.ExecuteReader();
+            int k = 0;
+            while (sqlite_datareader.Read())
             {
-                string queryCmd = "SELECT * FROM " + constants.tbNames[0] + " ORDER BY id";
-                sqlite_cmd.CommandText = queryCmd;
-
-                sqlite_datareader = sqlite_cmd.ExecuteReader();
-                int k = 0;
-                while (sqlite_datareader.Read())
+                bool saleFlag = false;
+                string openTime = "";
+                if (week == "Sat")
                 {
-                    bool saleFlag = false;
-                    string openTime = "";
-                    if (week == "Sat")
+                    openTime = sqlite_datareader.GetString(3);
+                }
+                else if(week == "Sun")
+                {
+                    openTime = sqlite_datareader.GetString(4);
+                }
+                else
+                {
+                    openTime = sqlite_datareader.GetString(2);
+                }
+                string[] openTimeArr = openTime.Split('/');
+                foreach(string openTimeArrItem in openTimeArr)
+                {
+                    string[] openTimeSubArr = openTimeArrItem.Split('-');
+                    if(String.Compare(openTimeSubArr[0], currentTime) <= 0 && String.Compare(openTimeSubArr[1], currentTime) >= 0)
                     {
-                        openTime = sqlite_datareader.GetString(4);
-                    }
-                    else if (week == "Sun")
-                    {
-                        openTime = sqlite_datareader.GetString(5);
-                    }
-                    else
-                    {
-                        openTime = sqlite_datareader.GetString(3);
-                    }
-                    string[] openTimeArr = openTime.Split('/');
-                    foreach (string openTimeArrItem in openTimeArr)
-                    {
-                        string[] openTimeSubArr = openTimeArrItem.Split('-');
-                        if (String.Compare(openTimeSubArr[0], currentTime) <= 0 && String.Compare(openTimeSubArr[1], currentTime) >= 0)
-                        {
-                            saleFlag = true;
-                            break;
-                        }
-                    }
-                    if (saleFlag)
-                    {
-                        if (k == 0)
-                        {
-                            selectedCategoryID = sqlite_datareader.GetInt32(1);
-                            selectedCategoryLayout = sqlite_datareader.GetInt32(7);
-                            CreateProductsList();
-                        }
-                        categoryIDArray[k] = sqlite_datareader.GetInt32(1);
-                        string categoryButtonText = sqlite_datareader.GetString(2);
-                        string categoryButtonName = "saleCategoryBtn_" + k + "_" + sqlite_datareader.GetInt32(1).ToString() + "_" + sqlite_datareader.GetInt32(7).ToString();
-                        Color backColor = colorPattern[0][k % 4 + 4];
-                        Color borderColor = colorPattern[0][k % 4];
-
-                        if (selectedCategoryIndex == k)
-                        {
-                            backColor = colorPattern[0][k % 4];
-                            borderColor = Color.Red;
-                            LeftPanelGlobal.BackColor = colorPattern[0][k % 4 + 4];
-                        }
-                        int btnLeft = listPanel.Left + 10;
-                        int btnTop = (listPanel.Top + 10) + (listPanel.Height / 5) * k;
-                        int btnWidth = listPanel.Width - 25;
-                        int btnHeight = listPanel.Height / categoryDisAmount - 10;
-                        if(categoryDisAmount < 6)
-                        {
-                            btnHeight = listPanel.Height / 6 - 10;
-                        }
-
-                        Button_WOC btn = new Button_WOC();
-                        btn.Location = new Point(btnLeft, btnTop);
-                        btn.Size = new Size(btnWidth, btnHeight);
-                        btn.Text = categoryButtonText;
-                        if (sqlite_datareader.GetInt32(10) == 1)
-                        {
-                            btn.Text = constants.saleStopText;
-                            btn.ForeColor = Color.Red;
-                            btn.TextColor = Color.Red;
-                            btn.Enabled = false;
-                        }
-
-                        btn.Name = categoryButtonName;
-                        btn.BackColor = colorPattern[0][4];
-                        btn.ButtonColor = backColor;
-                        btn.FlatAppearance.BorderSize = 0;
-                        btn.FlatStyle = FlatStyle.Flat;
-                        btn.OnHoverButtonColor = colorPattern[0][k % 4 + 4];
-                        btn.OnHoverBorderColor = borderColor;
-                        btn.BorderColor = borderColor;
-                        btn.Font = new Font("Seri", 18F, FontStyle.Bold);
-                        categoryButton[k] = btn;
-                        listPanel.Controls.Add(btn);
-                        btn.Invalidate();
-
-                        btn.Click += new EventHandler(this.SelectCategory);
-                        //btn.MouseEnter += new EventHandler(this.HoverChange);
-                        k++;
-                        //categoryDisAmount = k;
+                        saleFlag = true;
+                        break;
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                //MessageBox.Show(ex.ToString());
-                messageDialog.ShowErrorMessage(constants.systemErrorMsg, constants.systemSubErrorMsg);
-                this.BackShow();
+                if (saleFlag)
+                {
+                    if(k == 0)
+                    {
+                        selectedCategoryID = sqlite_datareader.GetInt32(0);
+                        selectedCategoryLayout = sqlite_datareader.GetInt32(6);
+                        CreateProductsList();
+                    }
+                    categoryIDArray[k] = sqlite_datareader.GetInt32(0);
+                    string categoryButtonText = sqlite_datareader.GetString(1);
+                    string categoryButtonName = "saleCategoryBtn_" + k + "_" + sqlite_datareader.GetInt32(0).ToString() + "_" + sqlite_datareader.GetInt32(6).ToString();
+                    Color backColor = colorPattern[0][k % 4 + 4];
+                    Color borderColor = colorPattern[0][k % 4];
+
+                    if (selectedCategoryIndex == k)
+                    {
+                        backColor = colorPattern[0][k % 4];
+                        borderColor = Color.Red;
+                        LeftPanelGlobal.BackColor = colorPattern[0][k % 4 + 4];
+                    }
+                    int btnLeft = listPanel.Left + 10;
+                    int btnTop = (listPanel.Top + 10) + (listPanel.Height / 5) * k;
+                    int btnWidth = listPanel.Width - 25;
+                    int btnHeight = listPanel.Height / categoryDisAmount - 10;
+                     
+                    Button_WOC btn= new Button_WOC();
+                    btn.Location = new Point(btnLeft, btnTop);
+                    btn.Size = new Size(btnWidth, btnHeight);
+                    btn.Text = categoryButtonText;
+                    if (sqlite_datareader.GetInt32(8) == 1)
+                    {
+                        btn.Text = constants.saleStopText;
+                        btn.ForeColor = Color.Red;
+                        btn.TextColor = Color.Red;
+                        btn.Enabled = false;
+                    }
+
+                    btn.Name = categoryButtonName;
+                    btn.BackColor = colorPattern[0][4];
+                    btn.ButtonColor = backColor;
+                    btn.FlatAppearance.BorderSize = 0;
+                    btn.FlatStyle = FlatStyle.Flat;
+                    btn.OnHoverButtonColor = colorPattern[0][k % 4 + 4];
+                    btn.OnHoverBorderColor = borderColor;
+                    btn.BorderColor = borderColor;
+                    btn.Font = new Font("Seri", 18F, FontStyle.Bold);
+                    categoryButton[k] = btn;
+                    listPanel.Controls.Add(btn);
+                    btn.Invalidate();
+
+                    btn.Click += new EventHandler(this.SelectCategory);
+                    //btn.MouseEnter += new EventHandler(this.HoverChange);
+                    k++;
+                    //categoryDisAmount = k;
+                }
             }
 
         }
@@ -630,11 +580,11 @@ namespace Ovan_P1
                         {
                             productIDArray[i] = sqlite_datareader.GetInt32(0);
                             realProductIDArray[i] = sqlite_datareader.GetInt32(2);
-                            prdName = sqlite_datareader.GetString(3);
-                            prdPrice = sqlite_datareader.GetInt32(8);
-                            prdLimitedCnt = sqlite_datareader.GetInt32(9);
+                            prdName = sqlite_datareader.GetString(4);
+                            prdPrice = sqlite_datareader.GetInt32(9);
+                            prdLimitedCnt = sqlite_datareader.GetInt32(10);
                             productLimitedCntArray[selectedCategoryIndex, i] = prdLimitedCnt;
-                            prdImageUrl = Path.Combine(currentDir, sqlite_datareader.GetString(11));
+                            prdImageUrl = sqlite_datareader.GetString(11);
                             prdImageX = sqlite_datareader.GetInt32(15);
                             prdImageY = sqlite_datareader.GetInt32(16);
                             prdImageWidth = sqlite_datareader.GetInt32(17);
@@ -643,7 +593,7 @@ namespace Ovan_P1
                             prdBadgeY = sqlite_datareader.GetInt32(20);
                             prdBadgeWidth = sqlite_datareader.GetInt32(21);
                             prdBadgeHeight = sqlite_datareader.GetInt32(22);
-                            prdBadgeUrl = Path.Combine(currentDir, sqlite_datareader.GetString(23));
+                            prdBadgeUrl = sqlite_datareader.GetString(23);
                             prdNameX = sqlite_datareader.GetInt32(24);
                             prdNameY = sqlite_datareader.GetInt32(25);
                             prdPriceX = sqlite_datareader.GetInt32(26);
@@ -873,6 +823,7 @@ namespace Ovan_P1
 
                 while (sqlite_datareader.Read())
                 {
+                    bool saleFlag = false;
                     string openTime = "";
                     if (week == "Sat")
                     {
@@ -892,13 +843,14 @@ namespace Ovan_P1
                         string[] openTimeSubArr = openTimeArrItem.Split('-');
                         if (String.Compare(openTimeSubArr[0], currentTime) <= 0 && String.Compare(openTimeSubArr[1], currentTime) >= 0)
                         {
+                            saleFlag = true;
                             productIDArray[i] = sqlite_datareader.GetInt32(0);
                             realProductIDArray[i] = sqlite_datareader.GetInt32(2);
-                            prdName = sqlite_datareader.GetString(3);
-                            prdPrice = sqlite_datareader.GetInt32(8);
-                            prdLimitedCnt = sqlite_datareader.GetInt32(9);
+                            prdName = sqlite_datareader.GetString(4);
+                            prdPrice = sqlite_datareader.GetInt32(9);
+                            prdLimitedCnt = sqlite_datareader.GetInt32(10);
                             productLimitedCntArray[selectedCategoryIndex, i] = prdLimitedCnt;
-                            prdImageUrl = Path.Combine(currentDir, sqlite_datareader.GetString(11));
+                            prdImageUrl = sqlite_datareader.GetString(11);
                             prdImageX = sqlite_datareader.GetInt32(15);
                             prdImageY = sqlite_datareader.GetInt32(16);
                             prdImageWidth = sqlite_datareader.GetInt32(17);
@@ -907,7 +859,7 @@ namespace Ovan_P1
                             prdBadgeY = sqlite_datareader.GetInt32(20);
                             prdBadgeWidth = sqlite_datareader.GetInt32(21);
                             prdBadgeHeight = sqlite_datareader.GetInt32(22);
-                            prdBadgeUrl = Path.Combine(currentDir, sqlite_datareader.GetString(23));
+                            prdBadgeUrl = sqlite_datareader.GetString(23);
                             prdNameX = sqlite_datareader.GetInt32(24);
                             prdNameY = sqlite_datareader.GetInt32(25);
                             prdPriceX = sqlite_datareader.GetInt32(26);
@@ -1079,6 +1031,7 @@ namespace Ovan_P1
             }
         }
 
+
         private void CreateProductsList()
         {
             MainBodyPanelGlobal.Controls.Clear();
@@ -1167,11 +1120,11 @@ namespace Ovan_P1
                         {
                             productIDArray[i] = sqlite_datareader.GetInt32(0);
                             realProductIDArray[i] = sqlite_datareader.GetInt32(2);
-                            prdName = sqlite_datareader.GetString(3);
-                            prdPrice = sqlite_datareader.GetInt32(8);
-                            prdLimitedCnt = sqlite_datareader.GetInt32(9);
+                            prdName = sqlite_datareader.GetString(4);
+                            prdPrice = sqlite_datareader.GetInt32(9);
+                            prdLimitedCnt = sqlite_datareader.GetInt32(10);
                             productLimitedCntArray[selectedCategoryIndex, i] = prdLimitedCnt;
-                            prdImageUrl = Path.Combine(currentDir, sqlite_datareader.GetString(11));
+                            prdImageUrl = sqlite_datareader.GetString(11);
                             prdImageX = sqlite_datareader.GetInt32(15);
                             prdImageY = sqlite_datareader.GetInt32(16);
                             prdImageWidth = sqlite_datareader.GetInt32(17);
@@ -1180,7 +1133,7 @@ namespace Ovan_P1
                             prdBadgeY = sqlite_datareader.GetInt32(20);
                             prdBadgeWidth = sqlite_datareader.GetInt32(21);
                             prdBadgeHeight = sqlite_datareader.GetInt32(22);
-                            prdBadgeUrl = Path.Combine(currentDir, sqlite_datareader.GetString(23));
+                            prdBadgeUrl = sqlite_datareader.GetString(23);
                             prdNameX = sqlite_datareader.GetInt32(24);
                             prdNameY = sqlite_datareader.GetInt32(25);
                             prdPriceX = sqlite_datareader.GetInt32(26);
@@ -1643,6 +1596,7 @@ namespace Ovan_P1
         private void orderDelete(object sender, EventArgs e)
         {
             Label tempBtn = (Label)sender;
+            MessageBox.Show(tempBtn.Name);
             string[] btnName = tempBtn.Name.Split('_');
             int selectedIndex = int.Parse(btnName[1]);
             currentSelectedId--;
@@ -1748,13 +1702,13 @@ namespace Ovan_P1
             SQLiteCommand sqlite_cmd;
             SQLiteDataReader sqlite_datareader;
             SQLiteDataReader sqlite_datareader1;
-            string Createsql = "CREATE TABLE IF NOT EXISTS " + constants.tbNames[3] + " (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, prdID INTEGER NOT NULL, prdRealID INT(10) NOT NULL DEFAULT 0, prdName VARCHAR(200) NOT NULL, prdPrice INTEGER NOT NULL DEFAULT 0, prdAmount INTEGER NOT NULL DEFAULT 0, ticketNo INTEGER NOT NULL DEFAULT 0, saleDate DATETIME, sumFlag BOOLEAN NOT NULL DEFAULT 'false', sumDate DATETIME, categoryID INTEGER NOT NULL DEFAULT 0, serialNo INTEGER NOT NULL DEFAULT 1)";
+            string Createsql = "CREATE TABLE IF NOT EXISTS SaleTB (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, prdID INTEGER NOT NULL, prdRealID INT(10) NOT NULL DEFAULT 0, prdName VARCHAR(200) NOT NULL, prdPrice INTEGER NOT NULL DEFAULT 0, prdAmount INTEGER NOT NULL DEFAULT 0, ticketNo INTEGER NOT NULL DEFAULT 0, saleDate DATETIME, sumFlag BOOLEAN NOT NULL DEFAULT 'false', sumDate DATETIME, categoryID INTEGER NOT NULL DEFAULT 0, serialNo INTEGER NOT NULL DEFAULT 1)";
             sqlite_cmd = sqlite_conn.CreateCommand();
             sqlite_cmd.CommandText = Createsql;
             sqlite_cmd.ExecuteNonQuery();
             DateTime now = DateTime.Now;
             currentTicketNo = 1;
-            string ticketsql = "SELECT MAX(ticketNo) FROM " + constants.tbNames[3] + " WHERE sumFlag='false'";
+            string ticketsql = "SELECT MAX(ticketNo) FROM SaleTB WHERE sumFlag='false'";
             sqlite_cmd = sqlite_conn.CreateCommand();
             sqlite_cmd.CommandText = ticketsql;
             sqlite_datareader = sqlite_cmd.ExecuteReader();
@@ -1769,7 +1723,7 @@ namespace Ovan_P1
                     currentTicketNo = sqlite_datareader.GetInt32(0) + 1;
                 }
             }
-            string serialsql = "SELECT MAX(serialNo) FROM " + constants.tbNames[3] + "";
+            string serialsql = "SELECT MAX(serialNo) FROM SaleTB";
             sqlite_cmd = sqlite_conn.CreateCommand();
             sqlite_cmd.CommandText = serialsql;
             sqlite_datareader = sqlite_cmd.ExecuteReader();
@@ -1791,7 +1745,7 @@ namespace Ovan_P1
             }
             for (int k = 0; k < currentSelectedId; k++)
             {
-                string orderRun = "INSERT INTO " + constants.tbNames[3] + " (PrdID, PrdName, PrdPrice, PrdAmount, ticketNo, saleDate, categoryID, serialNo, prdRealID) VALUES (@prdID, @prdName, @prdPrice, @prdAmount, @ticketNo, @saleDate, @categoryID, @serialNo, @realPrdID)";
+                string orderRun = "INSERT INTO " + constants.tbNames[3] + " (PrdID, PrdName, PrdPrice, PrdAmount, ticketNo, saleDate, categoryID, serialNo, realPrdID) VALUES (@prdID, @prdName, @prdPrice, @prdAmount, @ticketNo, @saleDate, @categoryID, @serialNo, @realPrdID)";
                 sqlite_cmd = sqlite_conn.CreateCommand();
                 sqlite_cmd.CommandText = orderRun;
                 sqlite_cmd.Parameters.AddWithValue("@prdID", orderProductIDArray[k]);
@@ -1908,6 +1862,7 @@ namespace Ovan_P1
                 int k = 0;
                 while (sqlite_datareader.Read())
                 {
+                    bool saleFlag = false;
                     string openTime = "";
                     if (week == "Sat")
                     {
@@ -1927,6 +1882,7 @@ namespace Ovan_P1
                         string[] openTimeSubArr = openTimeArrItem.Split('-');
                         if (String.Compare(openTimeSubArr[0], currentTime) <= 0 && String.Compare(openTimeSubArr[1], currentTime) >= 0)
                         {
+                            saleFlag = true;
                             SQLiteDataReader sqlite_datareader1;
                             SQLiteCommand sqlite_cmd1;
                             sqlite_cmd1 = sqlite_conn.CreateCommand();
@@ -2012,6 +1968,7 @@ namespace Ovan_P1
                 int k = 0;
                 while (sqlite_datareader.Read())
                 {
+                    bool saleFlag = false;
                     string openTime = "";
                     if (week == "Sat")
                     {
@@ -2031,6 +1988,7 @@ namespace Ovan_P1
                         string[] openTimeSubArr = openTimeArrItem.Split('-');
                         if (String.Compare(openTimeSubArr[0], currentTime) <= 0 && String.Compare(openTimeSubArr[1], currentTime) >= 0)
                         {
+                            saleFlag = true;
                             SQLiteDataReader sqlite_datareader1;
                             SQLiteCommand sqlite_cmd1;
                             sqlite_cmd1 = sqlite_conn.CreateCommand();
@@ -2432,6 +2390,7 @@ namespace Ovan_P1
                 sqlite_conn.Open();
             }
             SQLiteCommand sqlite_cmd;
+            SQLiteDataReader sqlite_datareader;
             string Createsql = "CREATE TABLE IF NOT EXISTS ReceiptTB (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, PurchasePoint INTEGER NOT NULL, TotalPrice INTEGER NOT NULL DEFAULT 0, ReceiptDate DATETIME)";
             sqlite_cmd = sqlite_conn.CreateCommand();
             sqlite_cmd.CommandText = Createsql;
@@ -2535,15 +2494,6 @@ namespace Ovan_P1
             e.HasMorePages = false;
 
         }
-        public void BackShow()
-        {
-            mainPanelGlobal = createPanel.CreateMainPanel(mainFormGlobal, 0, 0, mainFormGlobal.Width, mainFormGlobal.Height, BorderStyle.None, Color.Transparent);
-            mainFormGlobal.Controls.Clear();
-            MainMenu mainMenu = new MainMenu();
-            mainMenu.CreateMainMenuScreen(mainFormGlobal, mainPanelGlobal);
-        }
-
-
 
         static SQLiteConnection CreateConnection(string dbName)
         {

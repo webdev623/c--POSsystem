@@ -29,18 +29,6 @@ namespace Ovan_P1
             InitializeComponent();
             messageDialog.initMenuReading(this);
             sqlite_conn = CreateConnection(constants.dbName);
-            //CreateProduct(sqlite_conn);
-            //int m = 0;
-            //foreach (string categories in constants.saleCategories)
-            //{
-            //    int k = 1;
-            //    foreach (string prods in constants.productBigName[m])
-            //    {
-            //        InsertProductData(sqlite_conn, m + 1, m + 1, prods, prods, constants.productBigPrice[m][k - 1], int.Parse(constants.productBigSaleAmount[m][k - 1]), constants.productBigImageUrl[k - 1], "", "", k, 20 * k, 20 * m, 120, 140, 20 * k, 20 * m, 120, 140, constants.productBigBadgeImageUrl[k - 1], new Point(2 * k, 3 * m), new Point(3 * k, 2 * m), "09:00-11:59/18:00-23:59", "09:00-20:59", "09:00-20:59", Color.Yellow, Color.FromArgb(255, 255, 0, 0), Color.FromArgb(255, 192, 81, 0));
-            //        k++;
-            //    }
-            //    m++;
-            //}
 
             mainForm.Width = width;
             mainForm.Height = height;
@@ -82,28 +70,118 @@ namespace Ovan_P1
 
         private void OpenFileDialog(object sender, EventArgs e)
         {
-            if(openFileDialog1.ShowDialog() == DialogResult.OK)
+            //if(openFileDialog1.ShowDialog() == DialogResult.OK)
+            //{
+            //    if(sqlite_conn.State == ConnectionState.Open)
+            //    {
+            //        sqlite_conn.Close();
+            //    }
+            //    try
+            //    {
+            //        var filePath = openFileDialog1.FileName;
+            //        var fileName = openFileDialog1.SafeFileName;
+            //        var curDir = Directory.GetCurrentDirectory();
+            //        var dbName = fileName.Split('.')[0];
+            //        Thread.Sleep(100);
+            //        RestoreDB(curDir, filePath, fileName, true);
+            //        DBCopy(sqlite_conn, Path.Combine(curDir, fileName), dbName, constants.tbNames);
+
+            //        this.CreateSaleTB(sqlite_conn);
+            //        this.CreateDaySaleTB(sqlite_conn);
+            //        this.CreateReceiptTB(sqlite_conn);
+            //        this.CreateCancelOrderTB(sqlite_conn);
+
+            //        mainFormGlobal.Controls.Clear();
+            //        MainMenu mainMenu = new MainMenu();
+            //        mainMenu.CreateMainMenuScreen(mainFormGlobal, mainPanelGlobal);
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        Console.WriteLine(ex);
+            //        messageDialog.ShowMenuReadingMessage();
+            //    }
+            //}
+            if(folderBrowserDialog1.ShowDialog() == DialogResult.OK)
             {
-                if(sqlite_conn.State == ConnectionState.Open)
+                if (sqlite_conn.State == ConnectionState.Open)
                 {
                     sqlite_conn.Close();
                 }
                 try
                 {
-                    var filePath = openFileDialog1.FileName;
-                    var fileName = openFileDialog1.SafeFileName;
-                    var curDir = Directory.GetCurrentDirectory();
-                    var dbName = fileName.Split('.')[0];
-                    Thread.Sleep(100);
-                    RestoreDB(curDir, filePath, fileName, true);
-                    DBCopy(sqlite_conn, Path.Combine(curDir, fileName), dbName, constants.tbNames);
+                    string SourcePath = folderBrowserDialog1.SelectedPath;
+                    string DestinationPath = Directory.GetCurrentDirectory();
+                    DirectoryInfo dir = new DirectoryInfo(SourcePath);
+                    FileInfo[] targetFile = dir.GetFiles();
+                    string sourceFileName = "";
+                    var dbName = "";
+
+                    foreach (FileInfo files in targetFile)
+                    {
+                        if (files.Extension == ".db")
+                        {
+                            sourceFileName = files.Name;
+                            dbName = sourceFileName.Split('.')[0];
+                            break;
+                        }
+                    }
+
+                    DirectoryCopy(SourcePath, DestinationPath, true);
+                    DBCopy(sqlite_conn, Path.Combine(DestinationPath, sourceFileName), dbName, constants.tbNames);
+
+                    this.CreateSaleTB(sqlite_conn);
+                    this.CreateDaySaleTB(sqlite_conn);
+                    this.CreateReceiptTB(sqlite_conn);
+                    this.CreateCancelOrderTB(sqlite_conn);
+
                     mainFormGlobal.Controls.Clear();
                     MainMenu mainMenu = new MainMenu();
                     mainMenu.CreateMainMenuScreen(mainFormGlobal, mainPanelGlobal);
                 }
                 catch (Exception ex)
                 {
+                    Console.WriteLine(ex);
                     messageDialog.ShowMenuReadingMessage();
+                }
+
+            }
+        }
+
+        private static void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)
+        {
+            // Get the subdirectories for the specified directory.
+            DirectoryInfo dir = new DirectoryInfo(sourceDirName);
+
+            if (!dir.Exists)
+            {
+                throw new DirectoryNotFoundException(
+                    "Source directory does not exist or could not be found: "
+                    + sourceDirName);
+            }
+
+            DirectoryInfo[] dirs = dir.GetDirectories();
+            // If the destination directory doesn't exist, create it.
+            if (!Directory.Exists(destDirName))
+            {
+                Directory.CreateDirectory(destDirName);
+            }
+
+            // Get the files in the directory and copy them to the new location.
+            FileInfo[] files = dir.GetFiles();
+            foreach (FileInfo file in files)
+            {
+                string temppath = Path.Combine(destDirName, file.Name);
+                if (File.Exists(temppath)) File.Delete(temppath);
+                file.CopyTo(temppath, false);
+            }
+
+            // If copying subdirectories, copy them and their contents to new location.
+            if (copySubDirs)
+            {
+                foreach (DirectoryInfo subdir in dirs)
+                {
+                    string temppath = Path.Combine(destDirName, subdir.Name);
+                    DirectoryCopy(subdir.FullName, temppath, copySubDirs);
                 }
             }
         }
@@ -135,11 +213,11 @@ namespace Ovan_P1
             }
             catch (Exception ex)
             {
-
+                Console.WriteLine(ex);
             }
             return sqlite_conn;
         }
-        private static void RestoreDB(string filePath, string srcFilename, string destFileName, bool IsCopy = false)
+        private void RestoreDB(string filePath, string srcFilename, string destFileName, bool IsCopy = false)
         {
             var srcfile = srcFilename;
             var destfile = Path.Combine(filePath, destFileName);
@@ -152,7 +230,7 @@ namespace Ovan_P1
                 File.Move(srcfile, destfile);
         }
 
-        private static void BackupDB(string filePath, string srcFilename, string destFileName)
+        private void BackupDB(string filePath, string srcFilename, string destFileName)
         {
             var srcfile = Path.Combine(filePath, srcFilename);
             var destfile = Path.Combine(filePath, destFileName);
@@ -162,7 +240,7 @@ namespace Ovan_P1
             File.Copy(srcfile, destfile);
         }
 
-        private static void DBCopy(SQLiteConnection conn, string new_db_path, string new_db, string[] new_tbs)
+        private void DBCopy(SQLiteConnection conn, string new_db_path, string new_db, string[] new_tbs)
         {
             if(conn.State == ConnectionState.Closed)
             {
@@ -175,35 +253,59 @@ namespace Ovan_P1
             sqlite_cmd.ExecuteNonQuery();
             foreach (string new_tb in new_tbs)
             {
+                string createSql = "";
                 switch (new_tb)
                 {
                     case "CategoryTB":
-                        string Createsql = "CREATE TABLE IF NOT EXISTS " + new_tb + " (id INTEGER PRIMARY KEY AUTOINCREMENT, CategoryName VARCHAR(200) NOT NULL, DayTime VARCHAR(200) NOT NULL DEFAULT '09:00-20-59', SatTime VARCHAR(200) NOT NULL DEFAULT '09:00-20-59', SunTime VARCHAR(200) NOT NULL DEFAULT '09:00-20-59', DisplayPosition INT, LayoutType INTEGER, BackgroundImg TEXT DEFAULT null, SoldFlag INT(2) NOT NULL DEFAULT 0)";
-                        sqlite_cmd.CommandText = Createsql;
-                        sqlite_cmd.ExecuteNonQuery();
-                        DeleteData(conn, new_tb);
-                        string Createsql1 = "INSERT INTO " + new_tb + " SELECT * FROM " + new_db + "." + new_tb + "";
-                        sqlite_cmd.CommandText = Createsql1;
-                        sqlite_cmd.ExecuteNonQuery();
+                        createSql = "CREATE TABLE IF NOT EXISTS " + new_tb + " (id INTEGER PRIMARY KEY AUTOINCREMENT, CategoryID INT(2) NOT NULL DEFAULT 0, CategoryName VARCHAR(64) NOT NULL, DayTime VARCHAR(256) NOT NULL DEFAULT '09:00-20-59', SatTime VARCHAR(256) NOT NULL DEFAULT '09:00-20-59', SunTime VARCHAR(256) NOT NULL DEFAULT '09:00-20-59', DisplayPosition INT, LayoutType INTEGER, BackgroundImg TEXT DEFAULT NULL, BackImgUrl TEXT DEFAULT NULL, SoldFlag INT(2) NOT NULL DEFAULT 0)";
                         break;
                     case "ProductTB":
-                        string Createsql2 = "CREATE TABLE IF NOT EXISTS " + new_tb + " (id INTEGER PRIMARY KEY AUTOINCREMENT, CategoryID INT(10) NOT NULL, ProductID INT(10) NOT NULL DEFAULT 0, GroupID INT(10) NOT NULL DEFAULT 0, ProductName VARCHAR(200) NOT NULL, DayTime VARCHAR(200) NOT NULL DEFAULT '09:00-20-59', SatTime VARCHAR(200) NOT NULL DEFAULT '09:00-20-59', SunTime VARCHAR(200) NOT NULL DEFAULT '09:00-20-59', PrintName INT, ProductPrice INTEGER, LimitedCnt INT DEFAULT 0, ImgUrl VARCHAR(200), ScreenMsg VARCHAR(200), PrintMsg VARCHAR(200), CardNumber INT,  RCPhotoX INT, RCPhotoY INT, RCPhotoWidth INT, RCPhotoHeight INT, RCBadgeX INT, RCBadgeY INT, RCBadgeWidth INT, RCBadgeHeight INT, BadgePath VARCHAR(200), PtNameX INT, PtNameY INT, PtPriceX INT, PtPriceY INT, BackColor VARCHAR(200), ForeColor VARCHAR(200), BorderColor VARCHAR(200), SoldFlag INTEGER NOT NULL DEFAULT 0)";
-                        sqlite_cmd.CommandText = Createsql2;
-                        sqlite_cmd.ExecuteNonQuery();
-                        DeleteData(conn, new_tb);
-                        string Createsql3 = "INSERT INTO " + new_tb + " SELECT * FROM " + new_db + "." + new_tb + "";
-                        sqlite_cmd.CommandText = Createsql3;
-                        sqlite_cmd.ExecuteNonQuery();
-                        string Createsql4 = "CREATE TABLE IF NOT EXISTS productTempTB (id INTEGER PRIMARY KEY AUTOINCREMENT, CategoryID INT(10) NOT NULL, ProductID INT(10) NOT NULL DEFAULT 0, GroupID INT(10) NOT NULL DEFAULT 0, ProductName VARCHAR(200) NOT NULL, DayTime VARCHAR(200) NOT NULL DEFAULT '09:00-20-59', SatTime VARCHAR(200) NOT NULL DEFAULT '09:00-20-59', SunTime VARCHAR(200) NOT NULL DEFAULT '09:00-20-59', PrintName INT, ProductPrice INTEGER, LimitedCnt INT DEFAULT 0, ImgUrl VARCHAR(200), ScreenMsg VARCHAR(200), PrintMsg VARCHAR(200), CardNumber INT,  RCPhotoX INT, RCPhotoY INT, RCPhotoWidth INT, RCPhotoHeight INT, RCBadgeX INT, RCBadgeY INT, RCBadgeWidth INT, RCBadgeHeight INT, BadgePath VARCHAR(200), PtNameX INT, PtNameY INT, PtPriceX INT, PtPriceY INT, BackColor VARCHAR(200), ForeColor VARCHAR(200), BorderColor VARCHAR(200), SoldFlag INTEGER NOT NULL DEFAULT 0)";
-                        sqlite_cmd.CommandText = Createsql4;
-                        sqlite_cmd.ExecuteNonQuery();
-                        DeleteData(conn, "productTempTB");
-                        string Createsql5 = "INSERT INTO productTempTB SELECT * FROM " + new_db + "." + new_tb + "";
-                        sqlite_cmd.CommandText = Createsql5;
-                        sqlite_cmd.ExecuteNonQuery();
+                        createSql = "CREATE TABLE IF NOT EXISTS " + new_tb + " (ProductID INT(2) NOT NULL DEFAULT 0, ProductName VARCHAR(32) NOT NULL, PrintName VARCHAR(32) NOT NULL, DayTime VARCHAR(128) NOT NULL DEFAULT '09:00-20-59', SatTime VARCHAR(128) NOT NULL DEFAULT '09:00-20-59', SunTime VARCHAR(128) NOT NULL DEFAULT '09:00-20-59', ProductPrice INT(8), LimitedCnt INT(2) DEFAULT 0, ImgUrl VARCHAR(256), ValidImgUrl VARCHAR(128), ScreenMsg VARCHAR(64), PrintMsg VARCHAR(64))";
                         break;
-
+                    case "CategoryDetailTB":
+                        createSql = "CREATE TABLE IF NOT EXISTS " + new_tb + " (id INTEGER PRIMARY KEY AUTOINCREMENT, CategoryID INT(10) NOT NULL DEFAULT 0, ProductID INT(10) NOT NULL DEFAULT 0, ProductName VARCHAR(32) NOT NULL, PrintName VARCHAR(32) NOT NULL, DayTime VARCHAR(128) NOT NULL DEFAULT '09:00-20-59', SatTime VARCHAR(128) NOT NULL DEFAULT '09:00-20-59', SunTime VARCHAR(128) NOT NULL DEFAULT '09:00-20-59', ProductPrice INT(8), LimitedCnt INT(2) DEFAULT 0, ImgUrl VARCHAR(256), ValidImgUrl VARCHAR(128), ScreenMsg VARCHAR(256), PrintMsg VARCHAR(256), CardNumber INT(2),  RCPhotoX INT(4), RCPhotoY INT(4), RCPhotoWidth INT(4), RCPhotoHeight INT(4), RCBadgeX INT(4), RCBadgeY INT(4), RCBadgeWidth INT(4), RCBadgeHeight INT(4), BadgePath VARCHAR(256), PtNameX INT(4), PtNameY INT(4), PtPriceX INT(4), PtPriceY INT(4), BackColor VARCHAR(16), ForeColor VARCHAR(16), BorderColor VARCHAR(16), SoldFlag INT(2) NOT NULL DEFAULT 0)";
+                        break;
+                    case "TableSetTicket":
+                        createSql = "CREATE TABLE IF NOT EXISTS " + new_tb + " (PurchaseType INT(2) NOT NULL DEFAULT 1, ReturnTime INT(4) NOT NULL DEFAULT 30, MultiPurchase INT(2) NOT NULL DEFAULT 1, PurchaseAmount INT(4) NOT NULL DEFAULT 10, SerialNo INT(2) NOT NULL DEFAULT 1, StartSerialNo INT(4) NOT NULL DEFAULT 0, NoAfterTight INT(4) NOT NULL DEFAULT 1, FontSize INT(2) NOT NULL DEFAULT 1, ValidDate INT(2) NOT NULL DEFAULT 1, TicketMsg1 VARCHAR(16) NOT NULL, TicketMsg2 VARCHAR(16) NOT NULL)";
+                        break;
+                    case "TableSetReceipt":
+                        createSql = "CREATE TABLE IF NOT EXISTS " + new_tb + " (ReceiptValid VARCHAR(8) NOT NULL, TicketTime VARCHAR(4) NOT NULL, StoreName VARCHAR(64) NOT NULL, Address VARCHAR(64) NOT NULL, PhoneNumber VARCHAR(16) NOT NULL, Other1 VARCHAR(64) NOT NULL, Other2 VARCHAR(64) NOT NULL)";
+                        break;
+                    case "TableSetStore":
+                        createSql = "CREATE TABLE IF NOT EXISTS " + new_tb + " (StoreName VARCHAR(32) NOT NULL, Address VARCHAR(32) NOT NULL, PhoneNumber VARCHAR(16) NOT NULL, WeekTime VARCHAR(128) NOT NULL, SaturdayTime VARCHAR(128) NOT NULL, SundayTime VARCHAR(128) NOT NULL, EndTime VARCHAR(32) NOT NULL)";
+                        break;
+                    case "TableGroupName":
+                        createSql = "CREATE TABLE IF NOT EXISTS " + new_tb + " (GroupID INT(2) NOT NULL DEFAULT 0, GroupName VARCHAR(32) NOT NULL)";
+                        break;
+                    case "TableGroupDetail":
+                        createSql = "CREATE TABLE IF NOT EXISTS " + new_tb + " (GroupID INT(2) NOT NULL DEFAULT 0, ProductName VARCHAR(32) NOT NULL, ProductPrice INT(8) NOT NULL DEFAULT 0)";
+                        break;
+                    case "GeneralTB":
+                        createSql = "CREATE TABLE IF NOT EXISTS " + new_tb + " (PatternColor INT(2) NOT NULL DEFAULT 0, MenuMsg1 VARCHAR(64) NOT NULL, MenuMsg2 VARCHAR(64) NOT NULL)";
+                        break;
+                    case "TableSetAudio":
+                        createSql = "CREATE TABLE IF NOT EXISTS " + new_tb + " (WaitingAudio VARCHAR(32) NOT NULL, ButtonTouch VARCHAR(32) NOT NULL, CashInsert VARCHAR(16), ValidItemTouch VARCHAR(16), ReturnTouch VARCHAR(16), RefundCompleted VARCHAR(16), DeleteTouch VARCHAR(16), IncreaseTouch VARCHAR(16), DecreaseTouch VARCHAR(16), TicketDisable VARCHAR(16), TicketValid VARCHAR(16), TicketIssue VARCHAR(16), ErrorOccur VARCHAR(16))";
+                        break;
+                    case "SaleTB":
+                        break;
+                    case "DaySaleTB":
+                        break;
+                    case "ReceiptTB":
+                        break;
+                    case "CancelOrderTB":
+                        break;
+                    
                 }
+                if(createSql != "")
+                {
+                    sqlite_cmd.CommandText = createSql;
+                    sqlite_cmd.ExecuteNonQuery();
+                    this.DeleteData(conn, new_tb);
+                    string Createsql1 = "INSERT INTO " + new_tb + " SELECT * FROM " + new_db + "." + new_tb + "";
+                    sqlite_cmd.CommandText = Createsql1;
+                    sqlite_cmd.ExecuteNonQuery();
+                }
+
             }
             sqlite_cmd.CommandText = "DETACH DATABASE '" + new_db + "'";
             sqlite_cmd.ExecuteNonQuery();
@@ -212,95 +314,61 @@ namespace Ovan_P1
         }
 
 
-        static void CreateCategory(SQLiteConnection conn)
+        private void CreateSaleTB(SQLiteConnection conn)
         {
             if (conn.State == ConnectionState.Closed)
             {
                 conn.Open();
             }
             SQLiteCommand sqlite_cmd;
-            string Createsql = "CREATE TABLE IF NOT EXISTS CategoryTB (id INTEGER PRIMARY KEY AUTOINCREMENT, CategoryName VARCHAR(200) NOT NULL, DayTime VARCHAR(200) NOT NULL DEFAULT '09:00-20-59', SatTime VARCHAR(200) NOT NULL DEFAULT '09:00-20-59', SunTime VARCHAR(200) NOT NULL DEFAULT '09:00-20-59', DisplayPosition INT, LayoutType INTEGER, BackgroundImg TEXT DEFAULT null, SoldFlag INT(2) NOT NULL DEFAULT 0)";
+            string Createsql = "CREATE TABLE IF NOT EXISTS " + constants.tbNames[3] + " (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, prdID INTEGER NOT NULL, prdRealID INT(10) NOT NULL DEFAULT 0, prdName VARCHAR(200) NOT NULL, prdPrice INTEGER NOT NULL DEFAULT 0, prdAmount INTEGER NOT NULL DEFAULT 0, ticketNo INTEGER NOT NULL DEFAULT 0, saleDate DATETIME, sumFlag BOOLEAN NOT NULL DEFAULT 'false', sumDate DATETIME, categoryID  INTEGER NOT NULL DEFAULT 0, serialNo INTEGER NOT NULL DEFAULT 1)";
             sqlite_cmd = conn.CreateCommand();
             sqlite_cmd.CommandText = Createsql;
             sqlite_cmd.ExecuteNonQuery();
             conn.Close();
         }
-        static void CreateProduct(SQLiteConnection conn)
+        private void CreateDaySaleTB(SQLiteConnection conn)
         {
             if (conn.State == ConnectionState.Closed)
             {
                 conn.Open();
             }
             SQLiteCommand sqlite_cmd;
-            string Createsql = "CREATE TABLE IF NOT EXISTS ProductTB (id INTEGER PRIMARY KEY AUTOINCREMENT, CategoryID INT(10) NOT NULL, ProductID INT(10) NOT NULL DEFAULT 0, GroupID INT(10) NOT NULL DEFAULT 0, ProductName VARCHAR(200) NOT NULL, DayTime VARCHAR(200) NOT NULL DEFAULT '09:00-20-59', SatTime VARCHAR(200) NOT NULL DEFAULT '09:00-20-59', SunTime VARCHAR(200) NOT NULL DEFAULT '09:00-20-59', PrintName INT, ProductPrice INTEGER, LimitedCnt INT DEFAULT 0, ImgUrl VARCHAR(200), ScreenMsg VARCHAR(200), PrintMsg VARCHAR(200), CardNumber INT,  RCPhotoX INT, RCPhotoY INT, RCPhotoWidth INT, RCPhotoHeight INT, RCBadgeX INT, RCBadgeY INT, RCBadgeWidth INT, RCBadgeHeight INT, BadgePath VARCHAR(200), PtNameX INT, PtNameY INT, PtPriceX INT, PtPriceY INT, BackColor VARCHAR(200), ForeColor VARCHAR(200), BorderColor VARCHAR(200), SoldFlag INTEGER NOT NULL DEFAULT 0)";
+            string Createsql = "CREATE TABLE IF NOT EXISTS " + constants.tbNames[7] + " (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, prdID INTEGER NOT NULL DEFAULT 0, prdName VARCHAR(128) NOT NULL DEFAULT '', prdPrice INTEGER NOT NULL DEFAULT 0, prdAmount INTEGER NOT NULL DEFAULT 0, prdTotalPrice INTEGER NOT NULL DEFAULT 0, sumDate VARCHAR(10) NOT NULL DEFAULT '')";
+            sqlite_cmd = conn.CreateCommand();
+            sqlite_cmd.CommandText = Createsql;
+            sqlite_cmd.ExecuteNonQuery();
+            conn.Close();
+        }
+        private void CreateReceiptTB(SQLiteConnection conn)
+        {
+            if (conn.State == ConnectionState.Closed)
+            {
+                conn.Open();
+            }
+            SQLiteCommand sqlite_cmd;
+            string Createsql = "CREATE TABLE IF NOT EXISTS " + constants.tbNames[8] + " (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, PurchasePoint INTEGER NOT NULL, TotalPrice INTEGER NOT NULL DEFAULT 0, ReceiptDate DATETIME)";
             sqlite_cmd = conn.CreateCommand();
             sqlite_cmd.CommandText = Createsql;
             sqlite_cmd.ExecuteNonQuery();
             conn.Close();
         }
 
-        static void InsertCategoryData(SQLiteConnection conn, string categoryName, string DayTime, string SatTime, string SunTime, int DisplayPosition, int LayoutType, string BackgroundImg = null)
+        private void CreateCancelOrderTB(SQLiteConnection conn)
         {
             if (conn.State == ConnectionState.Closed)
             {
                 conn.Open();
             }
+            SQLiteCommand sqlite_cmd;
+            string Createsql = "CREATE TABLE IF NOT EXISTS " + constants.tbNames[9] + " (id INTEGER PRIMARY KEY AUTOINCREMENT, saleID INTEGER NOT NULL, prdID INTEGER NOT NULL, prdName VARCHAR(200) NOT NULL, prdPrice INTEGER NOT NULL DEFAULT 0, prdAmount INTEGER NOT NULL DEFAULT 0, ticketNo INTEGER NOT NULL DEFAULT 0, saleDate DATETIME, sumFlag BOOLEAN NOT NULL DEFAULT 'false', sumDate DATETIME, categoryID INTEGER NOT NULL DEFAULT 0, serialNo INTEGER NOT NULL DEFAULT 1, realPrdID INTEGER DEFAULT 0, cancelDate DATETIME)";
+            sqlite_cmd = conn.CreateCommand();
+            sqlite_cmd.CommandText = Createsql;
+            sqlite_cmd.ExecuteNonQuery();
+            conn.Close();
+        }
 
-            SQLiteCommand sqlite_cmd;
-            sqlite_cmd = conn.CreateCommand();
-            sqlite_cmd.CommandText = "INSERT INTO CategoryTB (CategoryName, DayTime, SatTime, SunTime, DisplayPosition, LayoutType) VALUES(@CategoryName, @DayTime, @SatTime, @SunTime, @DisplayPosition, @LayoutType)";
-            sqlite_cmd.Parameters.AddWithValue("@CategoryName", categoryName);
-            sqlite_cmd.Parameters.AddWithValue("@DayTime", DayTime);
-            sqlite_cmd.Parameters.AddWithValue("@SatTime", SatTime);
-            sqlite_cmd.Parameters.AddWithValue("@SunTime", SunTime);
-            sqlite_cmd.Parameters.AddWithValue("@DisplayPosition", DisplayPosition);
-            sqlite_cmd.Parameters.AddWithValue("@LayoutType", LayoutType);
-            sqlite_cmd.ExecuteNonQuery();
-            conn.Close();
-        }
-        static void InsertProductData(SQLiteConnection conn, int categoryID, int groupID, string productName, string printName, int productPrice, int LimitedCnt, string ImgUrl, string ScreenMsg, string PrintMsg, int CardNumber, int RCPhotoX, int RCPhotoY, int RCPhotoWidth, int RCPhotoHeight, int RCBadgeX, int RCBadgeY, int RCBadgeWidth, int RCBadgeHeight, string BadgePath, Point PtName, Point PtPrice, string DayTime, string SatTime, string SunTime, Color BackColor, Color ForeColor, Color BorderColor)
-        {
-            if (conn.State == ConnectionState.Closed)
-            {
-                conn.Open();
-            }
-            SQLiteCommand sqlite_cmd;
-            sqlite_cmd = conn.CreateCommand();
-            sqlite_cmd.CommandText = "INSERT INTO ProductTB (CategoryID, GroupID, ProductName, PrintName, ProductPrice, LimitedCnt, ImgUrl, ScreenMsg, PrintMsg, CardNumber, RCPhotoX, RCPhotoY, RCPhotoWidth, RCPhotoHeight, RCBadgeX, RCBadgeY, RCBadgeWidth, RCBadgeHeight, BadgePath, PtNameX, PtNameY, PtPriceX, PtPriceY, DayTime, SatTime, SunTime, BackColor, ForeColor, BorderColor) VALUES(@CategoryID, @GroupID, @ProductName, @PrintName, @ProductPrice, @LimitedCnt, @ImgUrl, @ScreenMsg, @PrintMsg, @CardNumber, @RCPhotoX, @RCPhotoY, @RCPhotoWidth, @RCPhotoHeight, @RCBadgeX, @RCBadgeY, @RCBadgeWidth, @RCBadgeHeight, @BadgePath, @PtNameX, @PtNameY, @PtPriceX, @PtPriceY, @DayTime, @SatTime, @SunTime, @BackColor, @ForeColor, @BorderColor)";
-            sqlite_cmd.Parameters.AddWithValue("@CategoryID", categoryID);
-            sqlite_cmd.Parameters.AddWithValue("@GroupID", groupID);
-            sqlite_cmd.Parameters.AddWithValue("@ProductName", productName);
-            sqlite_cmd.Parameters.AddWithValue("@PrintName", printName);
-            sqlite_cmd.Parameters.AddWithValue("@ProductPrice", productPrice);
-            sqlite_cmd.Parameters.AddWithValue("@LimitedCnt", LimitedCnt);
-            sqlite_cmd.Parameters.AddWithValue("@ImgUrl", ImgUrl);
-            sqlite_cmd.Parameters.AddWithValue("@ScreenMsg", ScreenMsg);
-            sqlite_cmd.Parameters.AddWithValue("@PrintMsg", PrintMsg);
-            sqlite_cmd.Parameters.AddWithValue("@CardNumber", CardNumber);
-            sqlite_cmd.Parameters.AddWithValue("@RCPhotoX", RCPhotoX);
-            sqlite_cmd.Parameters.AddWithValue("@RCPhotoY", RCPhotoY);
-            sqlite_cmd.Parameters.AddWithValue("@RCPhotoWidth", RCPhotoWidth);
-            sqlite_cmd.Parameters.AddWithValue("@RCPhotoHeight", RCPhotoHeight);
-            sqlite_cmd.Parameters.AddWithValue("@RCBadgeX", RCBadgeX);
-            sqlite_cmd.Parameters.AddWithValue("@RCBadgeY", RCBadgeY);
-            sqlite_cmd.Parameters.AddWithValue("@RCBadgeWidth", RCBadgeWidth);
-            sqlite_cmd.Parameters.AddWithValue("@RCBadgeHeight", RCBadgeHeight);
-            sqlite_cmd.Parameters.AddWithValue("@RCBadgeHeight", RCBadgeHeight);
-            sqlite_cmd.Parameters.AddWithValue("@BadgePath", BadgePath);
-            sqlite_cmd.Parameters.AddWithValue("@PtNameX", PtName.X);
-            sqlite_cmd.Parameters.AddWithValue("@PtNameY", PtName.Y);
-            sqlite_cmd.Parameters.AddWithValue("@PtPriceX", PtPrice.X);
-            sqlite_cmd.Parameters.AddWithValue("@PtPriceY", PtPrice.Y);
-            sqlite_cmd.Parameters.AddWithValue("@DayTime", DayTime);
-            sqlite_cmd.Parameters.AddWithValue("@SatTime", SatTime);
-            sqlite_cmd.Parameters.AddWithValue("@SunTime", SunTime);
-            sqlite_cmd.Parameters.AddWithValue("@BackColor", BackColor.Name);
-            sqlite_cmd.Parameters.AddWithValue("@ForeColor", ForeColor.Name);
-            sqlite_cmd.Parameters.AddWithValue("@BorderColor", BorderColor.Name);
-            sqlite_cmd.ExecuteNonQuery();
-            conn.Close();
-        }
-        static void DeleteData(SQLiteConnection conn, string tb_name)
+        private void DeleteData(SQLiteConnection conn, string tb_name)
         {
             if (conn.State == ConnectionState.Closed)
             {
@@ -310,43 +378,6 @@ namespace Ovan_P1
             sqlite_cmd = conn.CreateCommand();
             sqlite_cmd.CommandText = "DELETE FROM " + tb_name;
             sqlite_cmd.ExecuteNonQuery();
-        }
-
-        static void DeleteTable(SQLiteConnection conn)
-        {
-            if (conn.State == ConnectionState.Closed)
-            {
-                conn.Open();
-            }
-            SQLiteCommand sqlite_cmd;
-            sqlite_cmd = conn.CreateCommand();
-            sqlite_cmd.CommandText = "DROP database.SampleTable";
-            sqlite_cmd.ExecuteNonQuery();
-
-
-            sqlite_cmd.CommandText = "DROP database.SampleTable1";
-            sqlite_cmd.ExecuteNonQuery();
-        }
-
-
-        static void ReadData(SQLiteConnection conn)
-        {
-            if (conn.State == ConnectionState.Closed)
-            {
-                conn.Open();
-            }
-            SQLiteDataReader sqlite_datareader;
-            SQLiteCommand sqlite_cmd;
-            sqlite_cmd = conn.CreateCommand();
-            sqlite_cmd.CommandText = "SELECT * FROM SampleTable";
-
-            sqlite_datareader = sqlite_cmd.ExecuteReader();
-            while (sqlite_datareader.Read())
-            {
-                string myreader = sqlite_datareader.GetString(0);
-                Console.WriteLine(myreader);
-            }
-            conn.Close();
         }
 
     }
