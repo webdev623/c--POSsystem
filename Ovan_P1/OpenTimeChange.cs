@@ -29,6 +29,7 @@ namespace Ovan_P1
         DropDownMenu dropDownMenu = new DropDownMenu();
         MonthDropDown dropDownMonth = new MonthDropDown();
         DateDropDown dropDownDate = new DateDropDown();
+        MessageDialog messageDialog = new MessageDialog();
 
         ComboBox dayTypeGlobal = null;
         ComboBox startHourGlobal = null;
@@ -72,6 +73,8 @@ namespace Ovan_P1
             mainFormGlobal = mainForm;
             mainPanelGlobal = mainPanel;
             mainForm.AutoScroll = true;
+            messageDialog.initOpenTimeChange(this);
+
             sqlite_conn = CreateConnection(constants.dbName);
             if (sqlite_conn.State == ConnectionState.Closed)
             {
@@ -97,19 +100,19 @@ namespace Ovan_P1
                     {
                         storeEndTime = (sqlite_datareader.GetString(6)).Split('/')[1];
                         openTimeTemp = sqlite_datareader.GetString(4);
-                        standardWeek = "土曜";
+                        standardWeek = constants.dayTypeValue[1];
                     }
                     else if (week == "Sun")
                     {
                         storeEndTime = (sqlite_datareader.GetString(6)).Split('/')[2];
                         openTimeTemp = sqlite_datareader.GetString(5);
-                        standardWeek = "日曜";
+                        standardWeek = constants.dayTypeValue[2];
                     }
                     else
                     {
                         storeEndTime = (sqlite_datareader.GetString(6)).Split('/')[0];
                         openTimeTemp = sqlite_datareader.GetString(3);
-                        standardWeek = "平日";
+                        standardWeek = constants.dayTypeValue[0];
                     }
 
                 }
@@ -202,7 +205,7 @@ namespace Ovan_P1
             settingButton.Click += new EventHandler(this.DateTimeSettingPreview);
             Button closeButton = customButton.CreateButton(constants.cancelButtonText, "closeButton", bodyPanel.Width - 300, bodyPanel.Height - 100, 100, 50, Color.Red, Color.Transparent, 0, 1, 12, FontStyle.Regular, Color.White);
             bodyPanel.Controls.Add(closeButton);
-            closeButton.Click += new EventHandler(this.BackShow);
+            closeButton.Click += new EventHandler(this.DateTimeCancelMessage);
         }
 
         private void ComboboxChanged(object sender, EventArgs e)
@@ -307,14 +310,22 @@ namespace Ovan_P1
 
             Button settingButton = customButton.CreateButton(constants.gettingLabel, "settingButton", bodyPanel.Width - 150, bodyPanel.Height - 100, 100, 50, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 1, 12, FontStyle.Regular, Color.White);
             bodyPanel.Controls.Add(settingButton);
-            settingButton.Click += new EventHandler(this.DateTimeSetting);
+            settingButton.Click += new EventHandler(this.DateTimeSettingMessage);
             Button closeButton = customButton.CreateButton(constants.cancelButtonText, "closeButton", bodyPanel.Width - 300, bodyPanel.Height - 100, 100, 50, Color.Red, Color.Transparent, 0, 1, 12, FontStyle.Regular, Color.White);
             bodyPanel.Controls.Add(closeButton);
             closeButton.Click += new EventHandler(this.BackShow);
         }
 
+        private void DateTimeSettingMessage(object sender, EventArgs e)
+        {
+            messageDialog.ShowOpenTimeSettingMessage();
+        }
+        private void DateTimeCancelMessage(object sender, EventArgs e)
+        {
+            messageDialog.ShowOpenTimeCancelMessage();
+        }
 
-        private void DateTimeSetting(object sender, EventArgs e)
+        public void DateTimeSetting()
         {
             if (!manualProcessState && (startHourChange || startMinuteChange || endHourChange || endMinuteChange))
             {

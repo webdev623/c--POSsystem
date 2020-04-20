@@ -21,6 +21,7 @@ namespace Ovan_P1
         CategoryList categoryList = null;
         GroupList groupList = null;
         MenuReading menuReading = null;
+        OpenTimeChange openTimeChange = null;
 
         Form DialogFormGlobal = null;
         string indicator = "";
@@ -39,6 +40,11 @@ namespace Ovan_P1
         public void initMenuReading(MenuReading sendHandler)
         {
             menuReading = sendHandler;
+        }
+
+        public void initOpenTimeChange(OpenTimeChange sendHandler)
+        {
+            openTimeChange = sendHandler;
         }
         public void MessageDialogInit(object sender, EventArgs e)
         {
@@ -165,6 +171,82 @@ namespace Ovan_P1
             closeButton.Click += new EventHandler(this.BackShow);
 
             dialogForm.ShowDialog();
+        }
+
+        public void ShowOpenTimeCancelMessage()
+        {
+            Form dialogForm = new Form();
+            dialogForm.Size = new Size(width * 2 / 5, height / 3);
+            dialogForm.BackColor = Color.White;
+            dialogForm.StartPosition = FormStartPosition.CenterParent;
+            dialogForm.WindowState = FormWindowState.Normal;
+            dialogForm.ControlBox = false;
+            dialogForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+            DialogFormGlobal = dialogForm;
+
+            Panel mainPanel = createPanel.CreateMainPanel(dialogForm, 0, 0, dialogForm.Width, dialogForm.Height, BorderStyle.None, Color.White);
+
+            Label messageLabel1 = createLabel.CreateLabelsInPanel(mainPanel, "messageLabel1", constants.openTimeCancelMessageTitle, 50, 0, mainPanel.Width - 100, (mainPanel.Height - 100) / 3, Color.White, Color.Red, 22, false, ContentAlignment.BottomCenter);
+            messageLabel1.Padding = new Padding(30, 0, 30, 0);
+            Label messageLabel2 = createLabel.CreateLabelsInPanel(mainPanel, "messageLabel2", constants.openTimeCancelMessageContent, 50, (mainPanel.Height - 100) / 3, mainPanel.Width - 100, (mainPanel.Height - 100) * 2 / 3, Color.White, Color.Black, 18, false, ContentAlignment.MiddleCenter);
+            messageLabel2.Padding = new Padding(30, 0, 30, 0);
+
+            Button settingButton = createButton.CreateButton(constants.yesStr, "settingButton", mainPanel.Width / 4, mainPanel.Height - 100, 150, 50, Color.Red, Color.Transparent, 0, 1);
+            settingButton.ForeColor = Color.White;
+            mainPanel.Controls.Add(settingButton);
+            settingButton.Click += new EventHandler(this.OpenTimeCancel);
+
+            Button closeButton = createButton.CreateButton(constants.noStr, "closeButton", mainPanel.Width * 3 / 4 - 150, mainPanel.Height - 100, 150, 50, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 1);
+            closeButton.ForeColor = Color.White;
+            mainPanel.Controls.Add(closeButton);
+            closeButton.Click += new EventHandler(this.BackShow);
+
+            dialogForm.ShowDialog();
+
+        }
+        public void ShowOpenTimeSettingMessage()
+        {
+            Form dialogForm = new Form();
+            dialogForm.Size = new Size(width * 2 / 5, height / 3);
+            dialogForm.BackColor = Color.White;
+            dialogForm.StartPosition = FormStartPosition.CenterParent;
+            dialogForm.WindowState = FormWindowState.Normal;
+            dialogForm.ControlBox = false;
+            dialogForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+            DialogFormGlobal = dialogForm;
+
+            Panel mainPanel = createPanel.CreateMainPanel(dialogForm, 0, 0, dialogForm.Width, dialogForm.Height, BorderStyle.None, Color.White);
+
+            Label messageLabel1 = createLabel.CreateLabelsInPanel(mainPanel, "messageLabel1", constants.openTimeSettingMessageTitle, 50, 0, mainPanel.Width - 100, (mainPanel.Height - 100) / 3, Color.White, Color.Red, 22, false, ContentAlignment.BottomCenter);
+            messageLabel1.Padding = new Padding(30, 0, 30, 0);
+            Label messageLabel2 = createLabel.CreateLabelsInPanel(mainPanel, "messageLabel2", constants.openTimeSettingMessageContent, 50, (mainPanel.Height - 100) / 3, mainPanel.Width - 100, (mainPanel.Height - 100) * 2 / 3, Color.White, Color.Black, 18, false, ContentAlignment.MiddleCenter);
+            messageLabel2.Padding = new Padding(30, 0, 30, 0);
+
+
+            Button settingButton = createButton.CreateButton(constants.yesStr, "settingButton", mainPanel.Width / 4, mainPanel.Height - 100, 150, 50, Color.Red, Color.Transparent, 0, 1);
+            settingButton.ForeColor = Color.White;
+            mainPanel.Controls.Add(settingButton);
+            settingButton.Click += new EventHandler(this.OpenTimeSetting);
+
+            Button closeButton = createButton.CreateButton(constants.noStr, "closeButton", mainPanel.Width * 3 / 4 - 150, mainPanel.Height - 100, 150, 50, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 1);
+            closeButton.ForeColor = Color.White;
+            mainPanel.Controls.Add(closeButton);
+            closeButton.Click += new EventHandler(this.BackShow);
+
+            dialogForm.ShowDialog();
+
+        }
+
+        private void OpenTimeCancel(object sender, EventArgs e)
+        {
+            DialogFormGlobal.Close();
+            openTimeChange.BackShowPage();
+        }
+
+        private void OpenTimeSetting(object sender, EventArgs e)
+        {
+            DialogFormGlobal.Close();
+            openTimeChange.DateTimeSetting();
         }
 
         private void BackShow(object sender, EventArgs e)

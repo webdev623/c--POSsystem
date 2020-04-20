@@ -7,10 +7,12 @@ using System.Drawing.Printing;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Threading;
 using System.IO;
+using System.IO.Ports;
 
 namespace Ovan_P1
 {
@@ -71,6 +73,10 @@ namespace Ovan_P1
         private int lastIndex = 4;
         private int categoryDisAmount = 0;
 
+        private int colorPatternValue = 0;
+        private string menuTitle1 = "";
+        private string menuTitle2 = "";
+
         private Bitmap BackgroundBitmap = null;
         Color borderClr = Color.FromArgb(255, 23, 55, 94);
         Pen borderPen = null;
@@ -128,10 +134,17 @@ namespace Ovan_P1
             orderDialog.initValue(this);
             InitIntArray(productRestAmountArray);
             currentDir = Directory.GetCurrentDirectory();
-            foreach (var item in PrinterSettings.InstalledPrinters)
+
+            SerialPort serialPort = new SerialPort();
+            string[] ports = SerialPort.GetPortNames();
+            foreach(string port in ports)
             {
-                MessageBox.Show(item.ToString());
+                Console.WriteLine(port);
             }
+            //foreach (var item in PrinterSettings.InstalledPrinters)
+            //{
+            //    MessageBox.Show(item.ToString());
+            //}
 
             sqlite_conn = CreateConnection(constants.dbName);
             SQLiteCommand sqlite_cmd;
@@ -236,13 +249,26 @@ namespace Ovan_P1
                 this.BackShow();
             }
 
+            string selectGeneralSql = "SELECT * FROM " + constants.tbNames[12];
+            sqlite_cmd = sqlite_conn.CreateCommand();
+            sqlite_cmd.CommandText = selectGeneralSql;
+            sqlite_datareader = sqlite_cmd.ExecuteReader();
+            while (sqlite_datareader.Read())
+            {
+                if (!sqlite_datareader.IsDBNull(0))
+                {
+                    colorPatternValue = sqlite_datareader.GetInt32(0);
+                    menuTitle1 = sqlite_datareader.GetString(1);
+                    menuTitle2 = sqlite_datareader.GetString(2);
+                }
+            }
 
             Panel LeftPanel = createPanel.CreateMainPanel(panel, 0, 0, 3 * width / 4, height, BorderStyle.FixedSingle, Color.FromArgb(255, 255, 255, 204));
             LeftPanelGlobal = LeftPanel;
             Panel RightPanel = createPanel.CreateMainPanel(panel, width * 3 / 4, 0, width / 4, height, BorderStyle.FixedSingle, Color.White);
             FlowLayoutPanel FlowButtonLayout = createPanel.CreateFlowLayoutPanel(LeftPanel, 0, height / 7, LeftPanel.Width / 6, height * 4 / 7, Color.Transparent, new Padding(20, 10, 0, 0));
             FlowLayoutPanel FlowTitleLayout = createPanel.CreateFlowLayoutPanel(LeftPanel, LeftPanel.Width / 6, 0, (LeftPanel.Width * 5) / 6, height / 7, Color.Transparent, new Padding(10, 70, 0, 0));
-            Panel MenuBodyLayout = createPanel.CreateSubPanel(LeftPanel, LeftPanel.Width / 6, height / 7, (LeftPanel.Width * 5) / 6, height * 6 / 7, BorderStyle.FixedSingle, Color.Transparent);
+            Panel MenuBodyLayout = createPanel.CreateSubPanel(LeftPanel, LeftPanel.Width / 6, height / 7, (LeftPanel.Width * 5) / 6, height * 6 / 7, BorderStyle.None, Color.Transparent);
             MainBodyPanelGlobal = MenuBodyLayout;
 
             /**  Top Screen Title */
@@ -254,8 +280,7 @@ namespace Ovan_P1
             MainTitle.Height = FlowTitleLayout.Height - 70;
             MainTitle.Font = new Font("Series", 24, FontStyle.Bold);
             MainTitle.ForeColor = Color.FromArgb(255, 255, 0, 0);
-            MainTitle.Text = constants.saleScreenTopTitle;
-            MainTitle.Text = constants.saleScreenTopTitle;
+            MainTitle.Text = menuTitle1 + "\n" + menuTitle2;
             //LeftPanel.Controls.Remove(FlowTitleLayout);
             FlowTitleLayout.Controls.Add(MainTitle);
 
@@ -376,6 +401,13 @@ namespace Ovan_P1
             receiptButton.Click += new EventHandler(this.ReceiptRun);
 
             CreateCategoryList(FlowButtonLayout);
+
+            if (categoryDisAmount == 0)
+            {
+                messageDialog.ShowErrorMessage(constants.systemErrorMsg, constants.systemSubErrorMsg);
+                this.BackShow();
+            }
+
         }
 
 
@@ -385,7 +417,7 @@ namespace Ovan_P1
             string week = now.ToString("ddd");
             string currentTime = now.ToString("HH:mm");
             Color[][] colorPattern = constants.pattern_Clr;
-            colorPattn = colorPattern[0];
+            colorPattn = colorPattern[colorPatternValue];
             if (sqlite_conn.State == ConnectionState.Closed)
             {
                 sqlite_conn.Open();
@@ -435,16 +467,17 @@ namespace Ovan_P1
                             CreateProductsList();
                         }
                         categoryIDArray[k] = sqlite_datareader.GetInt32(1);
+                        string categoryBackImg = sqlite_datareader.GetString(9);
                         string categoryButtonText = sqlite_datareader.GetString(2);
                         string categoryButtonName = "saleCategoryBtn_" + k + "_" + sqlite_datareader.GetInt32(1).ToString() + "_" + sqlite_datareader.GetInt32(7).ToString();
-                        Color backColor = colorPattern[0][k % 4 + 4];
-                        Color borderColor = colorPattern[0][k % 4];
+                        Color backColor = colorPattn[k % 4 + 4];
+                        Color borderColor = colorPattn[k % 4];
 
                         if (selectedCategoryIndex == k)
                         {
-                            backColor = colorPattern[0][k % 4];
+                            backColor = colorPattn[k % 4];
                             borderColor = Color.Red;
-                            LeftPanelGlobal.BackColor = colorPattern[0][k % 4 + 4];
+                            LeftPanelGlobal.BackColor = colorPattn[k % 4 + 4];
                         }
                         int btnLeft = listPanel.Left + 10;
                         int btnTop = (listPanel.Top + 10) + (listPanel.Height / 5) * k;
@@ -468,11 +501,16 @@ namespace Ovan_P1
                         }
 
                         btn.Name = categoryButtonName;
-                        btn.BackColor = colorPattern[0][4];
+                        btn.BackColor = colorPattn[4];
                         btn.ButtonColor = backColor;
                         btn.FlatAppearance.BorderSize = 0;
                         btn.FlatStyle = FlatStyle.Flat;
-                        btn.OnHoverButtonColor = colorPattern[0][k % 4 + 4];
+                        if(categoryBackImg != "")
+                        {
+                            btn.BackgroundImage = Image.FromFile(categoryBackImg);
+                            btn.BackgroundImageLayout = ImageLayout.Stretch;
+                        }
+                        btn.OnHoverButtonColor = colorPattn[k % 4 + 4];
                         btn.OnHoverBorderColor = borderColor;
                         btn.BorderColor = borderColor;
                         btn.Font = new Font("Seri", 18F, FontStyle.Bold);
@@ -504,6 +542,8 @@ namespace Ovan_P1
             selectedCategoryID = int.Parse(btnTemp.Name.Split('_')[2]);
             selectedCategoryLayout = int.Parse(btnTemp.Name.Split('_')[3]);
             Color[][] colorPattern = constants.pattern_Clr;
+            colorPattn = colorPattern[colorPatternValue];
+
             curProduct = 0;
 
 
@@ -512,15 +552,15 @@ namespace Ovan_P1
             {
                 if(i != selectedID)
                 {
-                    categoryButton[i].ButtonColor = colorPattern[0][i % 4 + 4];
-                    categoryButton[i].BorderColor = colorPattern[0][i % 4];
-                    categoryButton[i].BackColor = colorPattern[0][selectedID % 4 + 4];
+                    categoryButton[i].ButtonColor = colorPattn[i % 4 + 4];
+                    categoryButton[i].BorderColor = colorPattn[i % 4];
+                    categoryButton[i].BackColor = colorPattn[selectedID % 4 + 4];
                 }
             }
-            btnTemp.ButtonColor = colorPattern[0][selectedID % 4];
+            btnTemp.ButtonColor = colorPattn[selectedID % 4];
             btnTemp.BorderColor = Color.Red;
-            btnTemp.BackColor = colorPattern[0][selectedID % 4 + 4];
-            LeftPanelGlobal.BackColor = colorPattern[0][selectedID % 4 + 4];
+            btnTemp.BackColor = colorPattn[selectedID % 4 + 4];
+            LeftPanelGlobal.BackColor = colorPattn[selectedID % 4 + 4];
 
             btnTemp.Invalidate();
 
@@ -1976,7 +2016,6 @@ namespace Ovan_P1
             sqlite_conn.Close();
             if(ReceiptValid == "true")
             {
-                Thread.Sleep(int.Parse(TicketTime));
                 if (receiptButtonGlobal.InvokeRequired)
                 {
                     receiptButtonGlobal.Invoke(new MethodInvoker(delegate
@@ -1984,6 +2023,17 @@ namespace Ovan_P1
                         receiptButtonGlobal.BackColor = Color.FromArgb(255, 255, 192, 0);
                         receiptButtonGlobal.ForeColor = Color.White;
                         receiptButtonGlobal.Enabled = true;
+                    }));
+                }
+
+                Thread.Sleep(int.Parse(TicketTime));
+                if (receiptButtonGlobal.InvokeRequired)
+                {
+                    receiptButtonGlobal.Invoke(new MethodInvoker(delegate
+                    {
+                        receiptButtonGlobal.BackColor = Color.FromArgb(255, 217, 217, 217);
+                        receiptButtonGlobal.ForeColor = Color.Black;
+                        receiptButtonGlobal.Enabled = false;
                     }));
                 }
             }

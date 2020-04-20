@@ -345,7 +345,7 @@ namespace Ovan_P1
             Form dialogForm = new Form();
             dialogForm.Size = new Size(mainFormGlobal.Width / 3, mainFormGlobal.Height / 4);
             dialogForm.BackColor = Color.White;
-            dialogForm.StartPosition = FormStartPosition.WindowsDefaultLocation;
+            dialogForm.StartPosition = FormStartPosition.CenterParent;
             dialogForm.WindowState = FormWindowState.Normal;
             dialogForm.ControlBox = false;
             dialogForm.MaximizeBox = false;

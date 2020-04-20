@@ -1,6 +1,8 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SQLite;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -19,8 +21,10 @@ namespace Ovan_P1
         int width = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Width;
         PasswordInput passwordInput = new PasswordInput();
         CustomButton customButton = new CustomButton();
+        MessageDialog messageDialog = new MessageDialog();
+        SQLiteConnection sqlite_conn;
 
-
+        bool tb_check = true;
 
         public void CreateMainMenuScreen(Form1 forms, Panel panels)
         {
@@ -30,7 +34,29 @@ namespace Ovan_P1
             FormPanel.Width = width;
             FormPanel.Height = height;
             passwordInput.initMainMenu(this);
+            sqlite_conn = CreateConnection(constants.dbName);
+            if (sqlite_conn.State == ConnectionState.Closed)
+            {
+                sqlite_conn.Open();
+            }
+            SQLiteCommand sqlite_cmd;
 
+            foreach (string tbName in constants.tbNames)
+            {
+                try
+                {
+                    string query = "SELECT count(*) FROM " + tbName;
+                    sqlite_cmd = sqlite_conn.CreateCommand();
+                    sqlite_cmd.CommandText = query;
+                    int rowCount = Convert.ToInt32(sqlite_cmd.ExecuteScalar());
+                }
+                catch (Exception ex)
+                {
+                    tb_check = false;
+                    break;
+                }
+
+            }
 
             /**  Main Page Screen Title */
 
@@ -96,30 +122,44 @@ namespace Ovan_P1
             Button temp = (Button)sender;
             if (temp.Name == "maintenance")
             {
-                RegistryKey key = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\WinRegistry");
-                if(key != null && key.GetValue("POSPassword") != null)
+                if (tb_check)
                 {
-                    passwordInput.CreateNumberInputDialog("maintenance", temp.Name);
+                    RegistryKey key = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\WinRegistry");
+                    if (key != null && key.GetValue("POSPassword") != null)
+                    {
+                        passwordInput.CreateNumberInputDialog("maintenance", temp.Name);
+                    }
+                }
+                else
+                {
+                    messageDialog.ShowErrorMessage(constants.systemErrorMsg, constants.systemSubErrorMsg);
                 }
 
             }
             else if (temp.Name == "salescreen")
             {
-                try
+                if (tb_check)
                 {
-                    FormPanel.Controls.Clear();
-                    SaleScreen saleScreen = new SaleScreen(FormPanel);
-                    saleScreen.TopLevel = false;
-                    saleScreen.FormBorderStyle = FormBorderStyle.None;
-                    saleScreen.Dock = DockStyle.Fill;
-                    Panels.Controls.Add(saleScreen);
-                    Thread.Sleep(200);
+                    try
+                    {
+                        FormPanel.Controls.Clear();
+                        SaleScreen saleScreen = new SaleScreen(FormPanel);
+                        saleScreen.TopLevel = false;
+                        saleScreen.FormBorderStyle = FormBorderStyle.None;
+                        saleScreen.Dock = DockStyle.Fill;
+                        Panels.Controls.Add(saleScreen);
+                        Thread.Sleep(200);
 
-                    saleScreen.Show();
+                        saleScreen.Show();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.ToString());
+                    }
                 }
-                catch(Exception ex)
+                else
                 {
-                    MessageBox.Show(ex.ToString());
+                    messageDialog.ShowErrorMessage(constants.systemErrorMsg, constants.systemSubErrorMsg);
                 }
             }
             else
@@ -179,5 +219,23 @@ namespace Ovan_P1
             this.ResumeLayout(false);
 
         }
+        static SQLiteConnection CreateConnection(string dbName)
+        {
+
+            SQLiteConnection sqlite_conn;
+            // Create a new database connection:
+            sqlite_conn = new SQLiteConnection("Data Source=" + dbName + ".db; Version = 3; New = True; Compress = True; ");
+            // Open the connection:
+            try
+            {
+                sqlite_conn.Open();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            return sqlite_conn;
+        }
+
     }
 }
