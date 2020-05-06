@@ -29,6 +29,7 @@ namespace Ovan_P1
         Panel productListPanelGlobal = null;
         Label labelForLimitAmount = null;
         Button saleStateButtonGlobal = null;
+        Button backButtonGlobal = null;
         private Panel bodyPanelGlobal = null;
         private bool saleStateGlobal = true;
 
@@ -45,49 +46,78 @@ namespace Ovan_P1
         {
             sqlite_conn = CreateConnection(constants.dbName);
             this.GetCategoryList();
-
-            mainForm.Width = width;
-            mainForm.Height = height;
             mainFormGlobal = mainForm;
             mainPanelGlobal = mainPanel;
-            Panel mainPanels = createPanel.CreateMainPanel(mainForm, 0, 0, width, height, BorderStyle.None, Color.Transparent);
+            mainPanel.Hide();
+            Panel mainPanels = createPanel.CreateSubPanel(mainPanel, 0, 0, mainPanel.Width, mainPanel.Height, BorderStyle.None, Color.Transparent);
             dropDownMenu.initSoldoutSetting(this);
             numberInput.initSoldoutSetting(this);
-            Panel headerPanel = createPanel.CreateSubPanel(mainPanels, 0, 0, width, height / 6, BorderStyle.None, Color.Transparent);
-            Panel bodyPanel = createPanel.CreateSubPanel(mainPanels, 0, height / 6, width, height * 5 / 6, BorderStyle.None, Color.Transparent);
+            Panel headerPanel = createPanel.CreateSubPanel(mainPanels, 0, 0, mainPanels.Width, mainPanels.Height / 10, BorderStyle.None, Color.FromArgb(255, 234, 225, 151));
+            Panel bodyPanel = createPanel.CreateSubPanel(mainPanels, 0, headerPanel.Bottom, mainPanel.Width, mainPanel.Height * 9 / 10, BorderStyle.None, Color.Transparent);
 
-            Label titleLabel = createLabel.CreateLabelsInPanel(headerPanel, "SoldoutSetting_Title", constants.soldoutSettingTitle, 10, 10, headerPanel.Width / 2, headerPanel.Height, Color.White, Color.Red, 28, false, ContentAlignment.MiddleLeft);
+            Label titleLabel = createLabel.CreateLabelsInPanel(headerPanel, "SoldoutSetting_Title", constants.soldoutSettingTitle, 0, 0, headerPanel.Width, headerPanel.Height, Color.Transparent, Color.Black, 28, false, ContentAlignment.MiddleCenter);
 
-            Label subTitleLabel = createLabel.CreateLabelsInPanel(bodyPanel, "SoldoutSetting_subTitle", constants.categorylistLabel, 80, 0, width / 2 - 300, 50, Color.White, Color.Red, 24, false, ContentAlignment.MiddleRight);
+            Label subTitleLabel = createLabel.CreateLabelsInPanel(bodyPanel, "SoldoutSetting_subTitle", constants.categorylistLabel, 0, 0, bodyPanel.Width / 4, bodyPanel.Height / 9, Color.Transparent, Color.Red, 24, false, ContentAlignment.MiddleRight);
 
 
-            dropDownMenu.CreateCategoryDropDown("soldoutSetting1", bodyPanel, categoryNameList, categoryIDList, categoryDisplayPositionList, categorySoldStateList, width / 2 - 150, 0, 200, 50, 200, 50 * (categoryRowCount + 1), 200, 50, Color.Red, Color.Yellow);
+            dropDownMenu.CreateCategoryDropDown("soldoutSetting1", bodyPanel, categoryNameList, categoryIDList, categoryDisplayPositionList, categorySoldStateList, bodyPanel.Width / 3, bodyPanel.Height / 18 - 25, bodyPanel.Width / 3, 50, bodyPanel.Width / 3, 50 * (categoryRowCount + 1), bodyPanel.Width / 3, 50, Color.Red, Color.White);
 
-            Button saleStateButton = customButton.CreateButton(constants.saleStatusLabel, "saleSateButton", width / 2 + 200, 0, 200, 50, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 10, 14, FontStyle.Bold, Color.White);
+            Image saleStateButtonImage = null;
+            string saleStatusTxt = constants.saleStatusLabel;
+            int soldoutState = soldoutCategoryIndex.Find(elem => elem == 1);
+
+            if (soldoutState != 0)
+            {
+                saleStateButtonImage = Image.FromFile(constants.soldoutButtonImage2);
+                saleStatusTxt = constants.saleStopLabel;
+                saleStateGlobal = false;
+            }
+            else
+            {
+                saleStateButtonImage = Image.FromFile(constants.soldoutButtonImage1);
+                saleStatusTxt = constants.saleStatusLabel;
+                saleStateGlobal = true;
+            }
+
+
+            Button saleStateButton = customButton.CreateButtonWithImage(saleStateButtonImage, "saleSateButton", saleStatusTxt, bodyPanel.Width * 2 / 3 + 20, bodyPanel.Height / 18 - 25, bodyPanel.Width / 6, 50, 1, 1, 18, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 2);
+
             saleStateButton.Click += new EventHandler(this.SaleSateSwitching);
             saleStateButtonGlobal = saleStateButton;
 
             bodyPanel.Controls.Add(saleStateButton);
-
-            Button backButton = customButton.CreateButton(constants.backText, "backButton", bodyPanel.Width - 150, bodyPanel.Height - 100, 100, 50, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 10, 14, FontStyle.Bold, Color.White);
-            bodyPanel.Controls.Add(backButton);
-            backButton.Click += new EventHandler(this.BackShow);
-
             bodyPanelGlobal = bodyPanel;
 
 
-            FlowLayoutPanel productTableHeader = createPanel.CreateFlowLayoutPanel(bodyPanelGlobal, 150, 60, width - 350, 60, Color.Beige, new Padding(0));
-            Label prodNameHeader1 = createLabel.CreateLabelsInPanel(productTableHeader, "prodNameHeader1", constants.prdNameField, 0, 0, productTableHeader.Width / 4 - 10, productTableHeader.Height, Color.Transparent, Color.Silver, 12);
-            Label prodNameHeader2 = createLabel.CreateLabelsInPanel(productTableHeader, "prodNameHeader2", constants.salePriceField, productTableHeader.Width / 4, 0, productTableHeader.Width / 4 - 10, productTableHeader.Height, Color.Transparent, Color.Silver, 12);
-            Label prodNameHeader3 = createLabel.CreateLabelsInPanel(productTableHeader, "prodNameHeader3", constants.saleLimitField, productTableHeader.Width / 2, 0, productTableHeader.Width / 4 - 10, productTableHeader.Height, Color.Transparent, Color.Silver, 12);
-            Label prodNameHeader4 = createLabel.CreateLabelsInPanel(productTableHeader, "prodNameHeader4", constants.saleStateSettingField, productTableHeader.Width * 3 / 4, 0, productTableHeader.Width / 4 - 10, productTableHeader.Height, Color.Transparent, Color.Silver, 12);
+            FlowLayoutPanel productTableHeader = createPanel.CreateFlowLayoutPanel(bodyPanelGlobal, bodyPanel.Width / 10, bodyPanel.Height / 9, bodyPanel.Width * 4 / 5, 60, Color.Transparent, new Padding(0));
+            Label prodNameHeader1 = createLabel.CreateLabelsInPanel(productTableHeader, "prodNameHeader1", constants.prdNameField, 0, 0, productTableHeader.Width * 2 / 5, productTableHeader.Height, Color.FromArgb(255, 238, 175, 175), Color.Black, 12);
+            prodNameHeader1.Margin = new Padding(0);
+            prodNameHeader1.BorderStyle = BorderStyle.FixedSingle;
 
-            Panel productListPanel = createPanel.CreateSubPanel(bodyPanelGlobal, 150, 120, width - 350, height * 5 / 6 - 150, BorderStyle.None, Color.Transparent);
+            Label prodNameHeader2 = createLabel.CreateLabelsInPanel(productTableHeader, "prodNameHeader2", constants.salePriceField, productTableHeader.Width * 2 / 5, 0, productTableHeader.Width / 5, productTableHeader.Height, Color.FromArgb(255, 238, 175, 175), Color.Black, 12);
+            prodNameHeader2.Margin = new Padding(0);
+            prodNameHeader2.BorderStyle = BorderStyle.FixedSingle;
+
+            Label prodNameHeader3 = createLabel.CreateLabelsInPanel(productTableHeader, "prodNameHeader3", constants.saleLimitField, productTableHeader.Width * 3 / 5, 0, productTableHeader.Width / 5, productTableHeader.Height, Color.FromArgb(255, 238, 175, 175), Color.Black, 12);
+            prodNameHeader3.Margin = new Padding(0);
+            prodNameHeader3.BorderStyle = BorderStyle.FixedSingle;
+
+            Label prodNameHeader4 = createLabel.CreateLabelsInPanel(productTableHeader, "prodNameHeader4", constants.saleStateSettingField, productTableHeader.Width * 4 / 5, 0, productTableHeader.Width / 6, productTableHeader.Height, Color.FromArgb(255, 238, 175, 175), Color.Black, 12);
+            prodNameHeader4.Margin = new Padding(productTableHeader.Width / 5 - productTableHeader.Width / 6, 0, 0, 0);
+            prodNameHeader4.BorderStyle = BorderStyle.FixedSingle;
+
+            Panel productListPanel = createPanel.CreateSubPanel(bodyPanelGlobal, bodyPanel.Width / 10, bodyPanel.Height / 9 + 60, bodyPanel.Width * 4 / 5, bodyPanel.Height * 8 / 9 - 61, BorderStyle.None, Color.Transparent);
             productListPanel.AutoScroll = true;
             productListPanelGlobal = productListPanel;
-
-            CreateProductTable();
-
+            if (soldoutState == 0)
+            {
+                CreateProductTable();
+            }
+            mainPanel.Show();
+            Button backButton = customButton.CreateButtonWithImage(Image.FromFile(constants.soldoutButtonImage1), "backButton", constants.backText, mainPanel.Right - 100, mainPanel.Bottom + 10, 100, 50, 1, 10, 14, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 1);
+            mainForm.Controls.Add(backButton);
+            backButton.Click += new EventHandler(this.BackShow);
+            backButtonGlobal = backButton;
             InitializeComponent();
         }
 
@@ -132,22 +162,31 @@ namespace Ovan_P1
                             restAmount = prdLimitedCnt - sqlite_datareader1.GetInt32(0);
                         }
                     }
-                    FlowLayoutPanel productTableBody = createPanel.CreateFlowLayoutPanel(productListPanelGlobal, 0, 61 * k, productListPanelGlobal.Width - 18, 60, Color.FromArgb(255, 233, 211, 177), new Padding(0));
-                    Label prodNameBody1 = createLabel.CreateLabelsInPanel(productTableBody, "prodBody_" + k + "_1", prdName, 0, 0, productTableBody.Width / 4 - 10, productTableBody.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12);
-                    Label prodNameBody2 = createLabel.CreateLabelsInPanel(productTableBody, "prodBody_" + k + "_2", prdPrice.ToString(), productTableBody.Width / 4, 0, productTableBody.Width / 4 - 10, productTableBody.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12);
-                    Label prodNameBody3 = createLabel.CreateLabelsInPanel(productTableBody, "prodBody_" + k + "_3_" + rowID + "_" + prdLimitedCnt, restAmount.ToString() + "(" + prdLimitedCnt.ToString() + ")", productTableBody.Width / 2, 0, productTableBody.Width / 4 - 10, productTableBody.Height, Color.Transparent, Color.FromArgb(255, 142, 133, 118), 12);
+                    FlowLayoutPanel productTableBody = createPanel.CreateFlowLayoutPanel(productListPanelGlobal, 0, 60 * k, productListPanelGlobal.Width, 60, Color.Transparent, new Padding(0));
+                    Label prodNameBody1 = createLabel.CreateLabelsInPanel(productTableBody, "prodBody_" + k + "_1", prdName, 0, 0, productTableBody.Width * 2 / 5, productTableBody.Height, Color.White, Color.FromArgb(255, 142, 133, 118), 12);
+                    prodNameBody1.Margin = new Padding(0);
+                    prodNameBody1.BorderStyle = BorderStyle.FixedSingle;
+                    Label prodNameBody2 = createLabel.CreateLabelsInPanel(productTableBody, "prodBody_" + k + "_2", prdPrice.ToString(), productTableBody.Width * 2 / 5, 0, productTableBody.Width / 5, productTableBody.Height, Color.White, Color.FromArgb(255, 142, 133, 118), 12);
+                    prodNameBody2.Margin = new Padding(0);
+                    prodNameBody2.BorderStyle = BorderStyle.FixedSingle;
+                    Label prodNameBody3 = createLabel.CreateLabelsInPanel(productTableBody, "prodBody_" + k + "_3_" + rowID + "_" + prdLimitedCnt, restAmount.ToString() + "(" + prdLimitedCnt.ToString() + ")", productTableBody.Width * 3 / 5, 0, productTableBody.Width / 5, productTableBody.Height, Color.White, Color.FromArgb(255, 142, 133, 118), 12);
+                    prodNameBody3.Margin = new Padding(0);
+                    prodNameBody3.BorderStyle = BorderStyle.FixedSingle;
                     prodNameBody3.Click += new EventHandler(this.showNumberInputDialog);
 
                     string stateText = constants.saleStatusLabel;
-                    Color bgColor = Color.FromArgb(255, 0, 112, 192);
+                    Color bgColor = Color.FromArgb(255, 62, 113, 255);
                     if (soldFlag == 1)
                     {
-                        bgColor = Color.Red;
+                        bgColor = Color.FromArgb(255, 220, 56, 50);
                         stateText = constants.saleStopLabel;
                         stopedPrdIDArray.Add(rowID);
                     }
-                    Label prodNameBody4 = createLabel.CreateLabelsInPanel(productTableBody, "prodBody_" + k + "_4_" + prdID + "_" + rowID, stateText, productTableBody.Width * 3 / 4, 0, productTableBody.Width / 4 - 10, productTableBody.Height, bgColor, Color.White, 12);
+                    Label prodNameBody4 = createLabel.CreateLabelsInPanel(productTableBody, "prodBody_" + k + "_4_" + prdID + "_" + rowID, stateText, productTableBody.Width * 4 / 5, 0, productTableBody.Width / 6, productTableBody.Height, bgColor, Color.White, 12);
                     prodNameBody4.Click += new EventHandler(this.ProductSaleStateSwitching);
+                    prodNameBody4.Margin = new Padding(productTableBody.Width / 5 - productTableBody.Width / 6, 0, 0, 0);
+                    prodNameBody4.BorderStyle = BorderStyle.FixedSingle;
+
                     k++;
                 }
             }
@@ -155,10 +194,11 @@ namespace Ovan_P1
 
         public void BackShow(object sender, EventArgs e)
         {
-            mainFormGlobal.Controls.Clear();
+            mainPanelGlobal.Controls.Clear();
+            mainFormGlobal.Controls.Remove(backButtonGlobal);
             MaintaneceMenu frm = new MaintaneceMenu(mainFormGlobal, mainPanelGlobal);
             frm.TopLevel = false;
-            mainFormGlobal.Controls.Add(frm);
+            mainPanelGlobal.Controls.Add(frm);
             frm.FormBorderStyle = FormBorderStyle.None;
             frm.Dock = DockStyle.Fill;
             Thread.Sleep(200);
@@ -170,27 +210,37 @@ namespace Ovan_P1
 
             productListPanelGlobal.Controls.Clear();
             selectedCategoryIndex = int.Parse(selectedIndex);
+            Image saleStateButtonImage = null;
+            string saleStatusTxt = constants.saleStatusLabel;
             int soldoutState = soldoutCategoryIndex.Find(elem => elem == selectedCategoryIndex + 1);
             if(soldoutState != 0)
             {
-                saleStateButtonGlobal.BackColor = Color.Red;
-                saleStateButtonGlobal.Text = constants.saleStopLabel;
+                //saleStateButtonGlobal.BackColor = Color.Red;
+                saleStateButtonImage = Image.FromFile(constants.soldoutButtonImage2);
+                saleStatusTxt = constants.saleStopLabel;
                 saleStateGlobal = false;
             }
             else
             {
-                saleStateButtonGlobal.BackColor = Color.FromArgb(255, 0, 112, 192);
-                saleStateButtonGlobal.Text = constants.saleStatusLabel;
+                //saleStateButtonGlobal.BackColor = Color.FromArgb(255, 0, 112, 192);
+                saleStateButtonImage = Image.FromFile(constants.soldoutButtonImage1);
+                saleStatusTxt = constants.saleStatusLabel;
                 saleStateGlobal = true;
                 CreateProductTable();
             }
-
+            bodyPanelGlobal.Controls.Remove(saleStateButtonGlobal);
+            Button saleStateButton = customButton.CreateButtonWithImage(saleStateButtonImage, "saleSateButton", saleStatusTxt, bodyPanelGlobal.Width * 2 / 3 + 20, bodyPanelGlobal.Height / 18 - 25, bodyPanelGlobal.Width / 6, 50, 1, 1, 18, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 2);
+            saleStateButton.Click += new EventHandler(this.SaleSateSwitching);
+            bodyPanelGlobal.Controls.Add(saleStateButton);
+            saleStateButtonGlobal = saleStateButton;
         }
         private void SaleSateSwitching(object sender, EventArgs e)
         {
             Button btnTemp = (Button)sender;
             SQLiteCommand sqlite_cmd;
             sqlite_cmd = sqlite_conn.CreateCommand();
+            Image saleStateButtonImage = null;
+            string saleStatusTxt = constants.saleStatusLabel;
 
             if (saleStateGlobal)
             {
@@ -205,8 +255,8 @@ namespace Ovan_P1
                 sqlite_cmd.ExecuteNonQuery();
 
                 soldoutCategoryIndex.Add(selectedCategoryIndex + 1);
-                btnTemp.Text = constants.saleStopLabel;
-                btnTemp.BackColor = Color.Red;
+                saleStateButtonImage = Image.FromFile(constants.soldoutButtonImage2);
+                saleStatusTxt = constants.saleStopLabel;
                 saleStateGlobal = false;
                 productListPanelGlobal.Controls.Clear();
 
@@ -222,22 +272,28 @@ namespace Ovan_P1
                 sqlite_cmd.CommandText = queryCmd1;
                 sqlite_cmd.Parameters.AddWithValue("@categoryID", categoryIDList[selectedCategoryIndex]);
                 sqlite_cmd.ExecuteNonQuery();
-
-                foreach(int stopedID in stopedPrdIDArray)
+                if(stopedPrdIDArray != null)
                 {
-                    string queryCmd2 = "UPDATE " + constants.tbNames[2] + " SET SoldFlag=1 WHERE id=@prdID";
-                    sqlite_cmd.CommandText = queryCmd2;
-                    sqlite_cmd.Parameters.AddWithValue("@prdID", stopedID);
-                    sqlite_cmd.ExecuteNonQuery();
+                    foreach (int stopedID in stopedPrdIDArray)
+                    {
+                        string queryCmd2 = "UPDATE " + constants.tbNames[2] + " SET SoldFlag=1 WHERE id=@prdID";
+                        sqlite_cmd.CommandText = queryCmd2;
+                        sqlite_cmd.Parameters.AddWithValue("@prdID", stopedID);
+                        sqlite_cmd.ExecuteNonQuery();
+                    }
                 }
 
                 soldoutCategoryIndex.Remove(selectedCategoryIndex + 1);
-                btnTemp.Text = constants.saleStatusLabel;
-                btnTemp.BackColor = Color.FromArgb(255, 0, 112, 192);
+                saleStateButtonImage = Image.FromFile(constants.soldoutButtonImage1);
+                saleStatusTxt = constants.saleStatusLabel;
                 saleStateGlobal = true;
                 CreateProductTable();
             }
-          //  MessageBox.Show(soldoutCategoryIndex.ToArray().Length.ToString());
+            bodyPanelGlobal.Controls.Remove(saleStateButtonGlobal);
+            Button saleStateButton = customButton.CreateButtonWithImage(saleStateButtonImage, "saleSateButton", saleStatusTxt, bodyPanelGlobal.Width * 2 / 3 + 20, bodyPanelGlobal.Height / 18 - 25, bodyPanelGlobal.Width / 6, 50, 1, 1, 18, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 2);
+            saleStateButton.Click += new EventHandler(this.SaleSateSwitching);
+            bodyPanelGlobal.Controls.Add(saleStateButton);
+            saleStateButtonGlobal = saleStateButton;
         }
 
         private void ProductSaleStateSwitching(object sender, EventArgs e)
@@ -256,7 +312,7 @@ namespace Ovan_P1
                 sqlite_cmd.ExecuteNonQuery();
                 stopedPrdIDArray.Add(rowID);
                 btnTemp.Text = constants.saleStopLabel;
-                btnTemp.BackColor = Color.Red;
+                btnTemp.BackColor = Color.FromArgb(255, 220, 56, 50);
             }
             else
             {
@@ -266,7 +322,7 @@ namespace Ovan_P1
                 sqlite_cmd.ExecuteNonQuery();
                 stopedPrdIDArray.Remove(rowID);
                 btnTemp.Text = constants.saleStatusLabel;
-                btnTemp.BackColor = Color.FromArgb(255, 0, 112, 192);
+                btnTemp.BackColor = Color.FromArgb(255, 62, 113, 255);
             }
         }
 

@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Data.SQLite;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Printing;
 using System.Linq;
 using System.Text;
@@ -42,9 +43,6 @@ namespace Ovan_P1
         string[] groupNameList = null;
         int itemperpage = 0;//this is for no of item per page 
         int groupIDGlobal = 0;
-        int lineNum = 0;
-        int lineNums = 0;
-        int itemperpages = 0;
         string storeName = "";
         SQLiteConnection sqlite_conn;
         DateTime now = DateTime.Now;
@@ -56,6 +54,7 @@ namespace Ovan_P1
             messageDialog.initGroupList(this);
 
             mainFormGlobal = mainForm;
+            mainPanelGlobal = mainPanel;
             sqlite_conn = CreateConnection(constants.dbName);
 
             if (sqlite_conn.State == ConnectionState.Closed)
@@ -108,19 +107,20 @@ namespace Ovan_P1
 
             this.GetGroupList();
 
-            Panel mainPanels = createPanel.CreateMainPanel(mainForm, 0, 0, mainForm.Width, mainForm.Height, BorderStyle.None, Color.Transparent);
-            mainPanelGlobal = mainPanels;
+            Panel mainPanels = createPanel.CreateSubPanel(mainPanel, 0, 0, mainPanel.Width, mainPanel.Height, BorderStyle.None, Color.Transparent);
             Label categoryLabel = createLabel.CreateLabelsInPanel(mainPanels, "groupLabel", constants.groupListTitleLabel, 0, 50, mainPanels.Width / 2, 50, Color.Transparent, Color.Black, 22, false, ContentAlignment.MiddleRight);
 
-            dropDownMenu.CreateDropDown("groupList", mainPanels, groupNameList, mainPanels.Width / 2, 50, 200, 50, 200, 50 * (groupRowCount + 1), 200, 50, Color.Red, Color.Yellow);
+            dropDownMenu.CreateDropDown("groupList", mainPanels, groupNameList, mainPanels.Width / 2, 50, 200, 50, 200, 50 * (groupRowCount + 1), 200, 50, Color.Red, Color.White);
 
 
-            Button printButton = customButton.CreateButton(constants.printButtonLabel, "groupPrintButton", mainPanelGlobal.Width - 250, mainPanels.Height * 3 / 5 + 110, 200, 50, Color.FromArgb(255, 0, 176, 240), Color.Transparent, 0, 1, 18);
+            Button printButton = customButton.CreateButtonWithImage(Image.FromFile(constants.rectLightBlueButton), "groupPrintButton", constants.printButtonLabel, mainPanelGlobal.Width - 200, mainPanels.Height * 3 / 5 + 110, 150, 50, 0, 1, 18, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 2);
+
             mainPanels.Controls.Add(printButton);
             printButton.Click += new EventHandler(messageDialog.MessageDialogInit);
             //printButton.Click += new EventHandler(this.btnprintpreview_Click);
 
-            Button closeButton = customButton.CreateButton(constants.backText, "closeButton", mainPanelGlobal.Width - 250, mainPanels.Height * 3 / 5 + 190, 200, 50, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 1, 18);
+            Button closeButton = customButton.CreateButtonWithImage(Image.FromFile(constants.rectBlueButton), "closeButton", constants.backText, mainPanelGlobal.Width - 200, mainPanels.Height * 3 / 5 + 190, 150, 50, 0, 1, 18, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 2);
+
             mainPanels.Controls.Add(closeButton);
             closeButton.Click += new EventHandler(this.BackShow);
 
@@ -128,10 +128,11 @@ namespace Ovan_P1
             detailPanelGlobal = detailPanel;
 
             FlowLayoutPanel tableHeaderInUpPanel = createPanel.CreateFlowLayoutPanel(detailPanel, 0, 0, detailPanel.Width, 50, Color.Transparent, new Padding(0));
-            Label tableHeaderLabel1 = createLabel.CreateLabels(tableHeaderInUpPanel, "tableHeaderLabel1", constants.printProductNameField, 0, 0, tableHeaderInUpPanel.Width * 2 / 3, 50, Color.FromArgb(255, 147, 184, 219), Color.Black, 16, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+            Label tableHeaderLabel1 = createLabel.CreateLabels(tableHeaderInUpPanel, "tableHeaderLabel1", constants.printProductNameField, 0, 0, tableHeaderInUpPanel.Width * 2 / 3, 50, Color.Transparent, Color.Black, 16, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+            tableHeaderLabel1.Paint += new PaintEventHandler(this.set_background);
             Label tableHeaderLabel2 = createLabel.CreateLabels(tableHeaderInUpPanel, "tableHeaderLabel2", constants.salePriceField, tableHeaderLabel1.Right, 0, tableHeaderInUpPanel.Width / 3, 50, Color.FromArgb(255, 147, 184, 219), Color.Black, 16, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
-
-            Panel tBodyPanel = createPanel.CreateSubPanel(detailPanel, 0, 50, detailPanel.Width, detailPanel.Height - 50, BorderStyle.FixedSingle, Color.White);
+            tableHeaderLabel2.Paint += new PaintEventHandler(this.set_background);
+            Panel tBodyPanel = createPanel.CreateSubPanel(detailPanel, 0, 50, detailPanel.Width, detailPanel.Height - 50, BorderStyle.None, Color.Transparent);
             tBodyPanelGlobal = tBodyPanel;
 
             printDocument1.PrintPage += new PrintPageEventHandler(printDocument1_PrintPage);
@@ -175,193 +176,84 @@ namespace Ovan_P1
 
         private void PrintEnd(object sender, PrintEventArgs e)
         {
-            lineNum = 0;
             itemperpage = 0;
-            lineNums = 0;
-            itemperpages = 0;
         }
 
         private void printDocument1_PrintPage(object sender, PrintPageEventArgs e)
         {
             PrintDocument printDocument = (PrintDocument)sender;
-            if(printDocument.PrintController.IsPreview == false)
+            float currentY = 0;// declare  one variable for height measurement
+            RectangleF rect1 = new RectangleF(5, currentY, constants.grouplistPrintPaperWidth, 25);
+            StringFormat format1 = new StringFormat();
+            format1.Alignment = StringAlignment.Center;
+            e.Graphics.DrawString(constants.groupListPrintTitle, new Font("Seri", constants.fontSizeBig, FontStyle.Bold), Brushes.Black, rect1, format1);//this will print one heading/title in every page of the document
+            currentY += 25;
+
+            RectangleF rect2 = new RectangleF(5, currentY, constants.grouplistPrintPaperWidth, 25);
+            StringFormat format2 = new StringFormat();
+            format2.Alignment = StringAlignment.Center;
+            e.Graphics.DrawString(now.ToString("yyyy/MM/dd HH:mm:ss"), new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect2, format2);//this will print one heading/title in every page of the document
+            currentY += 25;
+
+            RectangleF rect3 = new RectangleF(5, currentY, constants.grouplistPrintPaperWidth, 25);
+            StringFormat format3 = new StringFormat();
+            format3.Alignment = StringAlignment.Center;
+            e.Graphics.DrawString(storeName, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect3, format3);//this will print one heading/title in every page of the document
+            currentY += 25;
+            if (sqlite_conn.State == ConnectionState.Closed)
             {
-                float currentY = 30;// declare  one variable for height measurement
-                RectangleF rect1 = new RectangleF(30, currentY, constants.grouplistPrintPaperWidth, 30);
-                StringFormat format1 = new StringFormat();
-                format1.Alignment = StringAlignment.Center;
-                e.Graphics.DrawString(constants.groupListPrintTitle, new Font("Seri", constants.fontSizeBig, FontStyle.Bold), Brushes.Black, rect1, format1);//this will print one heading/title in every page of the document
-                currentY += 30;
-
-                RectangleF rect2 = new RectangleF(30, currentY, constants.grouplistPrintPaperWidth, 30);
-                StringFormat format2 = new StringFormat();
-                format2.Alignment = StringAlignment.Center;
-                e.Graphics.DrawString(now.ToString("yyyy/MM/dd HH:mm:ss"), new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect2, format2);//this will print one heading/title in every page of the document
-                currentY += 30;
-
-                RectangleF rect3 = new RectangleF(30, currentY, constants.grouplistPrintPaperWidth, 30);
-                StringFormat format3 = new StringFormat();
-                format3.Alignment = StringAlignment.Center;
-                e.Graphics.DrawString(storeName, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect3, format3);//this will print one heading/title in every page of the document
-                currentY += 35;
-                if (sqlite_conn.State == ConnectionState.Closed)
-                {
-                    sqlite_conn.Open();
-                }
-                SQLiteDataReader sqlite_datareader;
-                SQLiteCommand sqlite_cmd;
-                int j = 0;
-                int k = 0;
-                foreach (string groupName in groupNameList)
-                {
-                    if (lineNums <= j)
-                    {
-                        RectangleF rect4 = new RectangleF(30, currentY, (constants.grouplistPrintPaperWidth - 60) / 2, 25);
-                        StringFormat format4 = new StringFormat();
-                        format4.Alignment = StringAlignment.Near;
-                        e.Graphics.DrawString(constants.groupTitleLabel + groupIDList[k].ToString("00") + ": " + groupName, DefaultFont, Brushes.Black, 50, currentY + 10);
-                        currentY += 30;
-                    }
-                    j++;
-
-                    sqlite_cmd = sqlite_conn.CreateCommand();
-                    string queryCmd = "SELECT * FROM " + constants.tbNames[11] + " WHERE GroupID=@groupID";
-                    sqlite_cmd.CommandText = queryCmd;
-                    sqlite_cmd.Parameters.AddWithValue("@groupID", groupIDList[k]);
-                    sqlite_datareader = sqlite_cmd.ExecuteReader();
-                    int m = 0;
-                    while (sqlite_datareader.Read())
-                    {
-                        if (!sqlite_datareader.IsDBNull(0))
-                        {
-                            string prdName = sqlite_datareader.GetString(1);
-                            int prdPrice = sqlite_datareader.GetInt32(2);
-                            if (lineNums <= j)
-                            {
-                                RectangleF rect5 = new RectangleF(30, currentY, (constants.grouplistPrintPaperWidth - 60) / 2, 25);
-                                StringFormat format5 = new StringFormat();
-                                format5.Alignment = StringAlignment.Near;
-                                e.Graphics.DrawString(prdName, DefaultFont, Brushes.Black, rect5, format5);//print each item
-
-                                RectangleF rect6 = new RectangleF(30 + (constants.grouplistPrintPaperWidth - 60) / 2, currentY, (constants.grouplistPrintPaperWidth - 60) / 2, 25);
-                                StringFormat format6 = new StringFormat();
-                                format6.Alignment = StringAlignment.Near;
-                                e.Graphics.DrawString(prdPrice.ToString() + constants.unit, DefaultFont, Brushes.Black, rect6, format6);
-
-                                currentY += 25;
-                                if (itemperpages < 21) // check whether  the number of item(per page) is more than 20 or not
-                                {
-                                    itemperpages += 1; // increment itemperpage by 1
-                                    e.HasMorePages = false; // set the HasMorePages property to false , so that no other page will not be added
-                                }
-
-                                else // if the number of item(per page) is more than 20 then add one page
-                                {
-                                    itemperpages = 0; //initiate itemperpage to 0 .
-                                    e.HasMorePages = true; //e.HasMorePages raised the PrintPage event once per page .
-                                    lineNums = j + 1;
-                                    return;//It will call PrintPage event again
-
-                                }
-                            }
-                            j++;
-                            m++;
-                        }
-                    }
-                    k++;
-                }
+                sqlite_conn.Open();
             }
-            else
+            SQLiteDataReader sqlite_datareader;
+            SQLiteCommand sqlite_cmd;
+            int k = 0;
+            foreach (string groupName in groupNameList)
             {
+                RectangleF rect4 = new RectangleF(5, currentY, constants.grouplistPrintPaperWidth / 2, 25);
+                StringFormat format4 = new StringFormat();
+                format4.Alignment = StringAlignment.Near;
+                e.Graphics.DrawString(constants.groupTitleLabel + groupIDList[k].ToString("00") + ": " + groupName, DefaultFont, Brushes.Black, rect4, format4);
+                currentY += 25;
 
-                float currentY = 30;// declare  one variable for height measurement
-                RectangleF rect1 = new RectangleF(30, currentY, constants.grouplistPrintPaperWidth, 30);
-                StringFormat format1 = new StringFormat();
-                format1.Alignment = StringAlignment.Center;
-                e.Graphics.DrawString(constants.groupListPrintTitle, new Font("Seri", constants.fontSizeBig, FontStyle.Bold), Brushes.Black, rect1, format1);//this will print one heading/title in every page of the document
-                currentY += 30;
-
-                RectangleF rect2 = new RectangleF(30, currentY, constants.grouplistPrintPaperWidth, 30);
-                StringFormat format2 = new StringFormat();
-                format2.Alignment = StringAlignment.Center;
-                e.Graphics.DrawString(now.ToString("yyyy/MM/dd HH:mm:ss"), new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect2, format2);//this will print one heading/title in every page of the document
-                currentY += 30;
-
-                RectangleF rect3 = new RectangleF(30, currentY, constants.grouplistPrintPaperWidth, 30);
-                StringFormat format3 = new StringFormat();
-                format3.Alignment = StringAlignment.Center;
-                e.Graphics.DrawString(storeName, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect3, format3);//this will print one heading/title in every page of the document
-                currentY += 35;
-                if (sqlite_conn.State == ConnectionState.Closed)
+                sqlite_cmd = sqlite_conn.CreateCommand();
+                string queryCmd = "SELECT * FROM " + constants.tbNames[11] + " WHERE GroupID=@groupID";
+                sqlite_cmd.CommandText = queryCmd;
+                sqlite_cmd.Parameters.AddWithValue("@groupID", groupIDList[k]);
+                sqlite_datareader = sqlite_cmd.ExecuteReader();
+                int m = 0;
+                while (sqlite_datareader.Read())
                 {
-                    sqlite_conn.Open();
-                }
-                SQLiteDataReader sqlite_datareader;
-                SQLiteCommand sqlite_cmd;
-                int j = 0;
-                int k = 0;
-                foreach(string groupName in groupNameList)
-                {
-                    if (lineNum <= j)
+                    if (!sqlite_datareader.IsDBNull(0))
                     {
-                        RectangleF rect4 = new RectangleF(30, currentY, (constants.grouplistPrintPaperWidth - 60) / 2, 25);
-                        StringFormat format4 = new StringFormat();
-                        format4.Alignment = StringAlignment.Near;
-                        e.Graphics.DrawString(constants.groupTitleLabel + groupIDList[k].ToString("00") + ": " + groupName, DefaultFont, Brushes.Black, 50, currentY + 10);
-                        currentY += 30;
+                        string prdName = sqlite_datareader.GetString(1);
+                        int prdPrice = sqlite_datareader.GetInt32(2);
+                        RectangleF rect5 = new RectangleF(5, currentY, constants.grouplistPrintPaperWidth * 2 / 3, 20);
+                        StringFormat format5 = new StringFormat();
+                        format5.Alignment = StringAlignment.Near;
+                        e.Graphics.DrawString(prdName, DefaultFont, Brushes.Black, rect5, format5);//print each item
+
+                        RectangleF rect6 = new RectangleF(5 + constants.grouplistPrintPaperWidth * 2 / 3, currentY, constants.grouplistPrintPaperWidth / 3 - 10, 20);
+                        StringFormat format6 = new StringFormat();
+                        format6.Alignment = StringAlignment.Near;
+                        e.Graphics.DrawString(prdPrice.ToString() + constants.unit, DefaultFont, Brushes.Black, rect6, format6);
+
+                        currentY += 20;
+                        itemperpage += 1; // increment itemperpage by 1
+                        e.HasMorePages = false; // set the HasMorePages property to false , so that no other page will not be added
+                        m++;
                     }
-                    j++;
-
-                    sqlite_cmd = sqlite_conn.CreateCommand();
-                    string queryCmd = "SELECT * FROM " + constants.tbNames[11] + " WHERE GroupID=@groupID";
-                    sqlite_cmd.CommandText = queryCmd;
-                    sqlite_cmd.Parameters.AddWithValue("@groupID", groupIDList[k]);
-                    sqlite_datareader = sqlite_cmd.ExecuteReader();
-                    int m = 0;
-                    while (sqlite_datareader.Read())
-                    {
-                        if (!sqlite_datareader.IsDBNull(0))
-                        {
-                            string prdName = sqlite_datareader.GetString(1);
-                            int prdPrice = sqlite_datareader.GetInt32(2);
-                            if(lineNum <= j)
-                            {
-                                RectangleF rect5 = new RectangleF(30, currentY, (constants.grouplistPrintPaperWidth - 60) / 2, 25);
-                                StringFormat format5 = new StringFormat();
-                                format5.Alignment = StringAlignment.Near;
-                                e.Graphics.DrawString(prdName, DefaultFont, Brushes.Black, rect5, format5);//print each item
-
-                                RectangleF rect6 = new RectangleF(30 + (constants.grouplistPrintPaperWidth - 60) / 2, currentY, (constants.grouplistPrintPaperWidth - 60) / 2, 25);
-                                StringFormat format6 = new StringFormat();
-                                format6.Alignment = StringAlignment.Near;
-                                e.Graphics.DrawString(prdPrice.ToString() + constants.unit, DefaultFont, Brushes.Black, rect6, format6);
-
-                                currentY += 25;
-                                if (itemperpage < 21) // check whether  the number of item(per page) is more than 20 or not
-                                {
-                                    itemperpage += 1; // increment itemperpage by 1
-                                    e.HasMorePages = false; // set the HasMorePages property to false , so that no other page will not be added
-                                }
-
-                                else // if the number of item(per page) is more than 20 then add one page
-                                {
-                                    itemperpage = 0; //initiate itemperpage to 0 .
-                                    e.HasMorePages = true; //e.HasMorePages raised the PrintPage event once per page .
-                                    lineNum = j + 1;
-                                    return;//It will call PrintPage event again
-
-                                }
-                            }
-                            j++;
-                            m++;
-                        }
-                    }
-                    k++;
                 }
-
+                k++;
             }
+
+            currentY += 20;
+            RectangleF rects = new RectangleF(5, currentY, constants.grouplistPrintPaperWidth, 40);
+            StringFormat formats = new StringFormat();
+            formats.Alignment = StringAlignment.Center;
+            e.Graphics.DrawString("", new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rects, formats);//this will print one heading/title in every page of the document
+            currentY += 35;
+
         }
-
 
         private void ShowGroupDetail(int groupID)
         {
@@ -407,27 +299,51 @@ namespace Ovan_P1
 
         public void BackShow(object sender, EventArgs e)
         {
-            mainFormGlobal.Controls.Clear();
+            mainPanelGlobal.Controls.Clear();
             MaintaneceMenu frm = new MaintaneceMenu(mainFormGlobal, mainPanelGlobal);
             frm.TopLevel = false;
-            mainFormGlobal.Controls.Add(frm);
+            mainPanelGlobal.Controls.Add(frm);
             frm.FormBorderStyle = FormBorderStyle.None;
             frm.Dock = DockStyle.Fill;
             Thread.Sleep(200);
             frm.Show();
         }
+        private void set_background(Object sender, PaintEventArgs e)
+        {
+            Label lTemp = (Label)sender;
+            Graphics graphics = e.Graphics;
+
+            //the rectangle, the same size as our Form
+            Rectangle gradient_rectangle = new Rectangle(0, 0, lTemp.Width, lTemp.Height);
+            //define gradient's properties
+            Brush b = new LinearGradientBrush(gradient_rectangle, Color.FromArgb(255, 164, 206, 235), Color.FromArgb(255, 87, 152, 199), 90f);
+
+            //apply gradient         
+            graphics.FillRectangle(b, gradient_rectangle);
+
+            graphics.DrawRectangle(new Pen(Brushes.Gray), gradient_rectangle);
+
+            e.Graphics.DrawString(lTemp.Text, new Font("Seri", 18, FontStyle.Bold), Brushes.White, gradient_rectangle, new StringFormat() { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Center });
+
+        }
+
+
         public void btnprintpreview_Click()
 
         {
-          //  printDocument1.PrintPage += new PrintPageEventHandler(printDocument1_PrintPage);
-            printPreviewDialog1.Document = printDocument1;
-            //printDialog1.Document = printDocument1;
+            //  printDocument1.PrintPage += new PrintPageEventHandler(printDocument1_PrintPage);
+            //printPreviewDialog1.Document = printDocument1;
+            printDialog1.Document = printDocument1;
 
             ((ToolStripButton)((ToolStrip)printPreviewDialog1.Controls[1]).Items[0]).Enabled = true;
+            paperSize = new PaperSize("papersize", constants.grouplistPrintPaperWidth, constants.grouplistPrintPaperHeight);
 
 
             printDocument1.DefaultPageSettings.PaperSize = paperSize;
-            printPreviewDialog1.ShowDialog();
+            printDocument1.DefaultPageSettings.Margins = new Margins(0, 0, 0, 15);
+            //printPreviewDialog1.ShowDialog();
+            printDocument1.Print();
+
         }
         static SQLiteConnection CreateConnection(string dbName)
         {

@@ -65,39 +65,38 @@ namespace Ovan_P1
             detailView.initTimeSetting(this);
 
 
-            Panel headerPanel = createPanel.CreateMainPanel(mainForm, 0, 0, width, height / 5, BorderStyle.None, Color.Transparent);
-            FlowLayoutPanel headerFlowPanel = createPanel.CreateFlowLayoutPanel(headerPanel, headerPanel.Width / 15, 80, headerPanel.Width * 5 / 7, 80, Color.Transparent, new Padding(0));
-            Label headerLabel = createLabel.CreateLabels(headerFlowPanel, "headerLabel", constants.timeSettingLabel, 0, 0, headerFlowPanel.Width, headerFlowPanel.Height, Color.White, Color.Black, 44, false, ContentAlignment.MiddleLeft, new Padding(80, 0, 30, 0), 1, Color.Gray);
+            Panel headerPanel = createPanel.CreateSubPanel(mainPanel, 0, 0, mainPanel.Width, mainPanel.Height / 10, BorderStyle.None, Color.FromArgb(255, 234, 225, 151));
+            Label headerLabel = createLabel.CreateLabelsInPanel(headerPanel, "headerLabel", constants.timeSettingLabel, 0, 0, headerPanel.Width, headerPanel.Height, Color.Transparent, Color.Black, 28, false, ContentAlignment.MiddleCenter);
 
             DateTime now = DateTime.Now;
 
-            Panel bodyPanel = createPanel.CreateMainPanel(mainForm, 0, headerPanel.Bottom, width, height * 4 / 5, BorderStyle.None, Color.Transparent);
+            Panel bodyPanel = createPanel.CreateSubPanel(mainPanel, 0, headerPanel.Bottom, mainPanel.Width, mainPanel.Height * 9 / 10, BorderStyle.None, Color.Transparent);
 
-            FlowLayoutPanel tableHeaderInUpPanel = createPanel.CreateFlowLayoutPanel(bodyPanel, bodyPanel.Width / 7, 80, bodyPanel.Width * 5 / 7, 50, Color.Transparent, new Padding(0));
-            Label tableDateLabel = createLabel.CreateLabels(tableHeaderInUpPanel, "tableDateLabel", constants.currentDateLabel, 0, 0, tableHeaderInUpPanel.Width / 3, 50, Color.White, Color.Black, 16, false, ContentAlignment.MiddleRight, new Padding(0, 0, 30, 0), 1, Color.Gray);
-            Label tableDateValue = createLabel.CreateLabels(tableHeaderInUpPanel, "tableDateValue", now.Year + "年 " + now.Month + "月 " + now.Day + "日 ", tableDateLabel.Right, 0, tableHeaderInUpPanel.Width / 3 - 30, 50, Color.FromArgb(255, 147, 184, 219), Color.Black, 16, true, ContentAlignment.MiddleLeft, new Padding(10, 0, 0, 0), 1, Color.Gray);
+            FlowLayoutPanel tableHeaderInUpPanel = createPanel.CreateFlowLayoutPanel(bodyPanel, bodyPanel.Width / 7, bodyPanel.Height / 5, bodyPanel.Width * 5 / 7, bodyPanel.Height / 5, Color.White, new Padding(30, bodyPanel.Height / 20, 30, bodyPanel.Height / 20));
+            Label tableDateLabel = createLabel.CreateLabels(tableHeaderInUpPanel, "tableDateLabel", constants.currentDateLabel, 0, 0, tableHeaderInUpPanel.Width * 2 / 5 - 30, tableHeaderInUpPanel.Height / 2, Color.White, Color.Black, 22, false, ContentAlignment.MiddleLeft, new Padding(0, 0, 0, 0), 1, Color.Gray);
+            Label tableDateValue = createLabel.CreateLabels(tableHeaderInUpPanel, "tableDateValue", now.ToString("yyyy") + "年 " + now.ToString("MM") + "月 " + now.ToString("dd") + "日 ", tableDateLabel.Right, 0, tableHeaderInUpPanel.Width * 3 / 5 - 30, tableHeaderInUpPanel.Height / 2, Color.White, Color.Black, 22, true, ContentAlignment.MiddleCenter, new Padding(0, 0, 0, 0), 1, Color.Gray);
             tableDateValueGlobal = tableDateValue;
 
             tableDateValue.Click += new EventHandler(detailView.DateSetting);
 
-            FlowLayoutPanel tableHeaderInUpPanel2 = createPanel.CreateFlowLayoutPanel(bodyPanel, bodyPanel.Width / 7, 150, bodyPanel.Width * 5 / 7, 50, Color.Transparent, new Padding(0));
-            Label tableTimeLabel = createLabel.CreateLabels(tableHeaderInUpPanel2, "tableTimeLabel", constants.currentTimeLabel, 0, 0, tableHeaderInUpPanel2.Width / 3, 50, Color.White, Color.Black, 16, false, ContentAlignment.MiddleRight, new Padding(0, 0, 30, 0), 1, Color.Gray);
-            Label tableTimeValue = createLabel.CreateLabels(tableHeaderInUpPanel2, "tableTimeValue", now.Hour + "時 " + now.Minute + "分 ", tableTimeLabel.Right, 0, tableHeaderInUpPanel2.Width / 3 - 30, 50, Color.FromArgb(255, 147, 184, 219), Color.Black, 16, true, ContentAlignment.MiddleLeft, new Padding(10, 0, 0, 0), 1, Color.Gray);
+            FlowLayoutPanel tableHeaderInUpPanel2 = createPanel.CreateFlowLayoutPanel(bodyPanel, bodyPanel.Width / 7, tableHeaderInUpPanel.Bottom + bodyPanel.Height / 7, bodyPanel.Width * 5 / 7, bodyPanel.Height / 5, Color.White, new Padding(30, bodyPanel.Height / 20, 30, bodyPanel.Height / 20));
+            Label tableTimeLabel = createLabel.CreateLabels(tableHeaderInUpPanel2, "tableTimeLabel", constants.currentTimeLabel, 0, 0, tableHeaderInUpPanel2.Width * 2 / 5 - 30, tableHeaderInUpPanel2.Height / 2, Color.White, Color.Black, 22, false, ContentAlignment.MiddleLeft, new Padding(0, 0, 0, 0), 1, Color.Gray);
+            Label tableTimeValue = createLabel.CreateLabels(tableHeaderInUpPanel2, "tableTimeValue", now.Hour.ToString("00") + "時 " + now.Minute.ToString("00") + "分 ", tableTimeLabel.Right, 0, tableHeaderInUpPanel2.Width * 3 / 5 - 30, tableHeaderInUpPanel2.Height / 2, Color.White, Color.Black, 22, true, ContentAlignment.MiddleCenter, new Padding(0, 0, 0, 0), 1, Color.Gray);
             tableTimeValueGlobal = tableTimeValue;
 
             tableTimeValue.Click += new EventHandler(detailView.TimeSetting);
 
-            Button backButton = customButton.CreateButton(constants.backText, "backButton", bodyPanel.Width - 150, bodyPanel.Height - 100, 100, 50, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 10, 14, FontStyle.Bold, Color.White);
+            Button backButton = customButton.CreateButtonWithImage(Image.FromFile(constants.rectBlueButton), "backButton", constants.backText, bodyPanel.Width - 150, bodyPanel.Height - 100, 100, 50, 0, 1, 18, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 2);
             bodyPanel.Controls.Add(backButton);
             backButton.Click += new EventHandler(this.BackShow);
 
         }
         public void BackShow(object sender, EventArgs e)
         {
-            mainFormGlobal.Controls.Clear();
+            mainPanelGlobal.Controls.Clear();
             MaintaneceMenu frm = new MaintaneceMenu(mainFormGlobal, mainPanelGlobal);
             frm.TopLevel = false;
-            mainFormGlobal.Controls.Add(frm);
+            mainPanelGlobal.Controls.Add(frm);
             frm.FormBorderStyle = FormBorderStyle.None;
             frm.Dock = DockStyle.Fill;
             Thread.Sleep(200);
@@ -110,7 +109,7 @@ namespace Ovan_P1
             if(setItem == "setDate")
             {
                 string[] getData = setValue.Split('_');
-                tableDateValueGlobal.Text = getData[0] + "年 " + getData[1] + "月 " + getData[2] + "日";
+                tableDateValueGlobal.Text = int.Parse(getData[0]).ToString("0000") + "年 " + int.Parse(getData[1]).ToString("00") + "月 " + int.Parse(getData[2]).ToString("00") + "日";
                 tableTimeValueGlobal.Text = hourGlobal.ToString("00") + "時 " + minuteGlobal.ToString("00") + "分";
                 yearGlobal = int.Parse(getData[0]);
                 monthGlobal = int.Parse(getData[1]);
@@ -142,7 +141,7 @@ namespace Ovan_P1
             {
                 string[] getData = setValue.Split('_');
                 tableDateValueGlobal.Text = yearGlobal.ToString("00") + "年 " + monthGlobal.ToString("00") + "月 " + dayGlobal.ToString("00") + "日";
-                tableTimeValueGlobal.Text = getData[0] + "時 " + getData[1] + "分";
+                tableTimeValueGlobal.Text = int.Parse(getData[0]).ToString("00") + "時 " + int.Parse(getData[1]).ToString("00") + "分";
                 hourGlobal = int.Parse(getData[0]);
                 minuteGlobal = int.Parse(getData[1]);
                 SYSTEMTIME st = new SYSTEMTIME();

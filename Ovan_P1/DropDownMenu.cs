@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.SQLite;
 using System.Drawing;
 using System.Linq;
@@ -53,7 +54,7 @@ namespace Ovan_P1
         {
             timer = new Timer();
             timer.Enabled = false;
-            timer.Interval = 15;
+            timer.Interval = 1;
             timer.Tick += new System.EventHandler(this.timer_Tick);
 
         }
@@ -66,7 +67,7 @@ namespace Ovan_P1
             mainPanels.MaximumSize = new Size(maxWidth, maxHeight);
             mainPanels.MinimumSize = new Size(minWidth, minHeight);
             Panel subPanels = createPanel.CreateSubPanel(mainPanels, 0, height, width, height, BorderStyle.None, Color.Transparent);
-            subPanels.MaximumSize = new Size(maxWidth, maxHeight);
+            subPanels.MaximumSize = new Size(maxWidth, maxHeight - 50);
             subPanels.MinimumSize = new Size(minWidth, 0);
             mainPanelGlobal = mainPanels;
             subPanelGlobal = subPanels;
@@ -75,21 +76,29 @@ namespace Ovan_P1
             int buttonHeight = maxHeight / (menuItemArray.Length + 1);
 
             Button mainButton = new Button();
-            mainButton.BackColor = mainItemBackColor;
+            mainButton.BackColor = Color.White;
             mainButton.Dock = DockStyle.Top;
-            mainButton.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(0)));
-         //   mainButton.Image = Image.FromFile(constants.dropdownArrowDownIcon);
-         //   mainButton.Image = new Bitmap(Image.FromFile(constants.dropdownArrowDownIcon));
-            mainButton.BackgroundImage = Image.FromFile(constants.dropdownArrowDownIcon);
-            mainButton.BackgroundImageLayout = ImageLayout.Stretch;
+            mainButton.Font = new Font("Microsoft Sans Serif", 14F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(0)));
+            //mainButton.BackgroundImage = Image.FromFile(constants.dropdownArrowDownIcon);
+            //mainButton.BackgroundImageLayout = ImageLayout.Stretch;
             mainButton.ImageAlign = ContentAlignment.MiddleRight;
-            mainButton.Padding = new Padding(0, 0, 10, 0);
             mainButton.Location = new Point(0, 0);
             mainButton.Name = "mainButton";
             mainButton.Size = new Size(buttonWidth, buttonHeight);
             mainButton.TabIndex = 0;
             mainButton.Text = menuItemArray[0];
-            if(defaultItem != 0)
+
+
+            ImageList imageList = new ImageList();
+            imageList.Images.Add(Image.FromFile(constants.dropdownarrowImage));
+            imageList.ImageSize = new Size(mainButton.Height * 2 / 5, mainButton.Height * 2 / 5);
+
+            mainButton.ImageList = imageList;
+            mainButton.ImageAlign = ContentAlignment.MiddleRight;
+            mainButton.ImageIndex = 0;
+            mainButton.Padding = new Padding(0, 0, 20, 0);
+
+            if (defaultItem != 0)
             {
                 mainButton.Text = menuItemArray[defaultItem];
             }
@@ -123,6 +132,9 @@ namespace Ovan_P1
                 submenuButtons.Size = new Size(buttonWidth, buttonHeight);
                 submenuButtons.TabIndex = k + 1;
                 submenuButtons.Text = menuItemArray[k];
+                submenuButtons.FlatStyle = FlatStyle.Flat;
+                submenuButtons.FlatAppearance.BorderSize = 0;
+                submenuButtons.FlatAppearance.BorderColor = Color.White;
                 //submenuButtons.UseVisualStyleBackColor = true;
                 subPanels.Controls.Add(submenuButtons);
                 submenuButtons.Click += new EventHandler(this.showTable);
@@ -150,20 +162,30 @@ namespace Ovan_P1
             int buttonHeight = maxHeight / (menuItemArray.Length + 1);
 
             Button mainButton = new Button();
-            mainButton.BackColor = mainItemBackColor;
+            mainButton.BackColor = Color.White;
             mainButton.Dock = DockStyle.Top;
             mainButton.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(0)));
             //   mainButton.Image = Image.FromFile(constants.dropdownArrowDownIcon);
             //   mainButton.Image = new Bitmap(Image.FromFile(constants.dropdownArrowDownIcon));
-            mainButton.BackgroundImage = Image.FromFile(constants.dropdownArrowDownIcon);
-            mainButton.BackgroundImageLayout = ImageLayout.Stretch;
-            mainButton.ImageAlign = ContentAlignment.MiddleRight;
+            //mainButton.BackgroundImage = Image.FromFile(constants.dropdownArrowDownIcon);
+            //mainButton.BackgroundImageLayout = ImageLayout.Stretch;
+            //mainButton.ImageAlign = ContentAlignment.MiddleRight;
             mainButton.Padding = new Padding(0, 0, 10, 0);
             mainButton.Location = new Point(0, 0);
             mainButton.Name = "mainButton";
             mainButton.Size = new Size(buttonWidth, buttonHeight);
             mainButton.TabIndex = 0;
+            mainButton.Font = new Font("Series", 18, FontStyle.Bold);
             mainButton.Text = menuDisplayPositionArray[0].ToString() + "-" + menuIDArray[0] + "  " +  menuItemArray[0];
+            ImageList imageList = new ImageList();
+            imageList.Images.Add(Image.FromFile(constants.dropdownarrowImage));
+            imageList.ImageSize = new Size(mainButton.Height * 2 / 5, mainButton.Height * 2 / 5);
+
+            mainButton.ImageList = imageList;
+            mainButton.ImageAlign = ContentAlignment.MiddleRight;
+            mainButton.ImageIndex = 0;
+            mainButton.Padding = new Padding(0, 0, 20, 0);
+
             mainPanels.Controls.Add(mainButton);
             mainButtonGlobal = mainButton;
             mainButton.Click += new EventHandler(this.showDropDown);
@@ -205,6 +227,10 @@ namespace Ovan_P1
                 submenuButtons.TabIndex = k + 1;
                 submenuButtons.Text = menuDisplayPositionArray[k].ToString() + "-" + menuIDArray[k] + "  " + menuItemArray[k];
                 //submenuButtons.UseVisualStyleBackColor = true;
+                submenuButtons.FlatStyle = FlatStyle.Flat;
+                submenuButtons.FlatAppearance.BorderSize = 0;
+                submenuButtons.FlatAppearance.BorderColor = Color.White;
+
                 subPanels.Controls.Add(submenuButtons);
                 submenuButtons.Click += new EventHandler(this.showTable);
                 submenuButton[k] = submenuButtons;
@@ -218,6 +244,7 @@ namespace Ovan_P1
         {
             initValue();
             objecNameGlobal = objectName;
+
             Panel mainPanels = createPanel.CreateSubPanel(mainPanel, left, top, width, height, BorderStyle.None, Color.Transparent);
             mainPanels.MaximumSize = new Size(maxWidth, maxHeight);
             mainPanels.MinimumSize = new Size(minWidth, minHeight);
@@ -231,19 +258,27 @@ namespace Ovan_P1
             int buttonHeight = maxHeight / (menuItemArray.Length + 1);
 
             Button mainButton = new Button();
-            mainButton.BackColor = mainItemBackColor;
+            mainButton.BackColor = Color.White;
             mainButton.Dock = DockStyle.Top;
-            mainButton.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(0)));
-            //   mainButton.Image = Image.FromFile(constants.dropdownArrowDownIcon);
-            //   mainButton.Image = new Bitmap(Image.FromFile(constants.dropdownArrowDownIcon));
-            mainButton.BackgroundImage = Image.FromFile(constants.dropdownArrowDownIcon);
-            mainButton.BackgroundImageLayout = ImageLayout.Stretch;
+            
+            mainButton.Font = new Font("Microsoft Sans Serif", 18F, FontStyle.Bold, GraphicsUnit.Point, ((byte)(0)));
+            //mainButton.BackgroundImage = Image.FromFile(constants.dropdownArrowDownIcon);
+            //mainButton.BackgroundImageLayout = ImageLayout.Stretch;
             mainButton.ImageAlign = ContentAlignment.MiddleRight;
             mainButton.Padding = new Padding(0, 0, 10, 0);
             mainButton.Location = new Point(0, 0);
             mainButton.Name = "mainButton";
             mainButton.Size = new Size(buttonWidth, buttonHeight);
             mainButton.TabIndex = 0;
+            ImageList imageList = new ImageList();
+            imageList.Images.Add(Image.FromFile(constants.dropdownarrowImage));
+            imageList.ImageSize = new Size(mainButton.Height * 2 / 5, mainButton.Height * 2 / 5);
+
+            mainButton.ImageList = imageList;
+            mainButton.ImageAlign = ContentAlignment.MiddleRight;
+            mainButton.ImageIndex = 0;
+            mainButton.Padding = new Padding(0, 0, 20, 0);
+
             mainButton.Text = menuDisplayPositionArray[0].ToString() + "-" + menuIDArray[0] + "  " + menuItemArray[0];
             mainPanels.Controls.Add(mainButton);
             mainButtonGlobal = mainButton;
@@ -277,6 +312,10 @@ namespace Ovan_P1
                 submenuButtons.TabIndex = k + 1;
                 submenuButtons.Text = menuDisplayPositionArray[k].ToString() + "-" + menuIDArray[k] + "  " + menuItemArray[k];
                 //submenuButtons.UseVisualStyleBackColor = true;
+                submenuButtons.FlatStyle = FlatStyle.Flat;
+                submenuButtons.FlatAppearance.BorderSize = 0;
+                submenuButtons.FlatAppearance.BorderColor = Color.White;
+
                 subPanels.Controls.Add(submenuButtons);
                 submenuButtons.Click += new EventHandler(this.showTable);
                 submenuButton[k] = submenuButtons;
@@ -291,11 +330,11 @@ namespace Ovan_P1
         {
             if (isCollapsed)
             {
-                mainButtonGlobal.BackgroundImage = Image.FromFile(constants.dropdownArrowUpIcon);
-                mainButtonGlobal.BackgroundImageLayout = ImageLayout.Stretch;
+                //mainButtonGlobal.BackgroundImage = Image.FromFile(constants.dropdownArrowUpIcon);
+                //mainButtonGlobal.BackgroundImageLayout = ImageLayout.Stretch;
 
-                mainPanelGlobal.Height += 10;
-                subPanelGlobal.Height += 10;
+                mainPanelGlobal.Height += 20;
+                subPanelGlobal.Height += 20;
                 if(subPanelGlobal.Height == 200)
                 {
                     mainPanelGlobal.MaximumSize = new Size(mainPanelGlobal.Width, 200 + mainButtonGlobal.Height);
@@ -316,11 +355,11 @@ namespace Ovan_P1
             }
             else
             {
-                mainButtonGlobal.BackgroundImage = Image.FromFile(constants.dropdownArrowDownIcon);
-                mainButtonGlobal.BackgroundImageLayout = ImageLayout.Stretch;
+                //mainButtonGlobal.BackgroundImage = Image.FromFile(constants.dropdownArrowDownIcon);
+                //mainButtonGlobal.BackgroundImageLayout = ImageLayout.Stretch;
 
-                mainPanelGlobal.Height -= 10;
-                subPanelGlobal.Height -= 10;
+                mainPanelGlobal.Height -= 20;
+                subPanelGlobal.Height -= 20;
                 if (subPanelGlobal.Height < 200)
                 {
                     subPanelGlobal.AutoScroll = false;
@@ -364,11 +403,12 @@ namespace Ovan_P1
                 k++;
             }
             string sendIndex = btnTemp.Name.Split('_')[1].ToString();
+
             switch (objecNameGlobal)
             {
                 case "soldoutSetting1":
-                    soldoutSetting1Global.setVal(sendIndex);
                     timer.Start();
+                    soldoutSetting1Global.setVal(sendIndex);
                     break;
                 case "categoryList":
                     categoryListGlobal.setVal(sendIndex);

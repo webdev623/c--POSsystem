@@ -11,10 +11,10 @@ namespace Ovan_P1
 {
     class RoundedFormDialog: Form
     {
-        public int radiusValue = 50;
-        public Color borderColor = Color.Transparent;
-        public int borderSize = 1;
-        GraphicsPath GetRoundPath(RectangleF Rect, int radius)
+        public int radiusValue { get; set; }
+        public Color borderColor { get; set; }
+        public int borderSize { get; set; }
+        GraphicsPath GetRoundPath(RectangleF Rect, int radius = 10)
         {
             radiusValue = radius;
             float r2 = radius / 2f;
@@ -41,8 +41,8 @@ namespace Ovan_P1
                 this.Region = new Region(GraphPath);
                 using (Pen pen = new Pen(borderColor, borderSize))
                 {
-                    pen.Alignment = PenAlignment.Inset;
-                    e.Graphics.DrawPath(pen, GraphPath);
+                    //pen.Alignment = PenAlignment.Inset;
+                    //e.Graphics.DrawPath(pen, GraphPath);
                 }
             }
         }

@@ -22,6 +22,10 @@ namespace Ovan_P1
         //private Button buttonGlobal = null;
         private FlowLayoutPanel[] menuFlowLayoutPanelGlobal = new FlowLayoutPanel[4];
         Constant constants = new Constant();
+        CreatePanel createPanel = new CreatePanel();
+        CreateLabel createLabel = new CreateLabel();
+        CustomButton customButton = new CustomButton();
+        DBClass dbClass = new DBClass();
         MessageDialog messageDialog = new MessageDialog();
         SQLiteConnection sqlite_conn;
         public MenuReading(Form1 mainForm, Panel mainPanel)
@@ -30,34 +34,23 @@ namespace Ovan_P1
             messageDialog.initMenuReading(this);
             sqlite_conn = CreateConnection(constants.dbName);
 
-            mainForm.Width = width;
-            mainForm.Height = height;
             mainFormGlobal = mainForm;
             mainPanelGlobal = mainPanel;
-            headerPanel.Size = new Size(mainForm.Width, mainForm.Height / 5);
-            bodyPanel.Size = new Size(mainForm.Width, mainForm.Height * 4 / 5);
-            mainForm.Controls.Add(headerPanel);
-            mainForm.Controls.Add(bodyPanel);
-            menuReadingTitle.Text = constants.menuReadingTitle;
 
-            subContent1.Location = new Point(bodyPanel.Width / 5, 50);
-            subContent1.Size = new Size(bodyPanel.Width * 3 / 5, bodyPanel.Height / 8);
-            subContent1.Text = constants.menuReadingSubContent1;
+            Panel headerPanel = createPanel.CreateSubPanel(mainPanel, 0, 0, mainPanel.Width, mainPanel.Height / 10, BorderStyle.None, Color.FromArgb(255, 234, 225, 151));
+            Label headerLabel = createLabel.CreateLabelsInPanel(headerPanel, "headerTitle", constants.menuReadingTitle, 0, 0, headerPanel.Width, headerPanel.Height, Color.Transparent, Color.Black, 28, false, ContentAlignment.MiddleCenter);
+            Panel bodyPanel = createPanel.CreateSubPanel(mainPanel, 0, headerPanel.Bottom, mainPanel.Width, mainPanel.Height * 9 / 10, BorderStyle.None, Color.Transparent);
 
-            subContent2.Location = new Point(bodyPanel.Width / 5, subContent1.Bottom);
-            subContent2.Size = new Size(bodyPanel.Width * 3 / 5, bodyPanel.Height / 8);
-            subContent2.Text = constants.menuReadingSubContent2;
+            Label subContent1 = createLabel.CreateLabelsInPanel(bodyPanel, "subContent1", constants.menuReadingSubContent1, bodyPanel.Width / 5, 50, bodyPanel.Width * 3 / 5, bodyPanel.Height / 8, Color.Transparent, Color.Black, 24);
 
-            readButton.Location = new Point(bodyPanel.Width / 2 - 100, subContent2.Bottom + 50);
-            readButton.Size = new Size(200, 50);
-            readButton.Text = constants.menuReadingButton;
-            readButton.radiusValue = 20;
+            Label subContent2 = createLabel.CreateLabelsInPanel(bodyPanel, "subContent1", constants.menuReadingSubContent2, bodyPanel.Width / 5, subContent1.Bottom, bodyPanel.Width * 3 / 5, bodyPanel.Height / 8, Color.Transparent, Color.Black, 24);
+
+            Button readButton = customButton.CreateButtonWithImage(Image.FromFile(constants.menureadingButtonImage), "readButton", constants.menuReadingButton, bodyPanel.Width / 2 - 100, subContent2.Bottom + 50, 200, 50, 0, 20, 18, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 2);
+            bodyPanel.Controls.Add(readButton);
             readButton.Click += new EventHandler(this.OpenFileDialog);
 
-            cancelButton.radiusValue = 20;
-            cancelButton.Location = new Point(bodyPanel.Width - 150, bodyPanel.Height - 100);
-            cancelButton.Size = new Size(100, 50);
-            cancelButton.Text = constants.cancelButtonText;
+            Button cancelButton = customButton.CreateButtonWithImage(Image.FromFile(constants.cancelButton), "readButton", constants.cancelButtonText, bodyPanel.Width - 150, bodyPanel.Height - 100, 100, 50, 0, 20, 18, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 2);
+            bodyPanel.Controls.Add(cancelButton);
             cancelButton.Click += new EventHandler(this.BackShow);
 
         }
@@ -70,37 +63,6 @@ namespace Ovan_P1
 
         private void OpenFileDialog(object sender, EventArgs e)
         {
-            //if(openFileDialog1.ShowDialog() == DialogResult.OK)
-            //{
-            //    if(sqlite_conn.State == ConnectionState.Open)
-            //    {
-            //        sqlite_conn.Close();
-            //    }
-            //    try
-            //    {
-            //        var filePath = openFileDialog1.FileName;
-            //        var fileName = openFileDialog1.SafeFileName;
-            //        var curDir = Directory.GetCurrentDirectory();
-            //        var dbName = fileName.Split('.')[0];
-            //        Thread.Sleep(100);
-            //        RestoreDB(curDir, filePath, fileName, true);
-            //        DBCopy(sqlite_conn, Path.Combine(curDir, fileName), dbName, constants.tbNames);
-
-            //        this.CreateSaleTB(sqlite_conn);
-            //        this.CreateDaySaleTB(sqlite_conn);
-            //        this.CreateReceiptTB(sqlite_conn);
-            //        this.CreateCancelOrderTB(sqlite_conn);
-
-            //        mainFormGlobal.Controls.Clear();
-            //        MainMenu mainMenu = new MainMenu();
-            //        mainMenu.CreateMainMenuScreen(mainFormGlobal, mainPanelGlobal);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        Console.WriteLine(ex);
-            //        messageDialog.ShowMenuReadingMessage();
-            //    }
-            //}
             if(folderBrowserDialog1.ShowDialog() == DialogResult.OK)
             {
                 if (sqlite_conn.State == ConnectionState.Open)
@@ -125,25 +87,30 @@ namespace Ovan_P1
                             break;
                         }
                     }
+                    if(dbName != "")
+                    {
+                        DirectoryCopy(SourcePath, DestinationPath, true);
+                        dbClass.DBCopy(sqlite_conn, Path.Combine(DestinationPath, sourceFileName), dbName, constants.tbNames);
 
-                    DirectoryCopy(SourcePath, DestinationPath, true);
-                    DBCopy(sqlite_conn, Path.Combine(DestinationPath, sourceFileName), dbName, constants.tbNames);
+                        dbClass.CreateSaleTB(sqlite_conn);
+                        dbClass.CreateDaySaleTB(sqlite_conn);
+                        dbClass.CreateReceiptTB(sqlite_conn);
+                        dbClass.CreateCancelOrderTB(sqlite_conn);
 
-                    this.CreateSaleTB(sqlite_conn);
-                    this.CreateDaySaleTB(sqlite_conn);
-                    this.CreateReceiptTB(sqlite_conn);
-                    this.CreateCancelOrderTB(sqlite_conn);
-
-                    mainFormGlobal.Controls.Clear();
-                    MainMenu mainMenu = new MainMenu();
-                    mainMenu.CreateMainMenuScreen(mainFormGlobal, mainPanelGlobal);
+                        mainPanelGlobal.Controls.Clear();
+                        MainMenu mainMenu = new MainMenu();
+                        mainMenu.CreateMainMenuScreen(mainFormGlobal, mainPanelGlobal);
+                    }
+                    else
+                    {
+                        messageDialog.ShowMenuReadingMessage();
+                    }
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex);
                     messageDialog.ShowMenuReadingMessage();
                 }
-
             }
         }
 
@@ -188,14 +155,14 @@ namespace Ovan_P1
 
         public void BackShow(object sender, EventArgs e)
         {
-            mainFormGlobal.Controls.Clear();
+            mainPanelGlobal.Controls.Clear();
             MainMenu mainMenu = new MainMenu();
             mainMenu.CreateMainMenuScreen(mainFormGlobal, mainPanelGlobal);
         }
 
         public void BackShowStart()
         {
-            mainFormGlobal.Controls.Clear();
+            mainPanelGlobal.Controls.Clear();
             MainMenu mainMenu = new MainMenu();
             mainMenu.CreateMainMenuScreen(mainFormGlobal, mainPanelGlobal);
         }
@@ -238,146 +205,6 @@ namespace Ovan_P1
             if (File.Exists(destfile)) File.Delete(destfile);
 
             File.Copy(srcfile, destfile);
-        }
-
-        private void DBCopy(SQLiteConnection conn, string new_db_path, string new_db, string[] new_tbs)
-        {
-            if(conn.State == ConnectionState.Closed)
-            {
-                conn.Open();
-            }
-            SQLiteCommand sqlite_cmd;
-            sqlite_cmd = conn.CreateCommand();
-            string Attachedsql = "ATTACH DATABASE '" + new_db_path + "' AS " + new_db;
-            sqlite_cmd.CommandText = Attachedsql;
-            sqlite_cmd.ExecuteNonQuery();
-            foreach (string new_tb in new_tbs)
-            {
-                string createSql = "";
-                switch (new_tb)
-                {
-                    case "CategoryTB":
-                        createSql = "CREATE TABLE IF NOT EXISTS " + new_tb + " (id INTEGER PRIMARY KEY AUTOINCREMENT, CategoryID INT(2) NOT NULL DEFAULT 0, CategoryName VARCHAR(64) NOT NULL, DayTime VARCHAR(256) NOT NULL DEFAULT '09:00-20-59', SatTime VARCHAR(256) NOT NULL DEFAULT '09:00-20-59', SunTime VARCHAR(256) NOT NULL DEFAULT '09:00-20-59', DisplayPosition INT, LayoutType INTEGER, BackgroundImg TEXT DEFAULT NULL, BackImgUrl TEXT DEFAULT NULL, SoldFlag INT(2) NOT NULL DEFAULT 0)";
-                        break;
-                    case "ProductTB":
-                        createSql = "CREATE TABLE IF NOT EXISTS " + new_tb + " (ProductID INT(2) NOT NULL DEFAULT 0, ProductName VARCHAR(32) NOT NULL, PrintName VARCHAR(32) NOT NULL, DayTime VARCHAR(128) NOT NULL DEFAULT '09:00-20-59', SatTime VARCHAR(128) NOT NULL DEFAULT '09:00-20-59', SunTime VARCHAR(128) NOT NULL DEFAULT '09:00-20-59', ProductPrice INT(8), LimitedCnt INT(2) DEFAULT 0, ImgUrl VARCHAR(256), ValidImgUrl VARCHAR(128), ScreenMsg VARCHAR(64), PrintMsg VARCHAR(64))";
-                        break;
-                    case "CategoryDetailTB":
-                        createSql = "CREATE TABLE IF NOT EXISTS " + new_tb + " (id INTEGER PRIMARY KEY AUTOINCREMENT, CategoryID INT(10) NOT NULL DEFAULT 0, ProductID INT(10) NOT NULL DEFAULT 0, ProductName VARCHAR(32) NOT NULL, PrintName VARCHAR(32) NOT NULL, DayTime VARCHAR(128) NOT NULL DEFAULT '09:00-20-59', SatTime VARCHAR(128) NOT NULL DEFAULT '09:00-20-59', SunTime VARCHAR(128) NOT NULL DEFAULT '09:00-20-59', ProductPrice INT(8), LimitedCnt INT(2) DEFAULT 0, ImgUrl VARCHAR(256), ValidImgUrl VARCHAR(128), ScreenMsg VARCHAR(256), PrintMsg VARCHAR(256), CardNumber INT(2),  RCPhotoX INT(4), RCPhotoY INT(4), RCPhotoWidth INT(4), RCPhotoHeight INT(4), RCBadgeX INT(4), RCBadgeY INT(4), RCBadgeWidth INT(4), RCBadgeHeight INT(4), BadgePath VARCHAR(256), PtNameX INT(4), PtNameY INT(4), PtPriceX INT(4), PtPriceY INT(4), BackColor VARCHAR(16), ForeColor VARCHAR(16), BorderColor VARCHAR(16), SoldFlag INT(2) NOT NULL DEFAULT 0)";
-                        break;
-                    case "TableSetTicket":
-                        createSql = "CREATE TABLE IF NOT EXISTS " + new_tb + " (PurchaseType INT(2) NOT NULL DEFAULT 1, ReturnTime INT(4) NOT NULL DEFAULT 30, MultiPurchase INT(2) NOT NULL DEFAULT 1, PurchaseAmount INT(4) NOT NULL DEFAULT 10, SerialNo INT(2) NOT NULL DEFAULT 1, StartSerialNo INT(4) NOT NULL DEFAULT 0, NoAfterTight INT(4) NOT NULL DEFAULT 1, FontSize INT(2) NOT NULL DEFAULT 1, ValidDate INT(2) NOT NULL DEFAULT 1, TicketMsg1 VARCHAR(16) NOT NULL, TicketMsg2 VARCHAR(16) NOT NULL)";
-                        break;
-                    case "TableSetReceipt":
-                        createSql = "CREATE TABLE IF NOT EXISTS " + new_tb + " (ReceiptValid VARCHAR(8) NOT NULL, TicketTime VARCHAR(4) NOT NULL, StoreName VARCHAR(64) NOT NULL, Address VARCHAR(64) NOT NULL, PhoneNumber VARCHAR(16) NOT NULL, Other1 VARCHAR(64) NOT NULL, Other2 VARCHAR(64) NOT NULL)";
-                        break;
-                    case "TableSetStore":
-                        createSql = "CREATE TABLE IF NOT EXISTS " + new_tb + " (StoreName VARCHAR(32) NOT NULL, Address VARCHAR(32) NOT NULL, PhoneNumber VARCHAR(16) NOT NULL, WeekTime VARCHAR(128) NOT NULL, SaturdayTime VARCHAR(128) NOT NULL, SundayTime VARCHAR(128) NOT NULL, EndTime VARCHAR(32) NOT NULL)";
-                        break;
-                    case "TableGroupName":
-                        createSql = "CREATE TABLE IF NOT EXISTS " + new_tb + " (GroupID INT(2) NOT NULL DEFAULT 0, GroupName VARCHAR(32) NOT NULL)";
-                        break;
-                    case "TableGroupDetail":
-                        createSql = "CREATE TABLE IF NOT EXISTS " + new_tb + " (GroupID INT(2) NOT NULL DEFAULT 0, ProductName VARCHAR(32) NOT NULL, ProductPrice INT(8) NOT NULL DEFAULT 0)";
-                        break;
-                    case "GeneralTB":
-                        createSql = "CREATE TABLE IF NOT EXISTS " + new_tb + " (PatternColor INT(2) NOT NULL DEFAULT 0, MenuMsg1 VARCHAR(64) NOT NULL, MenuMsg2 VARCHAR(64) NOT NULL)";
-                        break;
-                    case "TableSetAudio":
-                        createSql = "CREATE TABLE IF NOT EXISTS " + new_tb + " (WaitingAudio VARCHAR(32) NOT NULL, ButtonTouch VARCHAR(32) NOT NULL, CashInsert VARCHAR(16), ValidItemTouch VARCHAR(16), ReturnTouch VARCHAR(16), RefundCompleted VARCHAR(16), DeleteTouch VARCHAR(16), IncreaseTouch VARCHAR(16), DecreaseTouch VARCHAR(16), TicketDisable VARCHAR(16), TicketValid VARCHAR(16), TicketIssue VARCHAR(16), ErrorOccur VARCHAR(16))";
-                        break;
-                    case "SaleTB":
-                        break;
-                    case "DaySaleTB":
-                        break;
-                    case "ReceiptTB":
-                        break;
-                    case "CancelOrderTB":
-                        break;
-                    
-                }
-                if(createSql != "")
-                {
-                    sqlite_cmd.CommandText = createSql;
-                    sqlite_cmd.ExecuteNonQuery();
-                    this.DeleteData(conn, new_tb);
-                    string Createsql1 = "INSERT INTO " + new_tb + " SELECT * FROM " + new_db + "." + new_tb + "";
-                    sqlite_cmd.CommandText = Createsql1;
-                    sqlite_cmd.ExecuteNonQuery();
-                }
-
-            }
-            sqlite_cmd.CommandText = "DETACH DATABASE '" + new_db + "'";
-            sqlite_cmd.ExecuteNonQuery();
-            sqlite_cmd.Dispose();
-            conn.Close();
-        }
-
-
-        private void CreateSaleTB(SQLiteConnection conn)
-        {
-            if (conn.State == ConnectionState.Closed)
-            {
-                conn.Open();
-            }
-            SQLiteCommand sqlite_cmd;
-            string Createsql = "CREATE TABLE IF NOT EXISTS " + constants.tbNames[3] + " (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, prdID INTEGER NOT NULL, prdRealID INT(10) NOT NULL DEFAULT 0, prdName VARCHAR(200) NOT NULL, prdPrice INTEGER NOT NULL DEFAULT 0, prdAmount INTEGER NOT NULL DEFAULT 0, ticketNo INTEGER NOT NULL DEFAULT 0, saleDate DATETIME, sumFlag BOOLEAN NOT NULL DEFAULT 'false', sumDate DATETIME, categoryID  INTEGER NOT NULL DEFAULT 0, serialNo INTEGER NOT NULL DEFAULT 1)";
-            sqlite_cmd = conn.CreateCommand();
-            sqlite_cmd.CommandText = Createsql;
-            sqlite_cmd.ExecuteNonQuery();
-            conn.Close();
-        }
-        private void CreateDaySaleTB(SQLiteConnection conn)
-        {
-            if (conn.State == ConnectionState.Closed)
-            {
-                conn.Open();
-            }
-            SQLiteCommand sqlite_cmd;
-            string Createsql = "CREATE TABLE IF NOT EXISTS " + constants.tbNames[7] + " (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, prdID INTEGER NOT NULL DEFAULT 0, prdName VARCHAR(128) NOT NULL DEFAULT '', prdPrice INTEGER NOT NULL DEFAULT 0, prdAmount INTEGER NOT NULL DEFAULT 0, prdTotalPrice INTEGER NOT NULL DEFAULT 0, sumDate VARCHAR(10) NOT NULL DEFAULT '')";
-            sqlite_cmd = conn.CreateCommand();
-            sqlite_cmd.CommandText = Createsql;
-            sqlite_cmd.ExecuteNonQuery();
-            conn.Close();
-        }
-        private void CreateReceiptTB(SQLiteConnection conn)
-        {
-            if (conn.State == ConnectionState.Closed)
-            {
-                conn.Open();
-            }
-            SQLiteCommand sqlite_cmd;
-            string Createsql = "CREATE TABLE IF NOT EXISTS " + constants.tbNames[8] + " (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, PurchasePoint INTEGER NOT NULL, TotalPrice INTEGER NOT NULL DEFAULT 0, ReceiptDate DATETIME)";
-            sqlite_cmd = conn.CreateCommand();
-            sqlite_cmd.CommandText = Createsql;
-            sqlite_cmd.ExecuteNonQuery();
-            conn.Close();
-        }
-
-        private void CreateCancelOrderTB(SQLiteConnection conn)
-        {
-            if (conn.State == ConnectionState.Closed)
-            {
-                conn.Open();
-            }
-            SQLiteCommand sqlite_cmd;
-            string Createsql = "CREATE TABLE IF NOT EXISTS " + constants.tbNames[9] + " (id INTEGER PRIMARY KEY AUTOINCREMENT, saleID INTEGER NOT NULL, prdID INTEGER NOT NULL, prdName VARCHAR(200) NOT NULL, prdPrice INTEGER NOT NULL DEFAULT 0, prdAmount INTEGER NOT NULL DEFAULT 0, ticketNo INTEGER NOT NULL DEFAULT 0, saleDate DATETIME, sumFlag BOOLEAN NOT NULL DEFAULT 'false', sumDate DATETIME, categoryID INTEGER NOT NULL DEFAULT 0, serialNo INTEGER NOT NULL DEFAULT 1, realPrdID INTEGER DEFAULT 0, cancelDate DATETIME)";
-            sqlite_cmd = conn.CreateCommand();
-            sqlite_cmd.CommandText = Createsql;
-            sqlite_cmd.ExecuteNonQuery();
-            conn.Close();
-        }
-
-        private void DeleteData(SQLiteConnection conn, string tb_name)
-        {
-            if (conn.State == ConnectionState.Closed)
-            {
-                conn.Open();
-            }
-            SQLiteCommand sqlite_cmd;
-            sqlite_cmd = conn.CreateCommand();
-            sqlite_cmd.CommandText = "DELETE FROM " + tb_name;
-            sqlite_cmd.ExecuteNonQuery();
         }
 
     }

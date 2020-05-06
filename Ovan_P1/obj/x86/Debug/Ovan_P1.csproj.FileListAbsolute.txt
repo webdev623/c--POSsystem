@@ -1,0 +1,81 @@
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.CategoryList.resources
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.DetailView.resources
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.FalsePurchaseCancellation.resources
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.Form1.resources
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.GroupList.resources
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.MainMenu.resources
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.MaintaneceMenu.resources
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.MenuReading.resources
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.OpenTimeChange.resources
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.PasswordSetting.resources
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.PreviewSalePage.resources
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.ProductItemManagement.resources
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.ProgressDialog.resources
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.Properties.Resources.resources
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.SaleScreen.resources
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.SoldoutSetting1.resources
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.TimeSetting.resources
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.csproj.GenerateResource.cache
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.csproj.CoreCompileInputs.cache
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.csprojAssemblyReference.cache
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.CategoryList.resources
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.DetailView.resources
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.FalsePurchaseCancellation.resources
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.Form1.resources
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.GroupList.resources
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.MainMenu.resources
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.MaintaneceMenu.resources
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.MenuReading.resources
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.OpenTimeChange.resources
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.PasswordSetting.resources
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.PreviewSalePage.resources
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.ProductItemManagement.resources
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.ProgressDialog.resources
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.Properties.Resources.resources
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.SaleScreen.resources
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.SoldoutSetting1.resources
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.TimeSetting.resources
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.csproj.GenerateResource.cache
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.csproj.CoreCompileInputs.cache
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\bin\x86\Debug\Ovan_P1.exe.config
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\bin\x86\Debug\Ovan_P1.exe
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\bin\x86\Debug\Ovan_P1.pdb
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\bin\x86\Debug\ComPC2MC.dll
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\bin\x86\Debug\EntityFramework.dll
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\bin\x86\Debug\EntityFramework.SqlServer.dll
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\bin\x86\Debug\MetroFramework.Design.dll
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\bin\x86\Debug\MetroFramework.dll
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\bin\x86\Debug\MetroFramework.Fonts.dll
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\bin\x86\Debug\System.Data.SQLite.dll
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\bin\x86\Debug\System.Data.SQLite.EF6.dll
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\bin\x86\Debug\System.Data.SQLite.Linq.dll
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\bin\x86\Debug\ComPC2MC.pdb
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\bin\x86\Debug\EntityFramework.xml
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\bin\x86\Debug\EntityFramework.SqlServer.xml
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\bin\x86\Debug\System.Data.SQLite.xml
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\bin\x86\Debug\System.Data.SQLite.dll.config
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.csproj.CopyComplete
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.exe
+C:\Users\OHBAN 0\Documents\ComminicationTest\Ovan_P1(2020-05-04)\Ovan_P1\obj\x86\Debug\Ovan_P1.pdb
+D:\ovan\Ovan_P1\Ovan_P1\bin\x86\Debug\Ovan_P1.exe.config
+D:\ovan\Ovan_P1\Ovan_P1\bin\x86\Debug\Ovan_P1.exe
+D:\ovan\Ovan_P1\Ovan_P1\bin\x86\Debug\Ovan_P1.pdb
+D:\ovan\Ovan_P1\Ovan_P1\bin\x86\Debug\ComPC2MC.dll
+D:\ovan\Ovan_P1\Ovan_P1\bin\x86\Debug\EntityFramework.dll
+D:\ovan\Ovan_P1\Ovan_P1\bin\x86\Debug\EntityFramework.SqlServer.dll
+D:\ovan\Ovan_P1\Ovan_P1\bin\x86\Debug\MetroFramework.Design.dll
+D:\ovan\Ovan_P1\Ovan_P1\bin\x86\Debug\MetroFramework.dll
+D:\ovan\Ovan_P1\Ovan_P1\bin\x86\Debug\MetroFramework.Fonts.dll
+D:\ovan\Ovan_P1\Ovan_P1\bin\x86\Debug\Microsoft.Data.Tools.Components.dll
+D:\ovan\Ovan_P1\Ovan_P1\bin\x86\Debug\System.Data.SQLite.dll
+D:\ovan\Ovan_P1\Ovan_P1\bin\x86\Debug\System.Data.SQLite.EF6.dll
+D:\ovan\Ovan_P1\Ovan_P1\bin\x86\Debug\System.Data.SQLite.Linq.dll
+D:\ovan\Ovan_P1\Ovan_P1\bin\x86\Debug\ComPC2MC.pdb
+D:\ovan\Ovan_P1\Ovan_P1\bin\x86\Debug\EntityFramework.xml
+D:\ovan\Ovan_P1\Ovan_P1\bin\x86\Debug\EntityFramework.SqlServer.xml
+D:\ovan\Ovan_P1\Ovan_P1\bin\x86\Debug\System.Data.SQLite.xml
+D:\ovan\Ovan_P1\Ovan_P1\bin\x86\Debug\System.Data.SQLite.dll.config
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.csprojAssemblyReference.cache
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.csproj.CopyComplete
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.exe
+D:\ovan\Ovan_P1\Ovan_P1\obj\x86\Debug\Ovan_P1.pdb

@@ -15,6 +15,7 @@ namespace Ovan_P1
         Constant constants = new Constant();
         CreatePanel createPanel = new CreatePanel();
         CreateLabel createLabel = new CreateLabel();
+        CustomButton createButton = new CustomButton();
         Form dialogFormGlobal = null;
         TextBox inputValueGlobal = null;
         SoldoutSetting1 soldoutSetting1Global = null;
@@ -30,7 +31,7 @@ namespace Ovan_P1
             objectHandlerNameGlobal = objectHandlerName;
             objectNameGlobal = objectName;
             Form dialogForm = new Form();
-            dialogForm.Size = new Size(width / 5, height * 2 / 5 + 30);
+            dialogForm.Size = new Size(width / 4, height * 2 / 5 + 30);
             dialogForm.BackColor = Color.White;
             dialogForm.StartPosition = FormStartPosition.CenterParent;
             dialogForm.WindowState = FormWindowState.Normal;
@@ -38,7 +39,7 @@ namespace Ovan_P1
             dialogForm.FormBorderStyle = FormBorderStyle.None;
             dialogFormGlobal = dialogForm;
 
-            Panel mainPanel = createPanel.CreateMainPanel(dialogForm, 0, 0, dialogForm.Width, dialogForm.Height, BorderStyle.FixedSingle, Color.FromArgb(255, 147, 205, 221));
+            Panel mainPanel = createPanel.CreateMainPanel(dialogForm, 0, 0, dialogForm.Width, dialogForm.Height, BorderStyle.FixedSingle, Color.FromArgb(255, 245, 219, 203));
 
             TextBox inputValueShow = new TextBox();
             inputValueShow.Location = new Point(mainPanel.Width / 6, 30);
@@ -56,41 +57,34 @@ namespace Ovan_P1
                 inputValueShow.SelectionLength = 0;
             }
 
-            Panel keyboardPanel = createPanel.CreateSubPanel(mainPanel, mainPanel.Width / 9, inputValueShow.Bottom + 70, mainPanel.Width * 7 / 9, mainPanel.Height - inputValueShow.Bottom - 100, BorderStyle.FixedSingle, Color.FromArgb(255, 0, 176, 80));
+            Panel keyboardPanel = createPanel.CreateSubPanel(mainPanel, mainPanel.Width / 9, inputValueShow.Bottom + 70, mainPanel.Width * 7 / 9, mainPanel.Height - inputValueShow.Bottom - 100, BorderStyle.None, Color.Transparent);
+            Image btnImage = Image.FromFile(constants.keyboardButtonImage);
 
-            for(int k = 3; k >= 0; k--)
+            for (int k = 3; k >= 0; k--)
             {
                 if(k != 0)
                 {
                     for (int m = 0; m < 3; m++)
                     {
                         int keyValue = 3 * k - (2 - m);
-                        Label numberKeyLabel = createLabel.CreateLabelsInPanel(keyboardPanel, keyValue.ToString(), keyValue.ToString(), keyboardPanel.Width * m / 3, keyboardPanel.Height * (3 - k) / 4, keyboardPanel.Width / 3, keyboardPanel.Height / 4, Color.Transparent, Color.Black, 12, true);
-                        numberKeyLabel.BorderStyle = BorderStyle.Fixed3D;
-                        numberKeyLabel.Click += new EventHandler(this.InputValueAdd);
-                        numberKeyLabel.MouseHover += new EventHandler(this.KeyHover);
-                        numberKeyLabel.MouseLeave += new EventHandler(this.KeyLeave);
+                        Button numberKeyButton = createButton.CreateButtonWithImage(btnImage, keyValue.ToString(), keyValue.ToString(), keyboardPanel.Width * m / 3, keyboardPanel.Height * (3 - k) / 4, keyboardPanel.Width / 3, keyboardPanel.Height / 4, 1, 1, 18, FontStyle.Bold, Color.Black);
+                        keyboardPanel.Controls.Add(numberKeyButton);
+                        numberKeyButton.Click += new EventHandler(this.InputValueAdd);
                     }
                 }
                 else
                 {
-                    Label numberKeyLabel = createLabel.CreateLabelsInPanel(keyboardPanel, "0", "0", 0, keyboardPanel.Height * (3 - k) / 4, keyboardPanel.Width / 3, keyboardPanel.Height / 4, Color.Transparent, Color.Black, 12, true);
-                    numberKeyLabel.BorderStyle = BorderStyle.Fixed3D;
-                    numberKeyLabel.Click += new EventHandler(this.InputValueAdd);
-                    numberKeyLabel.MouseHover += new EventHandler(this.KeyHover);
-                    numberKeyLabel.MouseLeave += new EventHandler(this.KeyLeave);
+                    Button numberKeyButton = createButton.CreateButtonWithImage(btnImage, "0", "0", 0, keyboardPanel.Height * (3 - k) / 4, keyboardPanel.Width / 3, keyboardPanel.Height / 4, 1, 1, 18, FontStyle.Bold, Color.Black);
+                    keyboardPanel.Controls.Add(numberKeyButton);
+                    numberKeyButton.Click += new EventHandler(this.InputValueAdd);
 
-                    Label numberKeyLabel_del = createLabel.CreateLabelsInPanel(keyboardPanel, "Del", "Del", keyboardPanel.Width / 3, keyboardPanel.Height * (3 - k) / 4, keyboardPanel.Width / 3, keyboardPanel.Height / 4, Color.Transparent, Color.Black, 12, true);
-                    numberKeyLabel_del.BorderStyle = BorderStyle.Fixed3D;
-                    numberKeyLabel_del.Click += new EventHandler(this.InputValueAdd);
-                    numberKeyLabel_del.MouseHover += new EventHandler(this.KeyHover);
-                    numberKeyLabel_del.MouseLeave += new EventHandler(this.KeyLeave);
+                    Button numberKeyButton_del = createButton.CreateButtonWithImage(btnImage, "Del", "Del", keyboardPanel.Width / 3, keyboardPanel.Height * (3 - k) / 4, keyboardPanel.Width / 3, keyboardPanel.Height / 4, 1, 1, 18, FontStyle.Bold, Color.Black);
+                    keyboardPanel.Controls.Add(numberKeyButton_del);
+                    numberKeyButton_del.Click += new EventHandler(this.InputValueAdd);
 
-                    Label numberKeyLabel_ok = createLabel.CreateLabelsInPanel(keyboardPanel, "Ok", "Ok", keyboardPanel.Width * 2 / 3, keyboardPanel.Height * (3 - k) / 4, keyboardPanel.Width / 3, keyboardPanel.Height / 4, Color.Transparent, Color.Black, 12, true);
-                    numberKeyLabel_ok.BorderStyle = BorderStyle.Fixed3D;
-                    numberKeyLabel_ok.Click += new EventHandler(this.InputValueAdd);
-                    numberKeyLabel_ok.MouseHover += new EventHandler(this.KeyHover);
-                    numberKeyLabel_ok.MouseLeave += new EventHandler(this.KeyLeave);
+                    Button numberKeyButton_ok = createButton.CreateButtonWithImage(btnImage, "Ok", "Ok", keyboardPanel.Width * 2 / 3, keyboardPanel.Height * (3 - k) / 4, keyboardPanel.Width / 3, keyboardPanel.Height / 4, 1, 1, 18, FontStyle.Bold, Color.Black);
+                    keyboardPanel.Controls.Add(numberKeyButton_ok);
+                    numberKeyButton_ok.Click += new EventHandler(this.InputValueAdd);
                 }
             }
 
@@ -107,8 +101,8 @@ namespace Ovan_P1
 
         private void InputValueAdd(object sender, EventArgs e)
         {
-            Label keyLabel = (Label)sender;
-            string keyText = keyLabel.Text;
+            Button keyLabel = (Button)sender;
+            string keyText = keyLabel.Name;
             if(keyText != "Del" && keyText != "Ok")
             {
                 int selectionIndex = inputValueGlobal.SelectionStart;
@@ -138,16 +132,6 @@ namespace Ovan_P1
             }
         }
 
-        private void KeyHover(object sender, EventArgs e)
-        {
-            Label keyLabel = (Label)sender;
-            keyLabel.BackColor = Color.FromArgb(10, 10, 0, 0);
-        }
-        private void KeyLeave(object sender, EventArgs e)
-        {
-            Label keyLabel = (Label)sender;
-            keyLabel.BackColor = Color.Transparent;
-        }
 
     }
 }

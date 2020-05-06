@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Data.SQLite;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -42,16 +43,18 @@ namespace Ovan_P1
             InitializeComponent();
             mainFormGlobal = mainForm;
             mainPanelGlobal = mainPanel;
-            mainForm.BackColor = Color.White;
-            mainPanel.BackColor = Color.White;
-            Panel upPanel = createPanel.CreateMainPanel(mainForm, 20, 20, mainForm.Width - 40, mainForm.Height * 5 / 11 - 20, BorderStyle.FixedSingle, Color.White);
-            Panel downPanel = createPanel.CreateMainPanel(mainForm, 20, upPanel.Bottom + 20, mainForm.Width - 40, mainForm.Height * 6 / 11 - 20, BorderStyle.None, Color.White);
+            Panel upPanel = createPanel.CreateSubPanel(mainPanel, 20, 20, mainPanel.Width - 40, mainPanel.Height * 5 / 11 - 20, BorderStyle.FixedSingle, Color.Transparent);
+            Panel downPanel = createPanel.CreateSubPanel(mainPanel, 20, upPanel.Bottom + 20, mainPanel.Width - 40, mainPanel.Height * 6 / 11 - 20, BorderStyle.None, Color.Transparent);
             downPanelGlobal = downPanel;
             FlowLayoutPanel tableHeaderInUpPanel = createPanel.CreateFlowLayoutPanel(upPanel, 0, 0, upPanel.Width, 50, Color.Transparent, new Padding(0));
-            Label tableHeaderLabel1 = createLabel.CreateLabels(tableHeaderInUpPanel, "tableHeaderLabel1", constants.printProductNameField, 0, 0, tableHeaderInUpPanel.Width * 2 / 5, 50, Color.FromArgb(255, 147, 184, 219), Color.Black, 16, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+            Label tableHeaderLabel1 = createLabel.CreateLabels(tableHeaderInUpPanel, "tableHeaderLabel1", constants.printProductNameField, 0, 0, tableHeaderInUpPanel.Width * 2 / 5, 50, Color.Transparent, Color.Black, 16, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+            tableHeaderLabel1.Paint += new PaintEventHandler(this.set_background1);
             Label tableHeaderLabel2 = createLabel.CreateLabels(tableHeaderInUpPanel, "tableHeaderLabel2", constants.salePriceField, tableHeaderLabel1.Right, 0, tableHeaderInUpPanel.Width * 3 / 20, 50, Color.FromArgb(255, 147, 184, 219), Color.Black, 16, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+            tableHeaderLabel2.Paint += new PaintEventHandler(this.set_background1);
             Label tableHeaderLabel3 = createLabel.CreateLabels(tableHeaderInUpPanel, "tableHeaderLabel3", constants.TimeLabel, tableHeaderLabel2.Right, 0, tableHeaderInUpPanel.Width * 3 / 10, 50, Color.FromArgb(255, 147, 184, 219), Color.Black, 16, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+            tableHeaderLabel3.Paint += new PaintEventHandler(this.set_background1);
             Label tableHeaderLabel4 = createLabel.CreateLabels(tableHeaderInUpPanel, "tableHeaderLabel4", constants.saleLimitField, tableHeaderLabel3.Right, 0, tableHeaderInUpPanel.Width * 3 / 20, 50, Color.FromArgb(255, 147, 184, 219), Color.Black, 16, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+            tableHeaderLabel4.Paint += new PaintEventHandler(this.set_background1);
 
             Panel tBodyPanel = createPanel.CreateSubPanel(upPanel, 0, 50, upPanel.Width, upPanel.Height - 50, BorderStyle.FixedSingle, Color.White);
             tBodyPanel.HorizontalScroll.Maximum = 0;
@@ -143,16 +146,16 @@ namespace Ovan_P1
                                     saleAmount = sqlite_datareader1.GetInt32(0);
                                 }
                             }
-                            if(limitedCnt != 0 && limitedCnt >= saleAmount)
+                            if (limitedCnt != 0 && limitedCnt >= saleAmount)
                             {
                                 restAmount = limitedCnt - saleAmount;
                             }
 
                             string saleStatus = "0";
                             Color fontColor = Color.Black;
-                            if(soldFlag == 0)
+                            if (soldFlag == 0)
                             {
-                                if(limitedCnt != 0)
+                                if (limitedCnt != 0)
                                 {
                                     saleStatus = restAmount.ToString() + "/" + limitedCnt.ToString();
                                 }
@@ -186,10 +189,12 @@ namespace Ovan_P1
                 }
             }
 
-            Button closeButton = customButton.CreateButton(constants.backText, "closeButton", downPanel.Width - 150, downPanel.Height - 100, 100, 50, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 1, 12, FontStyle.Regular, Color.White);
-            downPanel.Controls.Add(closeButton);
-            closeButton.Click += new EventHandler(this.BackShow);
 
+            Image backImage = Image.FromFile(constants.soldoutButtonImage1);
+
+            Button backButton = customButton.CreateButtonWithImage(backImage, "closeButton", constants.backText, downPanel.Width - 100, downPanel.Height - 60, 100, 50, 1, 10, 14, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 1);
+            downPanel.Controls.Add(backButton);
+            backButton.Click += new EventHandler(this.BackShow);
 
 
         }
@@ -215,20 +220,27 @@ namespace Ovan_P1
             }
 
             downPanelGlobal.Controls.Clear();
-            Panel detailPanel = createPanel.CreateSubPanel(downPanelGlobal, 50, 10, downPanelGlobal.Width / 2 - 100, downPanelGlobal.Height - 100, BorderStyle.FixedSingle, Color.Transparent);
+            Panel detailPanel = createPanel.CreateSubPanel(downPanelGlobal, 30, 10, downPanelGlobal.Width / 2 + 10, downPanelGlobal.Height - 20, BorderStyle.None, Color.Transparent);
 
             int rowCount = 9;
 
             FlowLayoutPanel leftColumn = createPanel.CreateFlowLayoutPanel(detailPanel, 0, 0, detailPanel.Width * 2 / 5, detailPanel.Height, Color.Transparent, new Padding(0));
             FlowLayoutPanel rightColumn = createPanel.CreateFlowLayoutPanel(detailPanel, detailPanel.Width * 2 / 5, 0, detailPanel.Width * 3 / 5, detailPanel.Height, Color.Transparent, new Padding(0));
 
-            Label column1 = createLabel.CreateLabels(leftColumn, "prdNameColumn", constants.prdNameField, 0, 0, leftColumn.Width, leftColumn.Height / rowCount, Color.FromArgb(255, 198, 224, 180), Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
-            Label column2 = createLabel.CreateLabels(leftColumn, "prdCategoryColumn", constants.prdCategoryField, 0, column1.Bottom, leftColumn.Width, leftColumn.Height / rowCount, Color.FromArgb(255, 198, 224, 180), Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
-            Label column3 = createLabel.CreateLabels(leftColumn, "prdPriceColumn", constants.prdPriceFieldIncludTax, 0, column2.Bottom, leftColumn.Width, leftColumn.Height / rowCount, Color.FromArgb(255, 198, 224, 180), Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
-            Label column4 = createLabel.CreateLabels(leftColumn, "prdTimeColumn", constants.prdSaleTimeField, 0, column3.Bottom, leftColumn.Width, leftColumn.Height * 3 / rowCount, Color.FromArgb(255, 198, 224, 180), Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
-            Label column5 = createLabel.CreateLabels(leftColumn, "prdLimitColumn", constants.saleLimitField, 0, column4.Bottom, leftColumn.Width, leftColumn.Height / rowCount, Color.FromArgb(255, 198, 224, 180), Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
-            Label column6 = createLabel.CreateLabels(leftColumn, "prdLayoutColumn", constants.prdScreenText, 0, column5.Bottom, leftColumn.Width, leftColumn.Height / rowCount, Color.FromArgb(255, 198, 224, 180), Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
-            Label column7 = createLabel.CreateLabels(leftColumn, "prdPrintColumn", constants.prdPrintText, 0, column6.Bottom, leftColumn.Width, leftColumn.Height / rowCount, Color.FromArgb(255, 198, 224, 180), Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+            Label column1 = createLabel.CreateLabels(leftColumn, "prdNameColumn", constants.prdNameField, 0, 0, leftColumn.Width, leftColumn.Height / rowCount, Color.FromArgb(255, 198, 224, 180), Color.Black, 10, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+            column1.Paint += new PaintEventHandler(this.set_background2);
+            Label column2 = createLabel.CreateLabels(leftColumn, "prdCategoryColumn", constants.prdCategoryField, 0, column1.Bottom, leftColumn.Width, leftColumn.Height / rowCount, Color.FromArgb(255, 198, 224, 180), Color.Black, 10, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+            column2.Paint += new PaintEventHandler(this.set_background2);
+            Label column3 = createLabel.CreateLabels(leftColumn, "prdPriceColumn", constants.prdPriceFieldIncludTax, 0, column2.Bottom, leftColumn.Width, leftColumn.Height / rowCount, Color.FromArgb(255, 198, 224, 180), Color.Black, 10, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+            column3.Paint += new PaintEventHandler(this.set_background2);
+            Label column4 = createLabel.CreateLabels(leftColumn, "prdTimeColumn", constants.prdSaleTimeField, 0, column3.Bottom, leftColumn.Width, leftColumn.Height * 3 / rowCount, Color.FromArgb(255, 198, 224, 180), Color.Black, 10, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+            column4.Paint += new PaintEventHandler(this.set_background2);
+            Label column5 = createLabel.CreateLabels(leftColumn, "prdLimitColumn", constants.saleLimitField, 0, column4.Bottom, leftColumn.Width, leftColumn.Height / rowCount, Color.FromArgb(255, 198, 224, 180), Color.Black, 10, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+            column5.Paint += new PaintEventHandler(this.set_background2);
+            Label column6 = createLabel.CreateLabels(leftColumn, "prdLayoutColumn", constants.prdScreenText, 0, column5.Bottom, leftColumn.Width, leftColumn.Height / rowCount, Color.FromArgb(255, 198, 224, 180), Color.Black, 10, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+            column6.Paint += new PaintEventHandler(this.set_background2);
+            Label column7 = createLabel.CreateLabels(leftColumn, "prdPrintColumn", constants.prdPrintText, 0, column6.Bottom, leftColumn.Width, leftColumn.Height / rowCount + 2, Color.FromArgb(255, 198, 224, 180), Color.Black, 10, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+            column7.Paint += new PaintEventHandler(this.set_background2);
 
             if (sqlite_conn.State == ConnectionState.Closed)
             {
@@ -283,29 +295,29 @@ namespace Ovan_P1
                         }
                     }
 
-                    Label value1 = createLabel.CreateLabels(rightColumn, "prdNameValue", prdName, 0, 0, rightColumn.Width, rightColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleLeft, new Padding(0), 2, Color.Gray);
+                    Label value1 = createLabel.CreateLabels(rightColumn, "prdNameValue", prdName, 0, 0, rightColumn.Width, rightColumn.Height / rowCount + 1, Color.White, Color.Black, 10, true, ContentAlignment.MiddleLeft, new Padding(0), 1, Color.Gray);
                     value1.Padding = new Padding(10, 0, 0, 0);
-                    Label value2 = createLabel.CreateLabels(rightColumn, "prdCategoryValue", prdCategory, 0, column1.Bottom, rightColumn.Width, rightColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleLeft, new Padding(0), 2, Color.Gray);
+                    Label value2 = createLabel.CreateLabels(rightColumn, "prdCategoryValue", prdCategory, 0, column1.Bottom, rightColumn.Width, rightColumn.Height / rowCount, Color.White, Color.Black, 10, true, ContentAlignment.MiddleLeft, new Padding(0), 1, Color.Gray);
                     value2.Padding = new Padding(10, 0, 0, 0);
-                    Label value3 = createLabel.CreateLabels(rightColumn, "prdPriceValue", prdPrice.ToString() + constants.unit, 0, column2.Bottom, rightColumn.Width, rightColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleLeft, new Padding(0), 2, Color.Gray);
+                    Label value3 = createLabel.CreateLabels(rightColumn, "prdPriceValue", prdPrice.ToString() + constants.unit, 0, column2.Bottom, rightColumn.Width, rightColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleLeft, new Padding(0), 1, Color.Gray);
                     value3.Padding = new Padding(10, 0, 0, 0);
 
-                    Label timeLabel1 = createLabel.CreateLabels(rightColumn, "prdTimeLabel1", "平日", 0, column3.Bottom, rightColumn.Width / 3, rightColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 2, Color.Gray);
-                    Label value4 = createLabel.CreateLabels(rightColumn, "prdTimeValue1", saleDayTime, 0, column3.Bottom, rightColumn.Width * 2 / 3, rightColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleLeft, new Padding(0), 2, Color.Gray);
+                    Label timeLabel1 = createLabel.CreateLabels(rightColumn, "prdTimeLabel1", "平日", 0, column3.Bottom, rightColumn.Width / 3, rightColumn.Height / rowCount, Color.White, Color.Black, 10, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+                    Label value4 = createLabel.CreateLabels(rightColumn, "prdTimeValue1", saleDayTime, 0, column3.Bottom, rightColumn.Width * 2 / 3, rightColumn.Height / rowCount, Color.White, Color.Black, 10, true, ContentAlignment.MiddleLeft, new Padding(0), 1, Color.Gray);
                     value4.Padding = new Padding(10, 0, 0, 0);
 
-                    Label timeLabel2 = createLabel.CreateLabels(rightColumn, "prdTimeLabel2", "土曜", 0, column3.Bottom, rightColumn.Width / 3, rightColumn.Height / rowCount, Color.White, Color.FromArgb(255, 0, 112, 192), 12, true, ContentAlignment.MiddleCenter, new Padding(0), 2, Color.Gray);
-                    Label value5 = createLabel.CreateLabels(rightColumn, "prdTimeValue2", saleSatTime, 0, column4.Bottom, rightColumn.Width * 2 / 3, rightColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleLeft, new Padding(0), 2, Color.Gray);
+                    Label timeLabel2 = createLabel.CreateLabels(rightColumn, "prdTimeLabel2", "土曜", 0, column3.Bottom, rightColumn.Width / 3, rightColumn.Height / rowCount + 1, Color.White, Color.FromArgb(255, 0, 112, 192), 10, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+                    Label value5 = createLabel.CreateLabels(rightColumn, "prdTimeValue2", saleSatTime, 0, column4.Bottom, rightColumn.Width * 2 / 3, rightColumn.Height / rowCount + 1, Color.White, Color.Black, 10, true, ContentAlignment.MiddleLeft, new Padding(0), 1, Color.Gray);
                     value5.Padding = new Padding(10, 0, 0, 0);
 
-                    Label timeLabel3 = createLabel.CreateLabels(rightColumn, "prdTimeLabel3", "日曜", 0, column3.Bottom, rightColumn.Width / 3, rightColumn.Height / rowCount, Color.White, Color.Red, 12, true, ContentAlignment.MiddleCenter, new Padding(0), 2, Color.Gray);
-                    Label value6 = createLabel.CreateLabels(rightColumn, "prdTimeValue3", saleSunTime, 0, column5.Bottom, rightColumn.Width * 2 / 3, rightColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleLeft, new Padding(0), 2, Color.Gray);
+                    Label timeLabel3 = createLabel.CreateLabels(rightColumn, "prdTimeLabel3", "日曜", 0, column3.Bottom, rightColumn.Width / 3, rightColumn.Height / rowCount + 1, Color.White, Color.Red, 10, true, ContentAlignment.MiddleCenter, new Padding(0), 1, Color.Gray);
+                    Label value6 = createLabel.CreateLabels(rightColumn, "prdTimeValue3", saleSunTime, 0, column5.Bottom, rightColumn.Width * 2 / 3, rightColumn.Height / rowCount + 1, Color.White, Color.Black, 10, true, ContentAlignment.MiddleLeft, new Padding(0), 1, Color.Gray);
                     value6.Padding = new Padding(10, 0, 0, 0);
-                    Label value7 = createLabel.CreateLabels(rightColumn, "prdLimitValue", limitedCnt.ToString(), 0, value6.Bottom, rightColumn.Width, rightColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleLeft, new Padding(0), 2, Color.Gray);
+                    Label value7 = createLabel.CreateLabels(rightColumn, "prdLimitValue", limitedCnt.ToString(), 0, value6.Bottom, rightColumn.Width, rightColumn.Height / rowCount, Color.White, Color.Black, 10, true, ContentAlignment.MiddleLeft, new Padding(0), 1, Color.Gray);
                     value7.Padding = new Padding(10, 0, 0, 0);
-                    Label value8 = createLabel.CreateLabels(rightColumn, "prdLayoutValue", screenMsg, 0, value7.Bottom, rightColumn.Width, rightColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleLeft, new Padding(0), 2, Color.Gray);
+                    Label value8 = createLabel.CreateLabels(rightColumn, "prdLayoutValue", screenMsg, 0, value7.Bottom, rightColumn.Width, rightColumn.Height / rowCount, Color.White, Color.Black, 10, true, ContentAlignment.MiddleLeft, new Padding(0), 1, Color.Gray);
                     value8.Padding = new Padding(10, 0, 0, 0);
-                    Label value9 = createLabel.CreateLabels(rightColumn, "prdPrintValue", printMsg, 0, value8.Bottom, rightColumn.Width, rightColumn.Height / rowCount, Color.White, Color.Black, 12, true, ContentAlignment.MiddleLeft, new Padding(0), 2, Color.Gray);
+                    Label value9 = createLabel.CreateLabels(rightColumn, "prdPrintValue", printMsg, 0, value8.Bottom, rightColumn.Width, rightColumn.Height / rowCount + 1, Color.White, Color.Black, 10, true, ContentAlignment.MiddleLeft, new Padding(0), 1, Color.Gray);
                     value9.Padding = new Padding(10, 0, 0, 0);
 
                     Panel productImagePanel = createPanel.CreateSubPanel(downPanelGlobal, downPanelGlobal.Width / 2 + 100, 10, downPanelGlobal.Width / 4, downPanelGlobal.Height * 3 / 5, BorderStyle.FixedSingle, Color.White);
@@ -343,22 +355,62 @@ namespace Ovan_P1
 
                 }
             }
-            
-            Button closeButton = customButton.CreateButton(constants.backText, "closeButton", downPanelGlobal.Width - 200, downPanelGlobal.Height - 100, 100, 50, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 1, 12, FontStyle.Regular, Color.White);
-            downPanelGlobal.Controls.Add(closeButton);
-            closeButton.Click += new EventHandler(this.BackShow);
+
+            Image backImage = Image.FromFile(constants.soldoutButtonImage1);
+
+            Button backButton = customButton.CreateButtonWithImage(backImage, "closeButton", constants.backText, downPanelGlobal.Width - 100, downPanelGlobal.Height - 60, 100, 50, 1, 10, 14, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 1);
+            downPanelGlobal.Controls.Add(backButton);
+            backButton.Click += new EventHandler(this.BackShow);
+
 
         }
         public void BackShow(object sender, EventArgs e)
         {
-            mainFormGlobal.Controls.Clear();
+            mainPanelGlobal.Controls.Clear();
             MaintaneceMenu frm = new MaintaneceMenu(mainFormGlobal, mainPanelGlobal);
             frm.TopLevel = false;
-            mainFormGlobal.Controls.Add(frm);
+            mainPanelGlobal.Controls.Add(frm);
             frm.FormBorderStyle = FormBorderStyle.None;
             frm.Dock = DockStyle.Fill;
             Thread.Sleep(200);
             frm.Show();
+        }
+
+        private void set_background1(Object sender, PaintEventArgs e)
+        {
+            Label lTemp = (Label)sender;
+            Graphics graphics = e.Graphics;
+
+            //the rectangle, the same size as our Form
+            Rectangle gradient_rectangle = new Rectangle(0, 0, lTemp.Width, lTemp.Height);
+            //define gradient's properties
+            Brush b = new LinearGradientBrush(gradient_rectangle, Color.FromArgb(255, 164, 206, 235), Color.FromArgb(255, 87, 152, 199), 90f);
+
+            //apply gradient         
+            graphics.FillRectangle(b, gradient_rectangle);
+
+            graphics.DrawRectangle(new Pen(Brushes.Gray), gradient_rectangle);
+
+            e.Graphics.DrawString(lTemp.Text, new Font("Seri", 18, FontStyle.Bold), Brushes.White, gradient_rectangle, new StringFormat() { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Center });
+
+        }
+        private void set_background2(Object sender, PaintEventArgs e)
+        {
+            Label lTemp = (Label)sender;
+            Graphics graphics = e.Graphics;
+
+            //the rectangle, the same size as our Form
+            Rectangle gradient_rectangle = new Rectangle(0, 0, lTemp.Width, lTemp.Height);
+            //define gradient's properties
+            Brush b = new LinearGradientBrush(gradient_rectangle, Color.FromArgb(255, 199, 210, 143), Color.FromArgb(255, 150, 183, 57), 90f);
+
+            //apply gradient         
+            graphics.FillRectangle(b, gradient_rectangle);
+
+            graphics.DrawRectangle(new Pen(Brushes.Gray), gradient_rectangle);
+
+            e.Graphics.DrawString(lTemp.Text, new Font("Seri", 14, FontStyle.Bold), Brushes.White, gradient_rectangle, new StringFormat() { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Center });
+
         }
 
         static SQLiteConnection CreateConnection(string dbName)
@@ -379,6 +431,9 @@ namespace Ovan_P1
             return sqlite_conn;
         }
 
-
+        private void ProductItemManagement_Load(object sender, EventArgs e)
+        {
+            this.BackColor = Color.FromArgb(255, 249, 246, 224);
+        }
     }
 }

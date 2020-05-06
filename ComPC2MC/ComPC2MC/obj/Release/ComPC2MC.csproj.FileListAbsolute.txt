@@ -1,0 +1,5 @@
+D:\Work\CWork\banknote\TestWork\simple-serial-master\ComPC2MC\ComPC2MC\bin\Release\ComPC2MC.dll
+D:\Work\CWork\banknote\TestWork\simple-serial-master\ComPC2MC\ComPC2MC\bin\Release\ComPC2MC.pdb
+D:\Work\CWork\banknote\TestWork\simple-serial-master\ComPC2MC\ComPC2MC\obj\Release\ComPC2MC.csproj.CoreCompileInputs.cache
+D:\Work\CWork\banknote\TestWork\simple-serial-master\ComPC2MC\ComPC2MC\obj\Release\ComPC2MC.dll
+D:\Work\CWork\banknote\TestWork\simple-serial-master\ComPC2MC\ComPC2MC\obj\Release\ComPC2MC.pdb

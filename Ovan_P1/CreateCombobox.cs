@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MetroFramework.Controls;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace Ovan_P1
             //dateCombobox.DataSource = combItems;
             dateCombobox.DrawMode = DrawMode.OwnerDrawVariable;
             dateCombobox.DropDownWidth = combWidth;
-            dateCombobox.FormattingEnabled = true;
+            //dateCombobox.FormattingEnabled = true;
             dateCombobox.Items.AddRange(combItems);
             dateCombobox.ItemHeight = combItemHeight;
             dateCombobox.SelectedIndex = dateCombobox.FindStringExact(selectText);
@@ -26,6 +27,9 @@ namespace Ovan_P1
             dateCombobox.Size = new Size(combWidth, combHeight);
             dateCombobox.Font = combFont;
             combPanel.Controls.Add(dateCombobox);
+            dateCombobox.SelectionLength = 0;
+            dateCombobox.SelectionStart = 0;
+
             return dateCombobox;
         }
         public class SeparatorItem

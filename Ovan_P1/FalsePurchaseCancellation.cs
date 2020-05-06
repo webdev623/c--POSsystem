@@ -18,6 +18,7 @@ namespace Ovan_P1
         int width = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Width;
         Form1 mainFormGlobal = null;
         Panel mainPanelGlobal = null;
+        Panel mainPanelGlobal_2 = null;
         Form DialogFormGlobal = null;
         //private Button buttonGlobal = null;
         private FlowLayoutPanel[] menuFlowLayoutPanelGlobal = new FlowLayoutPanel[4];
@@ -53,8 +54,8 @@ namespace Ovan_P1
             InitializeComponent();
             mainFormGlobal = mainForm;
             mainPanelGlobal = mainPanel;
+            mainPanelGlobal_2 = mainForm.mainPanelGlobal_2;
             dropDownMenu.initFalsePurchaseCancellation(this);
-            mainForm.AutoScroll = true;
 
             sqlite_conn = CreateConnection(constants.dbName);
             if (sqlite_conn.State == ConnectionState.Closed)
@@ -114,17 +115,22 @@ namespace Ovan_P1
             sqlite_conn.Close();
 
 
+            Image backImage = Image.FromFile(constants.soldoutButtonImage1);
+            
+            Panel headerPanel = createPanel.CreateSubPanel(mainPanelGlobal_2, 0, 0, mainPanelGlobal_2.Width, mainPanelGlobal_2.Height / 8, BorderStyle.None, Color.Transparent);
 
-            Panel headerPanel = createPanel.CreateMainPanel(mainForm, 0, 0, width, height / 5, BorderStyle.None, Color.Transparent);
-            Label headerTitle = createLabel.CreateLabelsInPanel(headerPanel, "headerTitle", constants.falsePurchaseTitle, 50, 60, 200, 50, Color.Transparent, Color.Red, 22);
-            Button closeButton = customButton.CreateButton(constants.backText, "closeButton", headerPanel.Width - 200, 60, 100, 50, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 1, 12, FontStyle.Regular, Color.White);
-            headerPanel.Controls.Add(closeButton);
-            closeButton.Click += new EventHandler(this.BackShow);
+            Label headerTitle = createLabel.CreateLabelsInPanel(headerPanel, "headerTitle", constants.falsePurchaseTitle, headerPanel.Width / 15, headerPanel.Height / 5, headerPanel.Width * 13 / 30, headerPanel.Height * 3 / 5, Color.FromArgb(255, 0, 95, 163), Color.FromArgb(255, 255, 242, 75), 36);
 
-            Panel bodyUpPanel = createPanel.CreateMainPanel(mainForm, 0, headerPanel.Bottom, width, height * 1 / 4 + 20, BorderStyle.None, Color.Transparent);
-            Label subTitle1 = createLabel.CreateLabelsInPanel(bodyUpPanel, "subTitle1", constants.falsePurchaseSubTitle1, bodyUpPanel.Width / 2 - 100, 10, 200, 50, Color.Transparent, Color.Black, 18);
-            Label subContent1 = createLabel.CreateLabelsInPanel(bodyUpPanel, "subContent1", constants.falsePurchaseSubContent1, 100, subTitle1.Bottom + 15, bodyUpPanel.Width - 200, 50, Color.Transparent, Color.Black, 14);
-            Button cancellationButton = customButton.CreateButton(constants.falsePurchaseButton, "cancellationButton", bodyUpPanel.Width / 2 - 100, subContent1.Bottom + 20, 200, 50, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 1, 12, FontStyle.Regular, Color.White);
+            Button backButton = customButton.CreateButtonWithImage(backImage, "closeButton", constants.backText, headerPanel.Width * 33 / 40, headerPanel.Height / 5, headerPanel.Width * 13 / 120, headerPanel.Height * 3 / 5, 0, 10, 18, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 2);
+
+            headerPanel.Controls.Add(backButton);
+            backButton.Click += new EventHandler(this.BackShow);
+
+            Panel bodyUpPanel = createPanel.CreateSubPanel(mainPanelGlobal_2, 0, headerPanel.Bottom, mainPanelGlobal_2.Width, mainPanelGlobal_2.Height * 3 / 8, BorderStyle.None, Color.Transparent);
+            Label subTitle1 = createLabel.CreateLabelsInPanel(bodyUpPanel, "subTitle1", constants.falsePurchaseSubTitle1, bodyUpPanel.Width / 15, bodyUpPanel.Height / 15, bodyUpPanel.Width * 13 / 15, bodyUpPanel.Height / 5, Color.FromArgb(255, 209, 211, 212), Color.Black, 32);
+            Label subContent1 = createLabel.CreateLabelsInPanel(bodyUpPanel, "subContent1", constants.falsePurchaseSubContent1, bodyUpPanel.Width / 15, subTitle1.Bottom, bodyUpPanel.Width * 13 /15, bodyUpPanel.Height / 3, Color.Transparent, Color.Black, 18);
+            Image cancelButtonImage = Image.FromFile(constants.cancelButton);
+            Button cancellationButton = customButton.CreateButtonWithImage(cancelButtonImage, "cancellationButton", constants.falsePurchaseButton, bodyUpPanel.Width * 16 / 45, subContent1.Bottom + bodyUpPanel.Height / 15, bodyUpPanel.Width * 13 / 45, bodyUpPanel.Height * 4 / 15, 0, 1, 32, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 2);
             bodyUpPanel.Controls.Add(cancellationButton);
 
             if (manualProcessState)
@@ -136,68 +142,73 @@ namespace Ovan_P1
                 cancellationButton.Click += new EventHandler(detailView.DetailViewIndicator);
             }
 
-            Panel bodyDownPanel = createPanel.CreateMainPanel(mainForm, 0, bodyUpPanel.Bottom, width, height / 2, BorderStyle.None, Color.Transparent);
-            Label subTitle2 = createLabel.CreateLabelsInPanel(bodyDownPanel, "subTitle1", constants.falsePurchaseSubTitle2, bodyDownPanel.Width / 2 - 200, 50, 400, 50, Color.Transparent, Color.Black, 18);
+            Panel bodyDownPanel = createPanel.CreateSubPanel(mainPanelGlobal_2, 0, bodyUpPanel.Bottom, mainPanelGlobal_2.Width, mainPanelGlobal_2.Height / 2, BorderStyle.None, Color.Transparent);
+            Label subTitle2 = createLabel.CreateLabelsInPanel(bodyDownPanel, "subTitle1", constants.falsePurchaseSubTitle2, bodyDownPanel.Width / 15, bodyDownPanel.Height / 20, bodyDownPanel.Width * 13 / 15, bodyDownPanel.Height / 6, Color.FromArgb(255, 209, 211, 212), Color.Black, 32);
 
-            Label startLabel = createLabel.CreateLabelsInPanel(bodyDownPanel, "startLabel", constants.falsePurchaseStartLabel, bodyDownPanel.Width / 5, subTitle2.Bottom + 30, 100, 50, Color.Transparent, Color.Black, 22);
+            Label startLabel = createLabel.CreateLabelsInPanel(bodyDownPanel, "startLabel", constants.falsePurchaseStartLabel, bodyDownPanel.Width * 6 / 25, subTitle2.Bottom + bodyDownPanel.Height / 20, bodyDownPanel.Width * 3 / 25, bodyDownPanel.Height / 5, Color.Transparent, Color.Black, 22);
 
             // dropDownYear.CreateDropDown("falsePurchaseCancellation", bodyDownPanel, new string[] { "2020", "2019", "2018" }, startLabel.Right + 10, subTitle2.Bottom + 30, 150, 50, 150, 200, 150, 50, Color.Transparent, Color.Transparent);
-            ComboBox yearCombobox1 = createCombobox.CreateComboboxs(bodyDownPanel, "yearCombobox1", new string[] { "2020", "2019", "2018" }, startLabel.Right + 40, subTitle2.Bottom + 40, 150, 40, 25, new Font("Comic Sans", 18), now.ToString("yyyy"));
-            Label yearLabel1 = createLabel.CreateLabelsInPanel(bodyDownPanel, "startLabelYear", constants.yearLabel, startLabel.Right + 200, subTitle2.Bottom + 30, 50, 50, Color.Transparent, Color.Black, 22, false, ContentAlignment.MiddleLeft);
+            ComboBox yearCombobox1 = createCombobox.CreateComboboxs(bodyDownPanel, "yearCombobox1", new string[] { "2020", "2019", "2018" }, startLabel.Right, subTitle2.Bottom + bodyDownPanel.Height / 10, bodyDownPanel.Width * 15 / 125, bodyDownPanel.Height / 10, bodyDownPanel.Height / 10, new Font("Comic Sans", 32), now.ToString("yyyy"));
+            Label yearLabel1 = createLabel.CreateLabelsInPanel(bodyDownPanel, "startLabelYear", constants.yearLabel, yearCombobox1.Right, subTitle2.Bottom + bodyDownPanel.Height / 20, bodyDownPanel.Width * 5 / 125, bodyDownPanel.Height / 5, Color.Transparent, Color.Black, 22, false, ContentAlignment.MiddleLeft);
            // yearLabel1.Margin = new Padding(5, 0, 0, 0);
             yearComboboxStartGlobal = yearCombobox1;
             yearCombobox1.DrawItem += new DrawItemEventHandler(createCombobox.dateCombobox_DrawItem);
             yearCombobox1.MeasureItem += new MeasureItemEventHandler(createCombobox.dateCombobox_MeasureItem);
 
             // dropDownMonth.CreateDropDown("falsePurchaseCancellation", bodyDownPanel, constants.months, startLabel.Right + 230, subTitle2.Bottom + 30, 150, 50, 150, 50 * 13, 150, 50, Color.Transparent, Color.Transparent);
-            ComboBox monthCombobox1 = createCombobox.CreateComboboxs(bodyDownPanel, "monthCombobox1", constants.months1, startLabel.Right + 270, subTitle2.Bottom + 40, 150, 40, 25, new Font("Comic Sans", 18), now.ToString("MM"));
-            Label monthLabel1 = createLabel.CreateLabelsInPanel(bodyDownPanel, "startLabelMonth", constants.monthLabel, startLabel.Right + 440, subTitle2.Bottom + 30, 50, 50, Color.Transparent, Color.Black, 22, false, ContentAlignment.MiddleLeft);
+            ComboBox monthCombobox1 = createCombobox.CreateComboboxs(bodyDownPanel, "monthCombobox1", constants.months1, yearLabel1.Right, subTitle2.Bottom + bodyDownPanel.Height / 10, bodyDownPanel.Width * 8 / 125, bodyDownPanel.Height / 10, bodyDownPanel.Height / 10, new Font("Comic Sans", 32), now.ToString("MM"));
+            Label monthLabel1 = createLabel.CreateLabelsInPanel(bodyDownPanel, "startLabelMonth", constants.monthLabel, monthCombobox1.Right, subTitle2.Bottom + bodyDownPanel.Height / 20, bodyDownPanel.Width * 5 / 125, bodyDownPanel.Height / 5, Color.Transparent, Color.Black, 22, false, ContentAlignment.MiddleLeft);
             monthComboboxStartGlobal = monthCombobox1;
             monthCombobox1.DrawItem += new DrawItemEventHandler(createCombobox.dateCombobox_DrawItem);
             monthCombobox1.MeasureItem += new MeasureItemEventHandler(createCombobox.dateCombobox_MeasureItem);
 
-            ComboBox dateCombobox1 = createCombobox.CreateComboboxs(bodyDownPanel, "dateCombobox1", constants.dates1, startLabel.Right + 500, subTitle2.Bottom + 40, 150, 40, 25, new Font("Comic Sans", 18), now.ToString("dd"));
+            ComboBox dateCombobox1 = createCombobox.CreateComboboxs(bodyDownPanel, "dateCombobox1", constants.dates1, monthLabel1.Right, subTitle2.Bottom + bodyDownPanel.Height / 10, bodyDownPanel.Width * 8 / 125, bodyDownPanel.Height / 10, bodyDownPanel.Height / 10, new Font("Comic Sans", 32), now.ToString("dd"));
 
             //  dropDownDate.CreateDropDown("falsePurchaseCancellation", bodyDownPanel, constants.dates, startLabel.Right + 440, subTitle2.Bottom + 30, 150, 50, 150, 50 * 32, 150, 50, Color.Transparent, Color.Transparent);
-            Label dateLabel1 = createLabel.CreateLabelsInPanel(bodyDownPanel, "startLabelDate", constants.dayLabel, startLabel.Right + 660, subTitle2.Bottom + 30, 50, 50, Color.Transparent, Color.Black, 22, false, ContentAlignment.MiddleLeft);
+            Label dateLabel1 = createLabel.CreateLabelsInPanel(bodyDownPanel, "startLabelDate", constants.dayLabel, dateCombobox1.Right, subTitle2.Bottom + bodyDownPanel.Height / 20, bodyDownPanel.Width * 5 / 125, bodyDownPanel.Height / 5, Color.Transparent, Color.Black, 22, false, ContentAlignment.MiddleLeft);
             dateComboboxStartGlobal = dateCombobox1;
             dateCombobox1.DrawItem += new DrawItemEventHandler(createCombobox.dateCombobox_DrawItem);
             dateCombobox1.MeasureItem += new MeasureItemEventHandler(createCombobox.dateCombobox_MeasureItem);
 
-            Label endLabel = createLabel.CreateLabelsInPanel(bodyDownPanel, "endLabel", constants.falsePurchaseEndLabel, bodyDownPanel.Width / 5, startLabel.Bottom + 30, 100, 50, Color.Transparent, Color.Black, 22);
+            Label endLabel = createLabel.CreateLabelsInPanel(bodyDownPanel, "endLabel", constants.falsePurchaseEndLabel, bodyDownPanel.Width * 6 / 25, startLabel.Bottom, bodyDownPanel.Width * 3 / 25, bodyDownPanel.Height / 5, Color.Transparent, Color.Black, 22);
 
             // dropDownYear.CreateDropDown("falsePurchaseCancellation", bodyDownPanel, new string[] { "2020", "2019", "2018" }, startLabel.Right + 10, subTitle2.Bottom + 30, 150, 50, 150, 200, 150, 50, Color.Transparent, Color.Transparent);
-            ComboBox yearCombobox2 = createCombobox.CreateComboboxs(bodyDownPanel, "yearCombobox2", new string[] { "2020", "2019", "2018" }, startLabel.Right + 40, startLabel.Bottom + 40, 150, 40, 25, new Font("Comic Sans", 18), now.ToString("yyyy"));
-            Label yearLabel2 = createLabel.CreateLabelsInPanel(bodyDownPanel, "endLabelYear", constants.yearLabel, startLabel.Right + 200, startLabel.Bottom + 30, 50, 50, Color.Transparent, Color.Black, 22, false, ContentAlignment.MiddleLeft);
+            ComboBox yearCombobox2 = createCombobox.CreateComboboxs(bodyDownPanel, "yearCombobox2", new string[] { "2020", "2019", "2018" }, endLabel.Right, startLabel.Bottom + bodyDownPanel.Height / 20, bodyDownPanel.Width * 15 / 125, bodyDownPanel.Height / 10, bodyDownPanel.Height / 10, new Font("Comic Sans", 32), now.ToString("yyyy"));
+            Label yearLabel2 = createLabel.CreateLabelsInPanel(bodyDownPanel, "endLabelYear", constants.yearLabel, yearCombobox2.Right, startLabel.Bottom, bodyDownPanel.Width * 5 / 125, bodyDownPanel.Height / 5, Color.Transparent, Color.Black, 22, false, ContentAlignment.MiddleLeft);
             yearComboboxEndGlobal = yearCombobox2;
             yearCombobox2.DrawItem += new DrawItemEventHandler(createCombobox.dateCombobox_DrawItem);
             yearCombobox2.MeasureItem += new MeasureItemEventHandler(createCombobox.dateCombobox_MeasureItem);
 
             // dropDownMonth.CreateDropDown("falsePurchaseCancellation", bodyDownPanel, constants.months, startLabel.Right + 230, subTitle2.Bottom + 30, 150, 50, 150, 50 * 13, 150, 50, Color.Transparent, Color.Transparent);
-            ComboBox monthCombobox2 = createCombobox.CreateComboboxs(bodyDownPanel, "monthCombobox2", constants.months2, startLabel.Right + 270, startLabel.Bottom + 40, 150, 40, 25, new Font("Comic Sans", 18), now.ToString("MM"));
-            Label monthLabel2 = createLabel.CreateLabelsInPanel(bodyDownPanel, "endLabelMonth", constants.monthLabel, startLabel.Right + 440, startLabel.Bottom + 30, 50, 50, Color.Transparent, Color.Black, 22);
+            ComboBox monthCombobox2 = createCombobox.CreateComboboxs(bodyDownPanel, "monthCombobox2", constants.months2, yearLabel2.Right, startLabel.Bottom + bodyDownPanel.Height / 20, bodyDownPanel.Width * 8 / 125, bodyDownPanel.Height / 10, bodyDownPanel.Height / 10, new Font("Comic Sans", 32), now.ToString("MM"));
+            Label monthLabel2 = createLabel.CreateLabelsInPanel(bodyDownPanel, "endLabelMonth", constants.monthLabel, monthCombobox2.Right, startLabel.Bottom, bodyDownPanel.Width * 5 / 125, bodyDownPanel.Height / 5, Color.Transparent, Color.Black, 22, false, ContentAlignment.MiddleLeft);
             monthComboboxEndGlobal = monthCombobox2;
             monthCombobox2.DrawItem += new DrawItemEventHandler(createCombobox.dateCombobox_DrawItem);
             monthCombobox2.MeasureItem += new MeasureItemEventHandler(createCombobox.dateCombobox_MeasureItem);
 
             //  dropDownDate.CreateDropDown("falsePurchaseCancellation", bodyDownPanel, constants.dates, startLabel.Right + 440, subTitle2.Bottom + 30, 150, 50, 150, 50 * 32, 150, 50, Color.Transparent, Color.Transparent);
-            ComboBox dateCombobox2 = createCombobox.CreateComboboxs(bodyDownPanel, "dateCombobox2", constants.dates2, startLabel.Right + 500, startLabel.Bottom + 40, 150, 40, 25, new Font("Comic Sans", 18), now.ToString("dd"));
-            Label dateLabel2 = createLabel.CreateLabelsInPanel(bodyDownPanel, "endLabelDate", constants.dayLabel, startLabel.Right + 660, startLabel.Bottom + 30, 50, 50, Color.Transparent, Color.Black, 22);
+            ComboBox dateCombobox2 = createCombobox.CreateComboboxs(bodyDownPanel, "dateCombobox2", constants.dates2, monthLabel2.Right, startLabel.Bottom + bodyDownPanel.Height / 20, bodyDownPanel.Width * 8 / 125, bodyDownPanel.Height / 10, bodyDownPanel.Height / 10, new Font("Comic Sans", 32), now.ToString("dd"));
+            Label dateLabel2 = createLabel.CreateLabelsInPanel(bodyDownPanel, "endLabelDate", constants.dayLabel, dateCombobox2.Right, startLabel.Bottom, bodyDownPanel.Width * 5 / 125, bodyDownPanel.Height / 5, Color.Transparent, Color.Black, 22, false, ContentAlignment.MiddleLeft);
             dateComboboxEndGlobal = dateCombobox2;
             dateCombobox2.DrawItem += new DrawItemEventHandler(createCombobox.dateCombobox_DrawItem);
             dateCombobox2.MeasureItem += new MeasureItemEventHandler(createCombobox.dateCombobox_MeasureItem);
 
-            Button cancellationShowButton = customButton.CreateButton(constants.falsePurchaseListLabel, "cancellationShowButton", bodyDownPanel.Width * 4 / 5, endLabel.Bottom + 30, 200, 50, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 1, 12, FontStyle.Regular, Color.White);
+            Button cancellationShowButton = customButton.CreateButtonWithImage(cancelButtonImage, "cancellationShowButton", constants.falsePurchaseListLabel, bodyDownPanel.Width * 2 / 3, endLabel.Bottom, bodyDownPanel.Width * 12 / 45, bodyDownPanel.Height / 6, 0, 1, 32, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 2);
+
             bodyDownPanel.Controls.Add(cancellationShowButton);
             cancellationShowButton.Click += new EventHandler(this.ShowCanceledResult);
         }
 
         public void BackShow(object sender, EventArgs e)
         {
-            mainFormGlobal.Controls.Clear();
+            mainPanelGlobal_2.Controls.Clear();
+            mainPanelGlobal_2.Hide();
+            mainPanelGlobal.Show();
+            mainFormGlobal.topPanelGlobal.Show();
+            mainFormGlobal.bottomPanelGlobal.Show();
             MaintaneceMenu frm = new MaintaneceMenu(mainFormGlobal, mainPanelGlobal);
             frm.TopLevel = false;
-            mainFormGlobal.Controls.Add(frm);
+            mainPanelGlobal.Controls.Add(frm);
             frm.FormBorderStyle = FormBorderStyle.None;
             frm.Dock = DockStyle.Fill;
             Thread.Sleep(200);
@@ -266,15 +277,13 @@ namespace Ovan_P1
             DateTime now = DateTime.Now;
 
             Form dialogForm = new Form();
-            dialogForm.Size = new Size(mainFormGlobal.Width, mainFormGlobal.Height);
-            dialogForm.BackColor = Color.White;
-            dialogForm.Location = new Point(0, 0);
+            dialogForm.Size = new Size(mainFormGlobal.Width * 2 / 3, mainFormGlobal.Height * 2 / 3);
             dialogForm.StartPosition = FormStartPosition.WindowsDefaultLocation;
-            dialogForm.WindowState = FormWindowState.Maximized;
-            dialogForm.ControlBox = true;
-            dialogForm.MaximizeBox = false;
-            dialogForm.MinimizeBox = false;
-            dialogForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+            dialogForm.WindowState = FormWindowState.Normal;
+            dialogForm.ControlBox = false;
+            dialogForm.FormBorderStyle = FormBorderStyle.None;
+            dialogForm.BackgroundImage = Image.FromFile(constants.dialogFormImage);
+            dialogForm.BackgroundImageLayout = ImageLayout.Stretch;
             DialogFormGlobal = dialogForm;
 
             Panel dialogPanel = createPanel.CreateMainPanel(dialogForm, 0, 0, dialogForm.Width, dialogForm.Height, BorderStyle.None, Color.Transparent);
@@ -348,17 +357,17 @@ namespace Ovan_P1
             dialogForm.StartPosition = FormStartPosition.CenterParent;
             dialogForm.WindowState = FormWindowState.Normal;
             dialogForm.ControlBox = false;
-            dialogForm.MaximizeBox = false;
-            dialogForm.MinimizeBox = false;
-            dialogForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+            dialogForm.FormBorderStyle = FormBorderStyle.None;
+            dialogForm.BackgroundImage = Image.FromFile(constants.dialogFormImage);
+            dialogForm.BackgroundImageLayout = ImageLayout.Stretch;
             DialogFormGlobal = dialogForm;
 
             Panel dialogPanel = createPanel.CreateMainPanel(dialogForm, 0, 0, dialogForm.Width, dialogForm.Height, BorderStyle.None, Color.Transparent);
 
             Label dialogTitle1 = createLabel.CreateLabelsInPanel(dialogPanel, "dialogTitle1", constants.cancelResultErrorMessage, dialogPanel.Width / 10, 0, dialogPanel.Width * 4 / 5, dialogPanel.Height * 2 / 3, Color.Transparent, Color.Black, 22);
 
+            Button backButton = customButton.CreateButtonWithImage(Image.FromFile(constants.rectBlueButton), "backButton", constants.backText, dialogPanel.Width / 2 - 75, dialogPanel.Height * 2 / 3, 150, 40, 0, 1, 18, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 1);
 
-            Button backButton = customButton.CreateButton(constants.backText, "backButton", dialogPanel.Width / 2 - 75, dialogPanel.Height * 2 / 3, 150, 40, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 10, 14, FontStyle.Bold, Color.White);
             dialogPanel.Controls.Add(backButton);
             backButton.Click += new EventHandler(this.BackShowParent);
 

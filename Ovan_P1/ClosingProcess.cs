@@ -21,6 +21,7 @@ namespace Ovan_P1
         Panel mainPanelGlobal = null;
         Panel headerPanelG = null;
         Button mainButton = null;
+        Button backButtonGlobal = null;
         //private Button buttonGlobal = null;
         private FlowLayoutPanel[] menuFlowLayoutPanelGlobal = new FlowLayoutPanel[4];
         Constant constants = new Constant();
@@ -33,6 +34,9 @@ namespace Ovan_P1
         ProgressBar progressBar1 = null;
         BackgroundWorker backgroundWorker = null;
         Panel progressDialogPanel = null;
+        Image buttonImage1 = null;
+        Image buttonImage2 = null;
+        Image disablebuttonImage = null;
 
         DetailView detailView = new DetailView();
         SQLiteConnection sqlite_conn;
@@ -42,17 +46,21 @@ namespace Ovan_P1
         int countNum = 0;
         int rowNumDaySale = 0;
         string storeEndTime = "00:00";
+        string openTime = "00:00";
         DateTime now = DateTime.Now;
         DateTime sumDayTime1 = new DateTime(int.Parse(DateTime.Now.ToString("yyyy")), int.Parse(DateTime.Now.ToString("MM")), int.Parse(DateTime.Now.ToString("dd")), 00, 00, 00);
         DateTime sumDayTime2 = new DateTime(int.Parse(DateTime.Now.ToString("yyyy")), int.Parse(DateTime.Now.ToString("MM")), int.Parse(DateTime.Now.ToString("dd")), 23, 59, 59);
+        DateTime openDayTime = new DateTime(int.Parse(DateTime.Now.ToString("yyyy")), int.Parse(DateTime.Now.ToString("MM")), int.Parse(DateTime.Now.ToString("dd")), 00, 00, 00);
+
         string sumDate = DateTime.Now.ToString("yyyy-MM-dd");
 
         public ClosingProcess(Form1 mainForm, Panel mainPanel)
         {
-            mainForm.Width = width;
-            mainForm.Height = height;
             mainFormGlobal = mainForm;
             mainPanelGlobal = mainPanel;
+            buttonImage1 = Image.FromFile(constants.maitanenceButtonImage[1]);
+            buttonImage2 = Image.FromFile(constants.maitanenceButtonImage[0]);
+            disablebuttonImage = Image.FromFile(constants.disableButtonImage);
             sqlite_conn = CreateConnection(constants.dbName);
             if (sqlite_conn.State == ConnectionState.Closed)
             {
@@ -75,14 +83,17 @@ namespace Ovan_P1
                     if (week == "Sat")
                     {
                         storeEndTime = (sqlite_datareader.GetString(6)).Split('/')[1];
+                        openTime = (sqlite_datareader.GetString(4)).Split('/')[0].Split('-')[0] ;
                     }
                     else if (week == "Sun")
                     {
                         storeEndTime = (sqlite_datareader.GetString(6)).Split('/')[2];
+                        openTime = (sqlite_datareader.GetString(5)).Split('/')[0].Split('-')[0];
                     }
                     else
                     {
                         storeEndTime = (sqlite_datareader.GetString(6)).Split('/')[0];
+                        openTime = (sqlite_datareader.GetString(3)).Split('/')[0].Split('-')[0];
                     }
 
                 }
@@ -90,11 +101,15 @@ namespace Ovan_P1
 
             sumDayTime1 = constants.sumDayTimeStart(storeEndTime);
             sumDayTime2 = constants.sumDayTimeEnd(storeEndTime);
-
+            openDayTime = constants.openDateTime(openTime, storeEndTime);
             sumDate = constants.sumDate(storeEndTime);
 
             try
             {
+                if(DateTime.Compare(sumDayTime1, now) <= 0 && DateTime.Compare(now, openDayTime) <= 0)
+                {
+                    sumDate = Convert.ToDateTime(sumDate).AddDays(-1).ToString("yyyy-MM-dd");
+                }
                 SQLiteCommand sqlite_cmds = sqlite_conn.CreateCommand();
                 string sumIdentify = "SELECT COUNT(id) FROM " + constants.tbNames[7] + " WHERE sumDate=@sumDate";
                 sqlite_cmds.CommandText = sumIdentify;
@@ -112,33 +127,31 @@ namespace Ovan_P1
 
             sqlite_conn.Close();
 
-            Panel headerPanel = createPanel.CreateMainPanel(mainForm, 0, 0, width, height / 5, BorderStyle.None, Color.Transparent);
+            Panel headerPanel = createPanel.CreateSubPanel(mainPanel, 0, 0, mainPanel.Width, mainPanel.Height / 10, BorderStyle.None, Color.FromArgb(255, 234, 225, 151));
+            Panel bodyPanel = createPanel.CreateSubPanel(mainPanel, 0, headerPanel.Bottom, mainPanel.Width, mainPanel.Height * 9 / 10, BorderStyle.None, Color.Transparent);
             headerPanelG = headerPanel;
-            Label headerLabel = createLabel.CreateLabelsInPanel(headerPanel, "headerLabel", constants.closingProcessTitle, 0, 0, headerPanel.Width / 3 - 10, headerPanel.Height, Color.Transparent, Color.Red, 28, false, ContentAlignment.MiddleLeft);
-            headerLabel.Padding = new Padding(30, 0, 0, 20);
+            Label headerLabel = createLabel.CreateLabelsInPanel(headerPanel, "headerLabel", constants.closingProcessTitle, 0, 0, headerPanel.Width, headerPanel.Height, Color.Transparent, Color.Black, 28, false, ContentAlignment.MiddleCenter);
 
 
-            Panel bodyPanel = createPanel.CreateMainPanel(mainForm, 0, headerPanel.Bottom, width, height * 4 / 5, BorderStyle.None, Color.Transparent);
             for (int i = 0; i < 4; i++)
             {
-                FlowLayoutPanel menuFlowLayoutPanel = createPanel.CreateFlowLayoutPanel(bodyPanel, width / 5, bodyPanel.Height / 9 + (bodyPanel.Height / 6) * i, width * 3 / 5, bodyPanel.Height / 8, Color.Transparent, new Padding(0, 0, 0, 0));
-                menuFlowLayoutPanel.Margin = new Padding(30);
+                FlowLayoutPanel menuFlowLayoutPanel = createPanel.CreateFlowLayoutPanel(bodyPanel, bodyPanel.Width / 15, bodyPanel.Height / 25 + (bodyPanel.Height / 5 + bodyPanel.Height / 25) * i, bodyPanel.Width * 13 / 15, bodyPanel.Height / 5, Color.White, new Padding(0, bodyPanel.Height / 30, 0, bodyPanel.Height / 30));
+                
+                //menuFlowLayoutPanel.Margin = new Padding(30);
 
                 menuFlowLayoutPanelGlobal[i] = menuFlowLayoutPanel;
 
-                Label menuLabel = createLabel.CreateLabels(menuFlowLayoutPanel, "processLabel_" + i, constants.closingProcessLabel[i], 100, menuFlowLayoutPanel.Height * i, menuFlowLayoutPanel.Width / 3 - 10, menuFlowLayoutPanel.Height, Color.Transparent, Color.Red, 18, false, ContentAlignment.MiddleLeft);
-
-                Image btnImage = Image.FromFile(constants.closingProcessButtonImage[i]);
-
-                Color btnBackColor1 = Color.FromArgb(255, 229, 229, 229);
-                Color btnBackColor2 = Color.FromArgb(255, 229, 229, 229);
+                Label menuLabel = createLabel.CreateLabels(menuFlowLayoutPanel, "processLabel_" + i, constants.closingProcessLabel[i], 0, 0, menuFlowLayoutPanel.Width / 5 + 30, menuFlowLayoutPanel.Height * 2 / 3, Color.Transparent, Color.Red, 18, false, ContentAlignment.MiddleLeft);
+                menuLabel.Margin = new Padding(menuFlowLayoutPanel.Width / 16, 0, 0, 0);
+                Image btnImage1 = disablebuttonImage;
+                Image btnImage2 = disablebuttonImage;
                 Color btnForeColor = Color.Black;
                 bool btnEnable = false;
 
                 if (manualProcessState)
                 {
-                    btnBackColor1 = Color.FromArgb(255, 0, 176, 80);
-                    btnBackColor2 = Color.FromArgb(255, 0, 160, 230);
+                    btnImage1 = buttonImage2;
+                    btnImage2 = buttonImage1;
                     btnForeColor = Color.White;
                     btnEnable = true;
                 }
@@ -146,16 +159,16 @@ namespace Ovan_P1
                 {
                     if (manualProcessState)
                     {
-                        Button menuButton_1 = customButton.CreateButton(constants.closingProcessButton[i][0], "processButton_" + i + "_1", menuLabel.Right, menuFlowLayoutPanel.Height * i, menuFlowLayoutPanel.Width / 3 - 50, menuFlowLayoutPanel.Height, Color.FromArgb(255, 229, 229, 229), Color.Transparent, 0);
+                        Button menuButton_1 = customButton.CreateButtonWithImage(disablebuttonImage, "processButton_" + i + "_1", constants.closingProcessButton[i][0], menuLabel.Right, menuFlowLayoutPanel.Height * i, menuFlowLayoutPanel.Width / 4, menuFlowLayoutPanel.Height * 2 / 3, 0, 50, 14, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 2);
                         menuFlowLayoutPanel.Controls.Add(menuButton_1);
 
-                        menuButton_1.Margin = new Padding(0, 0, 30, 0);
+                        menuButton_1.Margin = new Padding(menuFlowLayoutPanel.Width / 16, 0, 0, 0);
                         menuButton_1.Enabled = false;
 
-                        Button menuButton_2 = customButton.CreateButton(constants.closingProcessButton[i][1], "processButton_" + i + "_2", menuButton_1.Right + 30, menuFlowLayoutPanel.Height * i, menuFlowLayoutPanel.Width / 3 - 50, menuFlowLayoutPanel.Height, Color.FromArgb(255, 0, 160, 230), Color.Transparent, 0, 1, 12, FontStyle.Regular, Color.White);
+                        Button menuButton_2 = customButton.CreateButtonWithImage(buttonImage1, "processButton_" + i + "_2", constants.closingProcessButton[i][1], menuButton_1.Right, 0, menuFlowLayoutPanel.Width / 4, menuFlowLayoutPanel.Height * 2 / 3, 0, 50, 14, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 2);
                         menuFlowLayoutPanel.Controls.Add(menuButton_2);
 
-                        menuButton_2.Margin = new Padding(30, 0, 0, 0);
+                        menuButton_2.Margin = new Padding(menuFlowLayoutPanel.Width / 16, 0, 0, 0);
                         menuButton_2.Enabled = true;
 
                         menuButtonGlobal[i * 2] = menuButton_1;
@@ -167,16 +180,16 @@ namespace Ovan_P1
                     }
                     else
                     {
-                        Button menuButton_1 = customButton.CreateButton(constants.closingProcessButton[i][0], "processButton_" + i + "_1", menuLabel.Right, menuFlowLayoutPanel.Height * i, menuFlowLayoutPanel.Width / 3 - 50, menuFlowLayoutPanel.Height, Color.FromArgb(255, 0, 160, 230), Color.Transparent, 0, 1, 12, FontStyle.Regular, Color.White);
+                        Button menuButton_1 = customButton.CreateButtonWithImage(buttonImage1, "processButton_" + i + "_1", constants.closingProcessButton[i][0], menuLabel.Right, 0, menuFlowLayoutPanel.Width / 4, menuFlowLayoutPanel.Height * 2 / 3, 0, 50, 14, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 2);
                         menuFlowLayoutPanel.Controls.Add(menuButton_1);
 
-                        menuButton_1.Margin = new Padding(0, 0, 30, 0);
+                        menuButton_1.Margin = new Padding(menuFlowLayoutPanel.Width / 16, 0, 0, 0);
 
 
-                        Button menuButton_2 = customButton.CreateButton(constants.closingProcessButton[i][1], "processButton_" + i + "_2", menuButton_1.Right + 30, menuFlowLayoutPanel.Height * i, menuFlowLayoutPanel.Width / 3 - 50, menuFlowLayoutPanel.Height, Color.FromArgb(255, 229, 229, 229), Color.Transparent, 0, 1);
+                        Button menuButton_2 = customButton.CreateButtonWithImage(disablebuttonImage, "processButton_" + i + "_2", constants.closingProcessButton[i][1], menuButton_1.Right, 0, menuFlowLayoutPanel.Width / 4, menuFlowLayoutPanel.Height * 2 / 3, 0, 50, 14, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 2);
                         menuFlowLayoutPanel.Controls.Add(menuButton_2);
 
-                        menuButton_2.Margin = new Padding(30, 0, 0, 0);
+                        menuButton_2.Margin = new Padding(menuFlowLayoutPanel.Width / 16, 0, 0, 0);
                         menuButton_2.Enabled = false;
 
                         menuButtonGlobal[i * 2] = menuButton_1;
@@ -191,40 +204,44 @@ namespace Ovan_P1
 
                 else if (i < 3)
                 {
-                    Button menuButton_1 = customButton.CreateButton(constants.closingProcessButton[i][0], "processButton_" + i + "_1", menuLabel.Right, menuFlowLayoutPanel.Height * i, menuFlowLayoutPanel.Width / 3 - 50, menuFlowLayoutPanel.Height, btnBackColor1, Color.Transparent, 0, 1, 12, FontStyle.Regular, btnForeColor);
+                    Button menuButton_1 = customButton.CreateButtonWithImage(btnImage1, "processButton_" + i + "_1", constants.closingProcessButton[i][0], menuLabel.Right, 0, menuFlowLayoutPanel.Width / 4 - menuFlowLayoutPanel.Width / 32, menuFlowLayoutPanel.Height * 2 / 3, 0, 50, 14, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 2);
+
                     menuFlowLayoutPanel.Controls.Add(menuButton_1);
 
-                    menuButton_1.Margin = new Padding(0, 0, 30, 0);
+                    menuButton_1.Margin = new Padding(menuFlowLayoutPanel.Width * 3 / 32 , 0, 0, 0);
                     menuButton_1.Enabled = btnEnable;
                     menuButton_1.Click += new EventHandler(detailView.DetailViewIndicator);
 
-                    Button menuButton_2 = customButton.CreateButton(constants.closingProcessButton[i][1], "processButton_" + i + "_2", menuButton_1.Right + 90, menuFlowLayoutPanel.Height * i, menuFlowLayoutPanel.Width / 3 - 50, menuFlowLayoutPanel.Height, btnBackColor2, Color.Transparent, 0, 1, 12, FontStyle.Regular, btnForeColor);
+                    Button menuButton_2 = customButton.CreateButtonWithImage(btnImage2, "processButton_" + i + "_2", constants.closingProcessButton[i][1], menuButton_1.Right, 0, menuFlowLayoutPanel.Width / 4 - menuFlowLayoutPanel.Width / 32, menuFlowLayoutPanel.Height * 2 / 3, 0, 50, 14, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 2);
                     menuFlowLayoutPanel.Controls.Add(menuButton_2);
 
                     menuButtonGlobal[i * 2] = menuButton_1;
                     menuButtonGlobal[i * 2 + 1] = menuButton_2;
 
-                    menuButton_2.Margin = new Padding(30, 0, 0, 0);
+                    menuButton_2.Margin = new Padding(menuFlowLayoutPanel.Width / 16, 0, 0, 0);
                     menuButton_2.Enabled = btnEnable;
 
                     menuButton_2.Click += new EventHandler(detailView.DetailViewIndicator);
                 }
                 else
                 {
-                    Button menuButton_1 = customButton.CreateButton(constants.closingProcessButton[i][0], "processButton_" + i + "_1", menuLabel.Right, menuFlowLayoutPanel.Height * i, menuFlowLayoutPanel.Width / 3 - 50, menuFlowLayoutPanel.Height, Color.FromArgb(255, 0, 176, 80), Color.Transparent, 0, 1, 12, FontStyle.Regular, Color.White);
+                    Button menuButton_1 = customButton.CreateButtonWithImage(buttonImage2, "processButton_" + i + "_1", constants.closingProcessButton[i][0], menuLabel.Right, 0, menuFlowLayoutPanel.Width / 4 - menuFlowLayoutPanel.Width / 32, menuFlowLayoutPanel.Height * 2 / 3, 0, 50, 14, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 2);
                     menuFlowLayoutPanel.Controls.Add(menuButton_1);
 
                     menuButtonGlobal[i * 2] = menuButton_1;
 
-                    menuButton_1.Margin = new Padding(0, 0, 30, 0);
+                    menuButton_1.Margin = new Padding(menuFlowLayoutPanel.Width * 3 / 32, 0, 0, 0);
 
                     menuButton_1.Click += new EventHandler(detailView.DetailViewIndicator);
                 }
             }
 
-            Button backButton = customButton.CreateButton(constants.backText, "backButton", bodyPanel.Width - 150, bodyPanel.Height - 100, 100, 50, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 10, 14, FontStyle.Bold, Color.White);
-            bodyPanel.Controls.Add(backButton);
+            Image saleStateButtonImage1 = Image.FromFile(constants.soldoutButtonImage1);
+
+            Button backButton = customButton.CreateButtonWithImage(saleStateButtonImage1, "backButton", constants.backText, mainPanel.Right - 100, mainPanel.Bottom + 10, 100, 50, 1, 10, 14, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 1);
+            mainForm.Controls.Add(backButton);
             backButton.Click += new EventHandler(this.BackShow);
+            backButtonGlobal = backButton;
 
             InitializeComponent();
             backgroundWorker = new BackgroundWorker();
@@ -276,10 +293,11 @@ namespace Ovan_P1
         }
         public void BackShow(object sender, EventArgs e)
         {
-            mainFormGlobal.Controls.Clear();
+            mainPanelGlobal.Controls.Clear();
+            mainFormGlobal.Controls.Remove(backButtonGlobal);
             MaintaneceMenu frm = new MaintaneceMenu(mainFormGlobal, mainPanelGlobal);
             frm.TopLevel = false;
-            mainFormGlobal.Controls.Add(frm);
+            mainPanelGlobal.Controls.Add(frm);
             frm.FormBorderStyle = FormBorderStyle.None;
             frm.Dock = DockStyle.Fill;
             Thread.Sleep(200);
@@ -391,7 +409,9 @@ namespace Ovan_P1
             progressDialog.StartPosition = FormStartPosition.CenterParent;
             progressDialog.WindowState = FormWindowState.Normal;
             progressDialog.ControlBox = false;
-            progressDialog.FormBorderStyle = FormBorderStyle.FixedDialog;
+            progressDialog.FormBorderStyle = FormBorderStyle.None;
+            progressDialog.BackgroundImage = Image.FromFile(constants.dialogFormImage);
+            progressDialog.BackgroundImageLayout = ImageLayout.Stretch;
 
             progressDialogPanel = createPanel.CreateMainPanel(progressDialog, 0, 0, progressDialog.Width, progressDialog.Height, BorderStyle.None, Color.Transparent);
 
@@ -406,9 +426,9 @@ namespace Ovan_P1
             progressBar1.Value = 0;
             progressBar1.SendToBack();
 
-            FlowLayoutPanel progressLabelPanel = createPanel.CreateFlowLayoutPanel(progressDialogPanel, 0, progressDialogPanel.Height / 2 + 10, progressDialogPanel.Width, progressDialogPanel.Height / 2 - 20, Color.White, new Padding(0));
+            FlowLayoutPanel progressLabelPanel = createPanel.CreateFlowLayoutPanel(progressDialogPanel, 0, progressDialogPanel.Height / 2 + 10, progressDialogPanel.Width, progressDialogPanel.Height / 2 - 20, Color.Transparent, new Padding(0));
 
-            progressAlertLabel = createLabel.CreateLabels(progressLabelPanel, "progressAlert", constants.sumProgressAlert, 0, progressDialogPanel.Height / 2 + 30, progressDialogPanel.Width - 10, 50, Color.White, Color.Black, 18, false, ContentAlignment.MiddleCenter);
+            progressAlertLabel = createLabel.CreateLabels(progressLabelPanel, "progressAlert", constants.sumProgressAlert, 0, progressDialogPanel.Height / 2 + 30, progressDialogPanel.Width - 10, 50, Color.Transparent, Color.Black, 18, false, ContentAlignment.MiddleCenter);
 
             if (backgroundWorker.IsBusy != true)
             {
@@ -429,14 +449,14 @@ namespace Ovan_P1
         {
             if (manualProcessState)
             {
-                menuButtonGlobal[0].BackColor = Color.FromArgb(255, 229, 229, 229);
-                menuButtonGlobal[0].ForeColor = Color.Black;
+                menuButtonGlobal[0].BackgroundImage = disablebuttonImage;
+                //menuButtonGlobal[0].ForeColor = Color.Black;
                 menuButtonGlobal[0].Enabled = false;
             }
             else
             {
-                menuButtonGlobal[0].BackColor = Color.FromArgb(255, 0, 160, 230);
-                menuButtonGlobal[0].ForeColor = Color.White;
+                menuButtonGlobal[0].BackgroundImage = buttonImage1;
+                //menuButtonGlobal[0].ForeColor = Color.White;
                 menuButtonGlobal[0].Enabled = true;
             }
             for(int i = 1; i < 6; i++)
@@ -445,20 +465,20 @@ namespace Ovan_P1
                 {
                     if(i % 2 == 0)
                     {
-                        menuButtonGlobal[i].BackColor = Color.FromArgb(255, 0, 176, 80);
+                        menuButtonGlobal[i].BackgroundImage = buttonImage2;
                     }
                     else
                     {
-                        menuButtonGlobal[i].BackColor = Color.FromArgb(255, 0, 160, 230);
+                        menuButtonGlobal[i].BackgroundImage = buttonImage1;
                     }
                     menuButtonGlobal[i].Enabled = true;
-                    menuButtonGlobal[i].ForeColor = Color.White;
+                    //menuButtonGlobal[i].ForeColor = Color.White;
                 }
                 else
                 {
                     menuButtonGlobal[i].Enabled = false;
-                    menuButtonGlobal[i].BackColor = Color.FromArgb(255, 229, 229, 229); 
-                    menuButtonGlobal[i].ForeColor = Color.Black;
+                    menuButtonGlobal[i].BackgroundImage = disablebuttonImage; 
+                    //menuButtonGlobal[i].ForeColor = Color.Black;
                 }
             }
         }

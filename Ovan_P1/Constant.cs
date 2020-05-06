@@ -63,8 +63,8 @@ namespace Ovan_P1
         public string closingProcessTitle = "締め処理";
         public string timeRangeLabel = "時台";
         public string logReportLabel = "ログ表示";
-        public string falsePurchaseTitle = "誤購入取消";
-        public string falsePurchaseSubTitle1 = "誤購入取消";
+        public string falsePurchaseTitle = "誤購入取消 / 取消";
+        public string falsePurchaseSubTitle1 = "誤購入取消 / 取消";
         public string falsePurchaseSubContent1 = "誤購入の取消を行う場合は下記のボタンを\nタッチしてください。";
         public string falsePurchaseSubTitle2 = "誤購入一覧表示";
         public string falsePurchaseButton = "誤購入取消";
@@ -119,6 +119,13 @@ namespace Ovan_P1
         public string systemSubErrorMsg = "マニュアルに従ってサービスをご依頼ください。";
         public string printErrorMsg = "レシート用紙切れです。\nロール紙を補充してください。";
         public string printSubErrorMsg = "完了しましたらエラー解除ボタンを押してください。";
+        public string printOfflineErrorMsg = "プリンタは現在オフラインです。";
+        public string dbErrorTitle = "資料基地大湯です。";
+        public string dbErrorContent = "メニュー読込に行って、まずデータをロード受けてください。";
+        public string bankNoteErrorMsg = "紙幣識別機１エラー収納部異常";
+        public string bankNoteSubErrorMsg = "完了しましたらエラー解除ボタンを押してください。";
+        public string bankNoteDepositeErrorMsg = "紙幣識別機エラー挿入部異常";
+        public string bankNoteWithdrawErrorMsg = "紙幣排出機エラーメイン搬送路異常";
 
         public string unChanged = "未変更";
         public string dayTypeBefore = "デフォルトの曜日タイプ";
@@ -137,26 +144,27 @@ namespace Ovan_P1
 
         public string gettingLabel = "了解";
 
-        public int singleticketPrintPaperWidth = 500;
+        public int singleticketPrintPaperWidth = 203;
         public int singleticketPrintPaperHeight = 35 * 9;
-        public int multiticketPrintPaperWidth = 500;
+        public int multiticketPrintPaperWidth = 203;
         public int multiticketPrintPaperHeight = 35 * 8;
-        public int receiptPrintPaperWidth = 500;
+        public int receiptPrintPaperWidth = 203;
         public int receiptPrintPaperHeight = 35 * 9;
 
-        public int dailyReportPrintPaperWidth = 500;
-        public int dailyReportPrintPaperHeight = 800;
-        public int receiptReportPrintPaperWidth = 500;
-        public int receiptReportPrintPaperHeight = 800;
+        public int dailyReportPrintPaperWidth = 203;
+        public int dailyReportPrintPaperHeight = 560;
+        public int receiptReportPrintPaperWidth = 203;
+        public int receiptReportPrintPaperHeight = 560;
 
-        public int categorylistPrintPaperWidth = 500;
-        public int categorylistPrintPaperHeight = 800;
-        public int grouplistPrintPaperWidth = 500;
-        public int grouplistPrintPaperHeight = 800;
+        public int categorylistPrintPaperWidth = 203;
+        public int categorylistPrintPaperHeight = 560;
+        public int grouplistPrintPaperWidth = 203;
+        public int grouplistPrintPaperHeight = 560;
 
         public int fontSizeBig = 14;
         public int fontSizeMedium = 10;
         public int fontSizeSmall = 8;
+        public int fontSizeSmaller = 6;
 
         public string[] tbNames = new string[] { "CategoryTB", "ProductTB", "CategoryDetailTB", "SaleTB", "TableSetTicket", "TableSetReceipt", "TableSetStore", "DaySaleTB", "ReceiptTB", "CancelOrderTB", "TableGroupName", "TableGroupDetail", "GeneralTB", "TableSetAudio" };
 
@@ -190,7 +198,7 @@ namespace Ovan_P1
         public string receiptButtonText = "領収書";
         public string deleteText = "削除";
         public string backText = "戻る";
-        public string[] maintanenceLabel = new string[] { "各種処理", "内容表示", "設定" };
+        public string[] maintanenceLabel = new string[] { "各種処理", "内容表示", "設  定" };
         public string[][] maintanenceButton = new string[][]
         {
             new string[] {  "売切れ設定", "締め処理", "誤購入取消" },
@@ -198,11 +206,17 @@ namespace Ovan_P1
             new string[] { "時刻設定", "暗証番号", "営業変更" }
         };
 
+        public Image upButtonImage = Image.FromFile(@"resources\\upButton.png");
+        public Image downButtonImage = Image.FromFile(@"resources\\downButton.png");
+        public Image increaseButtonImage = Image.FromFile(@"resources\\increaseButton.png");
+        public Image decreaseButtonImage = Image.FromFile(@"resources\\decreaseButton.png");
+
+
         public string[] maitanenceButtonImage = new string[]
         {
-            @"D:\\ovan\\Ovan_P1\\images\\menubutton1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\menubutton2.png",
-            @"D:\\ovan\\Ovan_P1\\images\\menubutton3.png"
+            @"resources\\menubutton1.png",
+            @"resources\\menubutton2.png",
+            @"resources\\menubutton3.png"
         };
 
         public string[] closingProcessLabel = new string[] { "手動での締め処理", "日報の処理", "領収書の処理", "ログ表示" };
@@ -215,21 +229,40 @@ namespace Ovan_P1
         };
         public string[] closingProcessButtonImage = new string[]
         {
-            @"D:\\ovan\\Ovan_P1\\images\\menubutton1.png",
-            @"D:\\ovan\\Ovan_P1\\images\\menubutton2.png",
-            @"D:\\ovan\\Ovan_P1\\images\\menubutton3.png",
-            @"D:\\ovan\\Ovan_P1\\images\\menubutton1.png"
+            @"resources\\menubutton1.png",
+            @"resources\\menubutton2.png",
+            @"resources\\menubutton3.png",
+            @"resources\\menubutton1.png"
        };
 
 
 
-        public string dropdownArrowUpIcon = @"D:\\ovan\\Ovan_P1\\images\\arrow_up.png";
-     //   public string dropdownArrowDownIcon = @"D:\\ovan\\Ovan_P1\\images\\arrow_down_icon.png";
-        public string dropdownArrowDownIcon = @"D:\\ovan\\Ovan_P1\\images\\arrow_down.png";
-        public string backButton = @"D:\\ovan\\Ovan_P1\\images\\back_new.png";
-        public string powerButton = @"D:\\ovan\\Ovan_P1\\images\\power_button.png";
-        public string soldoutBadge = @"D:\\ovan\\Ovan_P1\\images\\soldout.png";
-
+        public string dropdownArrowUpIcon = @"resources\\arrow_up.png";
+        public string dropdownArrowDownIcon = @"resources\\arrow_down.png";
+        public string backButton = @"resources\\back_new.png";
+        public string powerButton = @"resources\\power_button.png";
+        public string soldoutBadge = @"resources\\soldout.png";
+        public string dropdownarrowImage = @"resources\\dropdownarrow.png";
+        //   public string dropdownArrowDownIcon = @"D:\\ovan\\Ovan_P1\\images\\arrow_down_icon.png";
+        public string keyboardButtonImage = @"resources/keyboard.png";
+        public string numberButtonImage = @"resources/numberbutton.png";
+        public string prevkeyButtonImage = @"resources/prevkey.png";
+        public string nextkeyButtonImage = @"resources/nextkey.png";
+        public string clearkeyButtonImage = @"resources/clearkey.png";
+        public string soldoutButtonImage1 = @"resources/soldoutbutton.png";
+        public string soldoutButtonImage2 = @"resources/soldoutbutton_2.png";
+        public string menureadingButtonImage = @"resources/menureadingbutton.png";
+        public string disableButtonImage = @"resources/disablebutton.png";
+        public string cancelButton = @"resources\\cancelbutton.png";
+        public string roundedFormImage = @"resources\\roundedpanel.png";
+        public string dialogFormImage = @"resources\\dialogpanel.png";
+        public string errordialogImage = @"resources\\errordialogpanel.png";
+        public string rectBlueButton = @"resources\\rectblue.png";
+        public string rectRedButton = @"resources\\rectred.png";
+        public string rectGreenButton = @"resources\\rectgreen.png";
+        public string rectLightBlueButton = @"resources\\rectlightblue.png";
+        //public string greenGradient = @"resources\\greengradientbg.png";
+        //public string blueGradient = @"resources\\bluegradientbg.png";
 
         Color[] saleCategoryButtonColor = new Color[5] {
             Color.FromArgb(255, 255, 192, 0),
@@ -277,11 +310,12 @@ namespace Ovan_P1
             {
                 if(int.Parse(DateTime.Now.ToString("HH")) < int.Parse(storeEndTime.Split(':')[0]))
                 {
-                    sumDayTime = new DateTime(int.Parse(DateTime.Now.AddDays(-1).ToString("yyyy")), int.Parse(DateTime.Now.AddDays(-1).ToString("MM")), int.Parse(DateTime.Now.AddDays(-1).ToString("dd")), int.Parse(storeEndTime.Split(':')[0]), 00, 00);
+                    sumDayTime = new DateTime(int.Parse(DateTime.Now.AddDays(-1).ToString("yyyy")), int.Parse(DateTime.Now.AddDays(-1).ToString("MM")), int.Parse(DateTime.Now.AddDays(-1).ToString("dd")), int.Parse(storeEndTime.Split(':')[0]), int.Parse(storeEndTime.Split(':')[1]), 00);
+
                 }
                 else
                 {
-                    sumDayTime = new DateTime(int.Parse(DateTime.Now.ToString("yyyy")), int.Parse(DateTime.Now.ToString("MM")), int.Parse(DateTime.Now.ToString("dd")), int.Parse(storeEndTime.Split(':')[0]), 00, 00);
+                    sumDayTime = new DateTime(int.Parse(DateTime.Now.ToString("yyyy")), int.Parse(DateTime.Now.ToString("MM")), int.Parse(DateTime.Now.ToString("dd")), int.Parse(storeEndTime.Split(':')[0]), int.Parse(storeEndTime.Split(':')[1]), 00);
                 }
             }
 
@@ -292,14 +326,22 @@ namespace Ovan_P1
         public DateTime sumDayTimeEnd(string storeEndTime)
         {
             DateTime sumDayTime = DateTime.Now;
-            sumDayTime = new DateTime(int.Parse(DateTime.Now.ToString("yyyy")), int.Parse(DateTime.Now.ToString("MM")), int.Parse(DateTime.Now.ToString("dd")), int.Parse(storeEndTime.Split(':')[0]), 00, 00);
+            sumDayTime = new DateTime(int.Parse(DateTime.Now.ToString("yyyy")), int.Parse(DateTime.Now.ToString("MM")), int.Parse(DateTime.Now.ToString("dd")), int.Parse(storeEndTime.Split(':')[0]), int.Parse(storeEndTime.Split(':')[1]), 00);
             if(storeEndTime.Split(':')[0] == "00")
             {
                 sumDayTime = sumDayTime.AddDays(1).AddSeconds(-1);
             }
             else
             {
-                sumDayTime = sumDayTime.AddSeconds(-1);
+                if (int.Parse(DateTime.Now.ToString("HH")) < int.Parse(storeEndTime.Split(':')[0]))
+                {
+
+                    sumDayTime = sumDayTime.AddSeconds(-1);
+                }
+                else
+                {
+                    sumDayTime = sumDayTime.AddDays(1).AddSeconds(-1);
+                }
             }
 
             return sumDayTime;
@@ -308,8 +350,8 @@ namespace Ovan_P1
         public DateTime currentDateTimeFromTime(string time)
         {
             DateTime sumDayTime = DateTime.Now;
-            sumDayTime = new DateTime(int.Parse(DateTime.Now.ToString("yyyy")), int.Parse(DateTime.Now.ToString("MM")), int.Parse(DateTime.Now.ToString("dd")), int.Parse(time.Split(':')[0]), 00, 00);
-            sumDayTime = sumDayTime.AddSeconds(-1);
+            sumDayTime = new DateTime(int.Parse(DateTime.Now.ToString("yyyy")), int.Parse(DateTime.Now.ToString("MM")), int.Parse(DateTime.Now.ToString("dd")), int.Parse(time.Split(':')[0]), int.Parse(time.Split(':')[1]), 00);
+            //sumDayTime = sumDayTime.AddSeconds(-1);
 
             return sumDayTime;
         }
@@ -342,6 +384,20 @@ namespace Ovan_P1
             }
 
             return sumDate;
+        }
+
+        public DateTime openDateTime(string openTime, string storeEndTime)
+        {
+            DateTime openDateTime = DateTime.Now;
+            if (int.Parse(openTime.Split(':')[0]) >= int.Parse(storeEndTime.Split(':')[0]))
+            {
+                openDateTime = new DateTime(sumDayTimeStart(storeEndTime).Year, sumDayTimeStart(storeEndTime).Month, sumDayTimeStart(storeEndTime).Day, int.Parse(openTime.Split(':')[0]), int.Parse(openTime.Split(':')[1]), 00);
+            }
+            else
+            {
+                openDateTime = new DateTime(sumDayTimeEnd(storeEndTime).Year, sumDayTimeEnd(storeEndTime).Month, sumDayTimeEnd(storeEndTime).Day, int.Parse(openTime.Split(':')[0]), int.Parse(openTime.Split(':')[1]), 00);
+            }
+            return openDateTime;
         }
 
     }

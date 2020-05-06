@@ -150,8 +150,8 @@ namespace Ovan_P1
 
         private void TicketingRun(object sender, EventArgs e)
         {
-            pSaleScreen.Ticketing();
             DialogFormGlobal.Close();
+            pSaleScreen.Ticketing();
         }
 
         private void CloseDialog(object sender, EventArgs e)

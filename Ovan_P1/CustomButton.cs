@@ -17,7 +17,7 @@ namespace Ovan_P1
             RoundedButton btn = new RoundedButton();
             btn.Name = btnName;
             btn.Text = btnText;
-            btn.ForeColor = foreColor;
+            btn.ForeColors = foreColor;
             int xCordinator = btnLeft;
 
             btn.Location = new Point(btnLeft, btnTop);
@@ -39,20 +39,23 @@ namespace Ovan_P1
             return btn;
 
         }
-        public Button CreateButtonWithImage(Image btnImage, string btnName, string btnText, int btnLeft, int btnTop, int btnWidth, int btnHeight, int borderSize, int radiusValue, int fontSize = 12, FontStyle fontStyle = FontStyle.Regular, Color foreColor = default(Color), ContentAlignment textAlign = ContentAlignment.MiddleCenter)
+        public Button CreateButtonWithImage(Image btnImage, string btnName, string btnText, int btnLeft, int btnTop, int btnWidth, int btnHeight, int borderSize, int radiusValue, int fontSize = 12, FontStyle fontStyle = FontStyle.Regular, Color foreColor = default(Color), ContentAlignment textAlign = ContentAlignment.MiddleCenter, int diffValue = 1)
         {
             RoundedButton btn = new RoundedButton();
             btn.Name = btnName;
+            btn.text = btnText;
+            btn.ForeColors = foreColor;
             btn.BackgroundImage = btnImage;
             btn.BackgroundImageLayout = ImageLayout.Stretch;
             btn.Location = new Point(btnLeft, btnTop);
             btn.Size = new Size(btnWidth, btnHeight);
-            btn.Font = new Font("Seri", 12, FontStyle.Regular);
+            btn.Font = new Font("Seri", fontSize, fontStyle);
             btn.TextAlign = ContentAlignment.MiddleCenter;
             btn.radiusValue = radiusValue;
             btn.borderColor = Color.Transparent;
             btn.borderSize = borderSize;
             btn.TabStop = false;
+            btn.diffValue = diffValue;
             btn.FlatStyle = FlatStyle.Flat;
             btn.FlatAppearance.BorderColor = Color.FromArgb(255, 255, 255, 255);
             return btn;

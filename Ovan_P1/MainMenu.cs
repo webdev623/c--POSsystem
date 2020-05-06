@@ -14,13 +14,15 @@ namespace Ovan_P1
 {
     class MainMenu : Form
     {
-        Form1 FormPanel = null;
-        Panel Panels = null;
+        Form1 mainFomeGlobal = null;
+        public Panel FormPanel = null;
+        public Panel FormPanel_2 = null;
         Constant constants = new Constant();
         int height = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Height;
         int width = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Width;
         PasswordInput passwordInput = new PasswordInput();
         CustomButton customButton = new CustomButton();
+        CreatePanel createPanel = new CreatePanel();
         MessageDialog messageDialog = new MessageDialog();
         SQLiteConnection sqlite_conn;
 
@@ -28,11 +30,9 @@ namespace Ovan_P1
 
         public void CreateMainMenuScreen(Form1 forms, Panel panels)
         {
-            FormPanel = forms;
-            Panels = panels;
-
-            FormPanel.Width = width;
-            FormPanel.Height = height;
+            FormPanel = panels;
+            mainFomeGlobal = forms;
+            FormPanel_2 = forms.mainPanelGlobal_2;
             passwordInput.initMainMenu(this);
             sqlite_conn = CreateConnection(constants.dbName);
             if (sqlite_conn.State == ConnectionState.Closed)
@@ -52,22 +52,28 @@ namespace Ovan_P1
                 }
                 catch (Exception ex)
                 {
+                    Console.WriteLine(ex);
                     tb_check = false;
                     break;
                 }
 
             }
 
+            Panel titlePanel = createPanel.CreateSubPanel(FormPanel, 0, 0, FormPanel.Width, FormPanel.Height / 10, BorderStyle.None, Color.FromArgb(255, 234, 225, 151));
+
+
             /**  Main Page Screen Title */
 
             Label MainTitle = new Label();
-            MainTitle.Location = new Point(50, 50);
-            MainTitle.Width = width;
-            MainTitle.Height = 50;
-            MainTitle.Font = new Font("Seri", 24, FontStyle.Bold);
+            MainTitle.Location = new Point(0, 0);
+            MainTitle.Width = titlePanel.Width;
+            MainTitle.Height = titlePanel.Height;
+            MainTitle.TextAlign = ContentAlignment.MiddleCenter;
+            MainTitle.Font = new Font("Seri", 36, FontStyle.Bold);
             MainTitle.ForeColor = Color.FromArgb(255, 0, 0, 0);
             MainTitle.Text = constants.main_Menu_Title;
-            FormPanel.Controls.Add(MainTitle);
+            titlePanel.Controls.Add(MainTitle);
+            
 
             /** Menu Button Create  */
             int k = 0;
@@ -75,40 +81,49 @@ namespace Ovan_P1
             {
                 RoundedButton btn = new RoundedButton();
                 btn.Name = constants.main_Menu_Name[k];
-                btn.Text = x;
-                btn.ForeColor = Color.White;
-                int xCordinator = (width / 42) + k * (width * 2 / 7) + k * (width / 21);
+                int xCordinator = (FormPanel.Width / 16) + k * (FormPanel.Width * 2 / 8) + k * (FormPanel.Width / 24);
 
-                btn.Location = new Point(xCordinator, height / 3);
-                btn.Width = width * 2 / 7;
-                btn.Height = height * 2 / 5;
+                btn.Location = new Point(xCordinator, FormPanel.Height / 3);
+                btn.Width = FormPanel.Width * 2 / 8;
+                btn.Height = FormPanel.Height * 1 / 3;
                 switch (k)
                 {
                     case 1:
-                        btn.BackColor = Color.FromArgb(255, 255, 192, 0);
+                        btn.BackColor = Color.FromArgb(255, 225, 100, 74);
+                        btn.ColorTop = Color.FromArgb(255, 227, 111, 87);
+                        btn.ColorBottom = Color.FromArgb(255, 225, 100, 74);
+
                         break;
                     case 2:
-                        btn.BackColor = Color.FromArgb(255, 0, 176, 240);
+                        btn.BackColor = Color.FromArgb(255, 0, 123, 191);
+                        btn.ColorTop = Color.FromArgb(255, 7, 131, 200);
+                        btn.ColorBottom = Color.FromArgb(255, 0, 123, 191);
                         break;
                     default:
-                        btn.BackColor = Color.FromArgb(255, 0, 176, 80);
+                        btn.BackColor = Color.FromArgb(255, 94, 162, 83);
+                        btn.ColorTop = Color.FromArgb(255, 112, 169, 103);
+                        btn.ColorBottom = Color.FromArgb(255, 94, 162, 83);
                         break;
                 }
                 btn.FlatStyle = FlatStyle.Flat;
-                btn.FlatAppearance.BorderColor = Color.FromArgb(255, 185, 205, 229);
+                btn.radiusValue = 50;
+                btn.ForeColors = Color.White;
+                btn.text = x;
+                btn.diffValue = 3;
+                btn.FlatAppearance.BorderColor = Color.White;
                 btn.FlatAppearance.BorderSize = 1;
                 
-                btn.Font = new Font("Seri", 24, FontStyle.Bold);
+                btn.Font = new Font("Seri", 28, FontStyle.Bold);
 
                 btn.Click += new EventHandler(this.MainMenuBtn);
-
                 FormPanel.Controls.Add(btn);
+
                 k++;
             }
 
             Image powerImage = Image.FromFile(constants.powerButton);
 
-            Button backButton = customButton.CreateButtonWithImage(powerImage, "powerButton", "", width - 150, height - 150, 100, 100, 3, 100);
+            Button backButton = customButton.CreateButtonWithImage(powerImage, "powerButton", "", FormPanel.Width - 150, FormPanel.Height - 150, 100, 100, 3, 100);
             backButton.BackgroundImageLayout = ImageLayout.Stretch;
             backButton.Padding = new Padding(0);
             FormPanel.Controls.Add(backButton);
@@ -124,15 +139,17 @@ namespace Ovan_P1
             {
                 if (tb_check)
                 {
-                    RegistryKey key = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\WinRegistry");
-                    if (key != null && key.GetValue("POSPassword") != null)
-                    {
+                    //RegistryKey key = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\WinRegistry");
+                    //if (key != null && key.GetValue("POSPassword") != null)
+                    //{
                         passwordInput.CreateNumberInputDialog("maintenance", temp.Name);
-                    }
+                    //}
                 }
                 else
                 {
-                    messageDialog.ShowErrorMessage(constants.systemErrorMsg, constants.systemSubErrorMsg);
+                    string errorMsg1 = "Database checking is failed.";
+                    string errorMsg2 = "Please go to Menu Reading section and get loading data.";
+                    messageDialog.ShowErrorMessage(errorMsg1, errorMsg2 + "\n ErrorNo: 001");
                 }
 
             }
@@ -140,35 +157,53 @@ namespace Ovan_P1
             {
                 if (tb_check)
                 {
-                    try
+                    Form1 mainFormCTL = new Form1();
+                    Console.WriteLine(mainFormCTL.processStartState);
+                    bool processStartState = mainFormCTL.processStartState;
+                    if (processStartState)
                     {
-                        FormPanel.Controls.Clear();
-                        SaleScreen saleScreen = new SaleScreen(FormPanel);
-                        saleScreen.TopLevel = false;
-                        saleScreen.FormBorderStyle = FormBorderStyle.None;
-                        saleScreen.Dock = DockStyle.Fill;
-                        Panels.Controls.Add(saleScreen);
-                        Thread.Sleep(200);
+                        try
+                        {
+                            FormPanel.Controls.Clear();
+                            FormPanel.Hide();
+                            mainFomeGlobal.topPanelGlobal.Hide();
+                            mainFomeGlobal.bottomPanelGlobal.Hide();
+                            SaleScreen saleScreen = new SaleScreen(mainFomeGlobal, FormPanel);
+                            saleScreen.TopLevel = false;
+                            saleScreen.FormBorderStyle = FormBorderStyle.None;
+                            saleScreen.Dock = DockStyle.Fill;
+                            FormPanel.Controls.Add(saleScreen);
+                            Thread.Sleep(200);
 
-                        saleScreen.Show();
+                            saleScreen.Show();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.ToString());
+                            //messageDialog.ShowErrorMessage(constants.systemErrorMsg, constants.systemSubErrorMsg);
+                        }
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        MessageBox.Show(ex.ToString());
+                        string errorMsg1 = "Sale time is over.";
+                        string errorMsg2 = "Please wait for the next sale time.";
+                        messageDialog.ShowErrorMessage(errorMsg1, errorMsg2 + "\n ErrorNo: 002");
                     }
                 }
                 else
                 {
-                    messageDialog.ShowErrorMessage(constants.systemErrorMsg, constants.systemSubErrorMsg);
+                    string errorMsg1 = "Database checking is failed.";
+                    string errorMsg2 = "Please go to Menu Reading section and get loading data.";
+                    messageDialog.ShowErrorMessage(errorMsg1, errorMsg2 + "\n ErrorNo: 003");
                 }
             }
             else
             {
                 RegistryKey key = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\WinRegistry");
-                if (key != null && key.GetValue("POSPassword") != null)
-                {
+                //if (key != null && key.GetValue("POSPassword") != null)
+                //{
                     passwordInput.CreateNumberInputDialog("readingmenu", temp.Name);
-                }
+                //}
             }
         }
 
@@ -179,16 +214,24 @@ namespace Ovan_P1
         public void getPassword(string objectName, string passwords)
         {
             RegistryKey key = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\WinRegistry");
-            string pwd = key.GetValue("POSPassword").ToString();
-            if(pwd == passwords)
+            string pwd = "";
+            if (key != null && key.GetValue("POSPassword") != null)
+            {
+                pwd = key.GetValue("POSPassword").ToString();
+            }
+            else if (key == null)
+            {
+                pwd = "";
+            }
+            if (pwd == passwords)
             {
                 switch (objectName)
                 {
                     case "maintenance":
                         FormPanel.Controls.Clear();
-                        MaintaneceMenu maintaneceMenu = new MaintaneceMenu(FormPanel, Panels);
+                        MaintaneceMenu maintaneceMenu = new MaintaneceMenu(mainFomeGlobal, FormPanel);
                         maintaneceMenu.TopLevel = false;
-                        Panels.Controls.Add(maintaneceMenu);
+                        FormPanel.Controls.Add(maintaneceMenu);
                         maintaneceMenu.FormBorderStyle = FormBorderStyle.None;
                         maintaneceMenu.Dock = DockStyle.Fill;
                         Thread.Sleep(200);
@@ -196,9 +239,9 @@ namespace Ovan_P1
                         break;
                     case "readingmenu":
                         FormPanel.Controls.Clear();
-                        MenuReading menuReading = new MenuReading(FormPanel, Panels);
+                        MenuReading menuReading = new MenuReading(mainFomeGlobal, FormPanel);
                         menuReading.TopLevel = false;
-                        Panels.Controls.Add(menuReading);
+                        FormPanel.Controls.Add(menuReading);
                         menuReading.FormBorderStyle = FormBorderStyle.None;
                         menuReading.Dock = DockStyle.Fill;
                         Thread.Sleep(200);
@@ -214,7 +257,8 @@ namespace Ovan_P1
             // 
             // MainMenu
             // 
-            this.ClientSize = new System.Drawing.Size(862, 261);
+            this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.ClientSize = new System.Drawing.Size(937, 624);
             this.Name = "MainMenu";
             this.ResumeLayout(false);
 

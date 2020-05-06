@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,9 +11,10 @@ namespace Ovan_P1
 {
     class CreatePanel
     {
+        
         public Panel CreateMainPanel(Form formpanel, int PanelLeft, int PanelTop, int PanelWidth, int PanelHeight, BorderStyle borderstyle, Color colors)
         {
-            Panel Panel = new Panel();
+            GradientPanel Panel = new GradientPanel();
             Panel.Size = new Size(PanelWidth, PanelHeight);
             Panel.Location = new Point(PanelLeft, PanelTop);
             Panel.BorderStyle = borderstyle;
@@ -20,13 +22,16 @@ namespace Ovan_P1
             formpanel.Controls.Add(Panel);
             return Panel;
         }
-        public Panel CreateSubPanel(Panel parentPanel, int PanelLeft, int PanelTop, int PanelWidth, int PanelHeight, BorderStyle borderstyle, Color color)
+        public Panel CreateSubPanel(Panel parentPanel, int PanelLeft, int PanelTop, int PanelWidth, int PanelHeight, BorderStyle borderstyle, Color color, Color colorTop = default(Color), Color colorBottom = default(Color))
         {
-            Panel Panel = new Panel();
+            GradientPanel Panel = new GradientPanel();
             Panel.Size = new Size(PanelWidth, PanelHeight);
             Panel.Location = new Point(PanelLeft, PanelTop);
             Panel.BorderStyle = borderstyle;
             Panel.BackColor = color;
+
+            Panel.ColorTop = colorTop;
+            Panel.ColorBottom = colorBottom;
             parentPanel.Controls.Add(Panel);
             return Panel;
         }
@@ -72,6 +77,7 @@ namespace Ovan_P1
             pb.SizeMode = PictureBoxSizeMode.StretchImage;
             return pb;
         }
+
 
     }
 }

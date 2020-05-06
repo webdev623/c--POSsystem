@@ -31,6 +31,7 @@ namespace Ovan_P1
         int[] categoryIDList = null;
         int[] categoryDisplayPositionList = null;
         int[] categoryLayoutList = null;
+        string[] categoryBackImageList = null;
 
         private Bitmap BackgroundBitmap = null;
         Color borderClr = Color.FromArgb(255, 23, 55, 94);
@@ -47,6 +48,9 @@ namespace Ovan_P1
         BorderLabel[] bl_Price = null;
         bool bLoad = false;
         int curProduct = 0;
+        int colorPatternValue = 0;
+        string menuTitle1 = "";
+        string menuTitle2 = "";
 
 
         int height = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Height;
@@ -54,7 +58,7 @@ namespace Ovan_P1
 
         SQLiteConnection sqlite_conn;
 
-        public PreviewSalePage(Form1 mainForm, Panel mainPanel, int categoryIndex, int[] categoryIDArray, string[] categoryNameArray, int[] categoryDisplayPositionArray, int[] categoryLayoutArray)
+        public PreviewSalePage(Form1 mainForm, Panel mainPanel, int categoryIndex, int[] categoryIDArray, string[] categoryNameArray, int[] categoryDisplayPositionArray, int[] categoryLayoutArray, string[] categoryBackImageArray)
         {
             InitializeComponent();
 
@@ -63,6 +67,8 @@ namespace Ovan_P1
             categoryNameList = categoryNameArray;
             categoryDisplayPositionList = categoryDisplayPositionArray;
             categoryLayoutList = categoryLayoutArray;
+            categoryBackImageList = categoryBackImageArray;
+
             sqlite_conn = CreateConnection(constants.dbName);
 
             mainFormGlobal = mainForm;
@@ -70,6 +76,49 @@ namespace Ovan_P1
 
             Panel LeftPanel = createPanel.CreateMainPanel(mainForm, 0, 0, 3 * width / 4, height, BorderStyle.FixedSingle, Color.FromArgb(255, 255, 255, 204));
             LeftPanelGlobal = LeftPanel;
+
+
+            sqlite_conn = CreateConnection(constants.dbName);
+            if (sqlite_conn.State == ConnectionState.Closed)
+            {
+                sqlite_conn.Open();
+            }
+            SQLiteCommand sqlite_cmd;
+            SQLiteDataReader sqlite_datareader;
+            try
+            {
+                string selectGeneralSql = "SELECT * FROM " + constants.tbNames[12];
+                sqlite_cmd = sqlite_conn.CreateCommand();
+                sqlite_cmd.CommandText = selectGeneralSql;
+                sqlite_datareader = sqlite_cmd.ExecuteReader();
+                while (sqlite_datareader.Read())
+                {
+                    if (!sqlite_datareader.IsDBNull(0))
+                    {
+                        colorPatternValue = sqlite_datareader.GetInt32(0);
+                        menuTitle1 = sqlite_datareader.GetString(1);
+                        menuTitle2 = sqlite_datareader.GetString(2);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+
+            Color[][] colorPattern = constants.pattern_Clr;
+            colorPattn = colorPattern[colorPatternValue];
+            if(categoryBackImageList[categoryIDGlobal] != "" && categoryBackImageList[categoryIDGlobal] != null)
+            {
+                LeftPanelGlobal.BackgroundImage = Image.FromFile(categoryBackImageList[categoryIDGlobal]);
+                LeftPanelGlobal.BackgroundImageLayout = ImageLayout.Stretch;
+            }
+            else
+            {
+                LeftPanelGlobal.BackColor = colorPattn[categoryIDGlobal % 4 + 4];
+            }
+
+
             Panel RightPanel = createPanel.CreateMainPanel(mainForm, width * 3 / 4, 0, width / 4, height, BorderStyle.FixedSingle, Color.White);
             FlowLayoutPanel FlowButtonLayout = createPanel.CreateFlowLayoutPanel(LeftPanel, 0, height / 7, LeftPanel.Width / 6, height * 4 / 7, Color.Transparent, new Padding(20, 10, 0, 0));
             FlowLayoutPanel FlowTitleLayout = createPanel.CreateFlowLayoutPanel(LeftPanel, LeftPanel.Width / 6, 0, (LeftPanel.Width * 5) / 6, height / 7, Color.Transparent, new Padding(10, 70, 0, 0));
@@ -86,8 +135,7 @@ namespace Ovan_P1
             MainTitle.Height = FlowTitleLayout.Height - 70;
             MainTitle.Font = new Font("Seri", 24, FontStyle.Bold);
             MainTitle.ForeColor = Color.FromArgb(255, 255, 0, 0);
-            MainTitle.Text = constants.saleScreenTopTitle;
-            MainTitle.Text = constants.saleScreenTopTitle;
+            MainTitle.Text = menuTitle1 + "\n" + menuTitle2;
             //LeftPanel.Controls.Remove(FlowTitleLayout);
             FlowTitleLayout.Controls.Add(MainTitle);
 
@@ -129,19 +177,18 @@ namespace Ovan_P1
             string week = now.ToString("ddd");
             string currentTime = now.ToString("HH:mm");
             Color[][] colorPattern = constants.pattern_Clr;
-            colorPattn = colorPattern[0];
+            colorPattn = colorPattern[colorPatternValue];
             int categoryAmount = categoryNameList.Length;
             int k = 0;
             foreach(string categoryName in categoryNameList)
             {
-                Color backColor = colorPattern[0][k % 4 + 4];
-                Color borderColor = colorPattern[0][k % 4];
+                Color backColor = colorPattn[k % 4 + 4];
+                Color borderColor = colorPattn[k % 4];
 
                 if (categoryIDGlobal == k)
                 {
-                    backColor = colorPattern[0][k % 4];
+                    backColor = colorPattn[k % 4];
                     borderColor = Color.Red;
-                    LeftPanelGlobal.BackColor = colorPattern[0][k % 4 + 4];
                     int btnLeft = listPanel.Left + 10;
                     int btnTop = (listPanel.Top + 10) + (listPanel.Height / 5) * k;
                     int btnWidth = listPanel.Width - 25;
@@ -157,11 +204,11 @@ namespace Ovan_P1
                     btn.Text = categoryName;
 
                     btn.Name = "category_" + k;
-                    btn.BackColor = colorPattern[0][categoryIDGlobal % 4 + 4];
+                    btn.BackColor = Color.Transparent;  // colorPattn[categoryIDGlobal % 4 + 4];
                     btn.ButtonColor = backColor;
                     btn.FlatAppearance.BorderSize = 0;
                     btn.FlatStyle = FlatStyle.Flat;
-                    btn.OnHoverButtonColor = colorPattern[0][k % 4 + 4];
+                    btn.OnHoverButtonColor = colorPattn[k % 4 + 4];
                     btn.OnHoverBorderColor = borderColor;
                     btn.BorderColor = borderColor;
                     btn.Font = new Font("Seri", 18F, FontStyle.Bold);
@@ -187,11 +234,11 @@ namespace Ovan_P1
                         btn.Text = categoryName;
 
                         btn.Name = "category_" + k;
-                        btn.BackColor = colorPattern[0][categoryIDGlobal % 4 + 4];
+                        btn.BackColor = Color.Transparent; // colorPattn[categoryIDGlobal % 4 + 4];
                         btn.ButtonColor = backColor;
                         btn.FlatAppearance.BorderSize = 0;
                         btn.FlatStyle = FlatStyle.Flat;
-                        btn.OnHoverButtonColor = colorPattern[0][k % 4 + 4];
+                        btn.OnHoverButtonColor = colorPattn[k % 4 + 4];
                         btn.OnHoverBorderColor = borderColor;
                         btn.BorderColor = borderColor;
                         btn.Font = new Font("Seri", 18F, FontStyle.Bold);
@@ -215,11 +262,11 @@ namespace Ovan_P1
                         btn.Text = categoryName;
 
                         btn.Name = "category_" + k;
-                        btn.BackColor = colorPattern[0][categoryIDGlobal % 4 + 4];
+                        btn.BackColor = Color.Transparent; // colorPattn[categoryIDGlobal % 4 + 4];
                         btn.ButtonColor = backColor;
                         btn.FlatAppearance.BorderSize = 0;
                         btn.FlatStyle = FlatStyle.Flat;
-                        btn.OnHoverButtonColor = colorPattern[0][k % 4 + 4];
+                        btn.OnHoverButtonColor = colorPattn[k % 4 + 4];
                         btn.OnHoverBorderColor = borderColor;
                         btn.BorderColor = borderColor;
                         btn.Font = new Font("Seri", 18F, FontStyle.Bold);
@@ -413,7 +460,7 @@ namespace Ovan_P1
                     p.Paint += new PaintEventHandler(panelbordercolor_Paint);
                 }
                 int h = p.Width - 100 > p.Height - 60 ? (p.Height - 60) / 5 : (p.Width - 100) / 5 - 10;
-                h = (h == 0) ? 11 : h;
+                h = (h <= 0) ? 11 : h;
                 int y = (p.Height - 60) / 5;
                 if (p.Width - 100 < p.Height - 60) y = (p.Height - 60 - h - 3) / 4;
                 int ftSize = 2 * h / 3;
@@ -670,7 +717,7 @@ namespace Ovan_P1
 
                 // Get font size to fit the specified card...
                 int h = p.Width - 100 > p.Height - 60 ? (p.Height - 60) / 5 : (p.Width - 100) / 5 - 10;
-                h = (h == 0) ? 11 : h;
+                h = (h <= 0) ? 11 : h;
                 int y = (p.Height - 60) / 5;
                 if (p.Width - 100 < p.Height - 60) y = (p.Height - 60 - h - 3) / 4;
 
@@ -913,7 +960,7 @@ namespace Ovan_P1
                 p.Paint += new PaintEventHandler(panelbordercolor_Paint);
 
                 int h = p.Width - 100 > p.Height - 60 ? (p.Height - 60) / 5 : (p.Width - 100) / 5 - 10;
-                h = (h == 0) ? 11 : h;
+                h = (h <= 0) ? 11 : h;
                 int y = (p.Height - 60) / 5;
                 if (p.Width - 100 < p.Height - 60) y = (p.Height - 60 - h - 3) / 4;
                 int ftSize = 2 * h / 3;

@@ -33,44 +33,46 @@ namespace Ovan_P1
         private int cursorPositionGlobal = 0;
         public PasswordSetting(Form1 mainForm, Panel mainPanel)
         {
-            mainForm.Width = width;
-            mainForm.Height = height;
             mainFormGlobal = mainForm;
             mainPanelGlobal = mainPanel;
 
 
-            Panel headerPanel = createPanel.CreateMainPanel(mainForm, 0, 0, width, height / 5, BorderStyle.None, Color.Transparent);
-            FlowLayoutPanel headerFlowPanel = createPanel.CreateFlowLayoutPanel(headerPanel, headerPanel.Width / 15, 80, headerPanel.Width * 5 / 7, 80, Color.Transparent, new Padding(0));
-            Label headerLabel = createLabel.CreateLabels(headerFlowPanel, "headerLabel", constants.passwordSettingLabel, 0, 0, headerFlowPanel.Width, headerFlowPanel.Height, Color.White, Color.Black, 44, false, ContentAlignment.MiddleLeft, new Padding(80, 0, 30, 0), 1, Color.Gray);
+            Panel headerPanel = createPanel.CreateSubPanel(mainPanel, 0, 0, mainPanel.Width, mainPanel.Height / 10, BorderStyle.None, Color.FromArgb(255, 234, 225, 151));
+            Label headerLabel = createLabel.CreateLabelsInPanel(headerPanel, "headerLabel", constants.passwordSettingLabel, 0, 0, headerPanel.Width, headerPanel.Height, Color.Transparent, Color.Black, 28, false, ContentAlignment.MiddleCenter);
 
             DateTime now = DateTime.Now;
 
-            Panel bodyPanel = createPanel.CreateMainPanel(mainForm, 0, headerPanel.Bottom, width, height * 4 / 5, BorderStyle.None, Color.Transparent);
+            Panel bodyPanel = createPanel.CreateSubPanel(mainPanel, 0, headerPanel.Bottom, mainPanel.Width, mainPanel.Height * 9 / 10, BorderStyle.None, Color.Transparent);
 
-            FlowLayoutPanel tableHeaderInUpPanel = createPanel.CreateFlowLayoutPanel(bodyPanel, bodyPanel.Width / 6, 80, bodyPanel.Width * 5 / 7, 50, Color.Transparent, new Padding(0));
-            Label currentPasswordLabel = createLabel.CreateLabels(tableHeaderInUpPanel, "currentPasswordLabel", constants.oldPasswordLabel, 0, 0, tableHeaderInUpPanel.Width / 4, 50, Color.White, Color.Black, 16, false, ContentAlignment.MiddleLeft, new Padding(0, 0, 30, 0), 1, Color.Gray);
-            TextBox currentPasswordTBox = createTextBox.CreateTextBoxs(tableHeaderInUpPanel, "currentPasswordTBox", currentPasswordLabel.Right, 0, tableHeaderInUpPanel.Width / 3, 50, 24, BorderStyle.FixedSingle);
+            FlowLayoutPanel tableHeaderInUpPanel = createPanel.CreateFlowLayoutPanel(bodyPanel, bodyPanel.Width / 7, bodyPanel.Height / 12, bodyPanel.Width * 5 / 7, bodyPanel.Height / 6, Color.White, new Padding(30, bodyPanel.Height / 30, 30, bodyPanel.Height / 30));
+            Label currentPasswordLabel = createLabel.CreateLabels(tableHeaderInUpPanel, "currentPasswordLabel", constants.oldPasswordLabel, 0, 0, tableHeaderInUpPanel.Width * 2 / 5 - 40, tableHeaderInUpPanel.Height * 3 / 5, Color.Transparent, Color.Black, 18, false, ContentAlignment.MiddleLeft, new Padding(0), 1, Color.Gray);
+            TextBox currentPasswordTBox = createTextBox.CreateTextBoxs(tableHeaderInUpPanel, "currentPasswordTBox", currentPasswordLabel.Right, 0, tableHeaderInUpPanel.Width * 3 / 5 - 40, tableHeaderInUpPanel.Height * 3 / 5, 24, BorderStyle.FixedSingle);
+            currentPasswordTBox.Margin = new Padding(0, 15, 0, 0);
             tbBoxGlobal[0] = currentPasswordTBox;
             currentPasswordTBox.GotFocus += new EventHandler(this.GetFocus);
             currentPasswordTBox.Focus();
 
-            FlowLayoutPanel tableHeaderInUpPanel2 = createPanel.CreateFlowLayoutPanel(bodyPanel, bodyPanel.Width / 6, 150, bodyPanel.Width * 5 / 7, 50, Color.Transparent, new Padding(0));
-            Label newPasswordLabel = createLabel.CreateLabels(tableHeaderInUpPanel2, "newPasswordLabel", constants.newPasswordLabel, 0, 0, tableHeaderInUpPanel2.Width / 4, 50, Color.White, Color.Black, 16, false, ContentAlignment.MiddleLeft, new Padding(0, 0, 30, 0), 1, Color.Gray);
-            TextBox newPasswordTBox = createTextBox.CreateTextBoxs(tableHeaderInUpPanel2, "newPasswordTBox", newPasswordLabel.Right, 0, tableHeaderInUpPanel2.Width / 3, 50, 24, BorderStyle.FixedSingle);
+            FlowLayoutPanel tableHeaderInUpPanel2 = createPanel.CreateFlowLayoutPanel(bodyPanel, bodyPanel.Width / 7, bodyPanel.Height * 19 / 60, bodyPanel.Width * 5 / 7, bodyPanel.Height / 6, Color.White, new Padding(30, bodyPanel.Height / 30, 30, bodyPanel.Height / 30));
+            Label newPasswordLabel = createLabel.CreateLabels(tableHeaderInUpPanel2, "newPasswordLabel", constants.newPasswordLabel, 0, 0, tableHeaderInUpPanel2.Width * 2 / 5 - 40, tableHeaderInUpPanel2.Height * 3 / 5, Color.White, Color.Black, 18, false, ContentAlignment.MiddleLeft, new Padding(0), 1, Color.Gray);
+            TextBox newPasswordTBox = createTextBox.CreateTextBoxs(tableHeaderInUpPanel2, "newPasswordTBox", newPasswordLabel.Right, 0, tableHeaderInUpPanel2.Width * 3 / 5 - 40, tableHeaderInUpPanel2.Height * 3 / 5, 24, BorderStyle.FixedSingle);
+            newPasswordTBox.Margin = new Padding(0, 15, 0, 0);
             tbBoxGlobal[1] = newPasswordTBox;
             newPasswordTBox.GotFocus += new EventHandler(this.GetFocus);
 
-            FlowLayoutPanel tableHeaderInUpPanel3 = createPanel.CreateFlowLayoutPanel(bodyPanel, bodyPanel.Width / 6, 220, bodyPanel.Width * 5 / 7, 50, Color.Transparent, new Padding(0));
-            Label newPasswordConfirmLabel = createLabel.CreateLabels(tableHeaderInUpPanel3, "newPasswordConfirmLabel", constants.confirmPasswordLabel, 0, 0, tableHeaderInUpPanel3.Width / 4, 50, Color.White, Color.Black, 16, false, ContentAlignment.MiddleLeft, new Padding(0, 0, 30, 0), 1, Color.Gray);
-            TextBox newPasswordConfirmTBox = createTextBox.CreateTextBoxs(tableHeaderInUpPanel3, "confirmPasswordTBox", newPasswordConfirmLabel.Right, 0, tableHeaderInUpPanel3.Width / 3, 50, 24, BorderStyle.FixedSingle);
+            FlowLayoutPanel tableHeaderInUpPanel3 = createPanel.CreateFlowLayoutPanel(bodyPanel, bodyPanel.Width / 7, bodyPanel.Height * 11 / 20, bodyPanel.Width * 5 / 7, bodyPanel.Height / 6, Color.White, new Padding(30, bodyPanel.Height / 30, 30, bodyPanel.Height / 30));
+            Label newPasswordConfirmLabel = createLabel.CreateLabels(tableHeaderInUpPanel3, "newPasswordConfirmLabel", constants.confirmPasswordLabel, 0, 0, tableHeaderInUpPanel3.Width * 2 / 5 - 40, tableHeaderInUpPanel3.Height * 3 / 5, Color.White, Color.Black, 18, false, ContentAlignment.MiddleLeft, new Padding(0), 1, Color.Gray);
+            TextBox newPasswordConfirmTBox = createTextBox.CreateTextBoxs(tableHeaderInUpPanel3, "confirmPasswordTBox", newPasswordConfirmLabel.Right, 0, tableHeaderInUpPanel3.Width * 3 / 5 - 40, tableHeaderInUpPanel3.Height * 3 / 5, 24, BorderStyle.FixedSingle);
+            newPasswordConfirmTBox.Margin = new Padding(0, 15, 0, 0);
             tbBoxGlobal[2] = newPasswordConfirmTBox;
             newPasswordConfirmTBox.GotFocus += new EventHandler(this.GetFocus);
 
-            FlowLayoutPanel numberPanel = createPanel.CreateFlowLayoutPanel(bodyPanel, bodyPanel.Width / 8, bodyPanel.Height * 2 / 3, bodyPanel.Width * 5 / 7 - 10, 50, Color.Transparent, new Padding(0));
+            FlowLayoutPanel numberPanel = createPanel.CreateFlowLayoutPanel(bodyPanel, bodyPanel.Width / 7, bodyPanel.Height * 3 / 4, bodyPanel.Width * 30 / 49, 50, Color.Transparent, new Padding(0));
 
             for(int k = 0; k < 10; k++)
             {
-                Button numberButton = customButton.CreateButton(k.ToString(), "numberButton_" + k, (numberPanel.Width / 10) * k + 10, 0, numberPanel.Width / 10 - 10, 50, Color.FromArgb(255, 255, 183, 67), Color.FromArgb(255, 255, 183, 67), 1, 1);
+
+                Button numberButton = customButton.CreateButtonWithImage(Image.FromFile(constants.numberButtonImage), "numberButton_" + k, k.ToString(), (numberPanel.Width / 10) * k + 10, 0, numberPanel.Width / 10 - 10, 50, 0, 1, 22, FontStyle.Bold, Color.Black, ContentAlignment.MiddleCenter, 0);
+
                 numberButton.Margin = new Padding(0, 0, 10, 0);
                 numberButton.FlatStyle = FlatStyle.Flat;
                 numberButton.FlatAppearance.BorderSize = 0;
@@ -80,11 +82,10 @@ namespace Ovan_P1
            //     Label numberLabel = createLabel.CreateLabels(numberPanel, "numberLabel_" + k, k.ToString(), (numberPanel.Width / 10) * k, 0, numberPanel.Width / 10 - 10, 50, Color.FromArgb(255, 255, 183, 67), Color.Black, 16, false, ContentAlignment.MiddleCenter, new Padding(0, 0, 10, 0), 1, Color.Gray);
             }
 
-            FlowLayoutPanel settingPanel = createPanel.CreateFlowLayoutPanel(bodyPanel, bodyPanel.Width / 8, numberPanel.Bottom + 30, bodyPanel.Width * 5 / 7 - 10, 50, Color.Transparent, new Padding(0));
+            FlowLayoutPanel settingPanel = createPanel.CreateFlowLayoutPanel(bodyPanel, bodyPanel.Width / 7, numberPanel.Bottom + bodyPanel.Height / 30, bodyPanel.Width * 30 / 49, 50, Color.Transparent, new Padding(0));
 
-            
+            Button prevButton = customButton.CreateButtonWithImage(Image.FromFile(constants.prevkeyButtonImage), "prevButton", "", 0, 0, numberPanel.Width / 5 - 10, 50, 0, 1, 22, FontStyle.Bold, Color.Black, ContentAlignment.MiddleCenter, 0);
 
-            Button prevButton = customButton.CreateButton("←", "prevButton", 0, 0, numberPanel.Width / 5 - 10, 50, Color.FromArgb(255, 255, 183, 67), Color.FromArgb(255, 255, 183, 67), 1, 1);
             prevButton.Margin = new Padding(0, 0, 10, 0);
             prevButton.FlatStyle = FlatStyle.Flat;
             prevButton.FlatAppearance.BorderSize = 0;
@@ -93,7 +94,8 @@ namespace Ovan_P1
 
             settingPanel.Controls.Add(prevButton);
 
-            Button charClearButton = customButton.CreateButton(constants.charClearLabel, "charClearButton", settingPanel.Width / 5, 0, settingPanel.Width * 3 / 10 - 10, 50, Color.FromArgb(255, 255, 183, 67), Color.FromArgb(255, 255, 183, 67), 1, 1);
+            Button charClearButton = customButton.CreateButtonWithImage(Image.FromFile(constants.clearkeyButtonImage), "charClearButton", constants.charClearLabel, settingPanel.Width / 5, 0, settingPanel.Width * 3 / 10 - 10, 50, 0, 1, 18, FontStyle.Bold, Color.Black, ContentAlignment.MiddleCenter, 0);
+
             charClearButton.Margin = new Padding(0, 0, 10, 0);
             charClearButton.FlatStyle = FlatStyle.Flat;
             charClearButton.FlatAppearance.BorderSize = 0;
@@ -102,8 +104,8 @@ namespace Ovan_P1
 
             settingPanel.Controls.Add(charClearButton);
 
+            Button allClearButton = customButton.CreateButtonWithImage(Image.FromFile(constants.clearkeyButtonImage), "allClearButton", constants.allClearLabel, settingPanel.Width / 2, 0, settingPanel.Width * 3 / 10 - 10, 50, 0, 1, 18, FontStyle.Bold, Color.Black, ContentAlignment.MiddleCenter, 0);
 
-            Button allClearButton = customButton.CreateButton(constants.allClearLabel, "allClearButton", settingPanel.Width / 2, 0, settingPanel.Width * 3 / 10 - 10, 50, Color.FromArgb(255, 255, 183, 67), Color.FromArgb(255, 255, 183, 67), 1, 1);
             allClearButton.Margin = new Padding(0, 0, 10, 0);
             allClearButton.FlatStyle = FlatStyle.Flat;
             allClearButton.FlatAppearance.BorderSize = 0;
@@ -113,7 +115,7 @@ namespace Ovan_P1
             settingPanel.Controls.Add(allClearButton);
 
 
-            Button nextButton = customButton.CreateButton("→", "nextButton", settingPanel.Width * 4 / 5, 0, settingPanel.Width / 5 - 10, 50, Color.FromArgb(255, 255, 183, 67), Color.FromArgb(255, 255, 183, 67), 1, 1);
+            Button nextButton = customButton.CreateButtonWithImage(Image.FromFile(constants.nextkeyButtonImage), "nextButton", "", settingPanel.Width * 4 / 5, 0, settingPanel.Width / 5 - 10, 50, 0, 1, 22, FontStyle.Bold, Color.Black, ContentAlignment.MiddleCenter, 0);
             nextButton.Margin = new Padding(0, 0, 10, 0);
             nextButton.FlatStyle = FlatStyle.Flat;
             nextButton.FlatAppearance.BorderSize = 0;
@@ -122,7 +124,10 @@ namespace Ovan_P1
 
             settingPanel.Controls.Add(nextButton);
 
-            Button backButton = customButton.CreateButton(constants.settingLabel, "settingButton", bodyPanel.Width - 150, bodyPanel.Height - 100, 100, 50, Color.FromArgb(255, 0, 112, 192), Color.Transparent, 0, 10, 14, FontStyle.Bold, Color.White);
+            Image backImage = Image.FromFile(constants.soldoutButtonImage1);
+
+            Button backButton = customButton.CreateButtonWithImage(backImage, "settingButton", constants.settingLabel, settingPanel.Right + bodyPanel.Width * 5 / 49 - 100, numberPanel.Bottom + bodyPanel.Height / 30, 100, 50, 1, 10, 14, FontStyle.Bold, Color.White, ContentAlignment.MiddleCenter, 2);
+
             bodyPanel.Controls.Add(backButton);
             backButton.Click += new EventHandler(this.SetBackShow);
         }
@@ -166,10 +171,10 @@ namespace Ovan_P1
 
                         MessageBox.Show("Password setting successfully.");
 
-                        mainFormGlobal.Controls.Clear();
+                        mainPanelGlobal.Controls.Clear();
                         MaintaneceMenu frm = new MaintaneceMenu(mainFormGlobal, mainPanelGlobal);
                         frm.TopLevel = false;
-                        mainFormGlobal.Controls.Add(frm);
+                        mainPanelGlobal.Controls.Add(frm);
                         frm.FormBorderStyle = FormBorderStyle.None;
                         frm.Dock = DockStyle.Fill;
                         Thread.Sleep(200);
@@ -189,10 +194,10 @@ namespace Ovan_P1
 
                         MessageBox.Show("Password setting successfully.");
 
-                        mainFormGlobal.Controls.Clear();
+                        mainPanelGlobal.Controls.Clear();
                         MaintaneceMenu frm = new MaintaneceMenu(mainFormGlobal, mainPanelGlobal);
                         frm.TopLevel = false;
-                        mainFormGlobal.Controls.Add(frm);
+                        mainPanelGlobal.Controls.Add(frm);
                         frm.FormBorderStyle = FormBorderStyle.None;
                         frm.Dock = DockStyle.Fill;
                         Thread.Sleep(200);

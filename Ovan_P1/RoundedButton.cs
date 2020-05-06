@@ -11,10 +11,15 @@ namespace Ovan_P1
 {
     class RoundedButton: Button
     {
-        public int radiusValue = 50;
-        public Color borderColor = Color.Transparent;
-        public int borderSize = 0;
-        GraphicsPath GetRoundPath(RectangleF Rect, int radius)
+        public int diffValue { get; set; }
+        public int radiusValue { get; set; }
+        public Color borderColor { get; set; }
+        public string text { get; set; }
+        public Color ForeColors { get; set; }
+        public int borderSize { get; set; }
+        public Color ColorTop { get; set; }
+        public Color ColorBottom { get; set; }
+        GraphicsPath GetRoundPath(RectangleF Rect, int radius = 10)
         {
             radiusValue = radius;
             float r2 = radius / 2f;
@@ -35,7 +40,15 @@ namespace Ovan_P1
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
-            RectangleF Rect = new RectangleF(0, 0, this.Width, this.Height);
+            e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
+            RectangleF Rect = new RectangleF(diffValue, diffValue, this.Width, this.Height);
+            LinearGradientBrush lgb = new LinearGradientBrush(Rect, this.ColorTop, this.ColorBottom, 90F);
+            Graphics g = e.Graphics;
+            g.FillRectangle(lgb, Rect);
+            e.Graphics.DrawString(text, Font, new SolidBrush(Color.FromArgb(255, 114, 118, 126)), Rect, new StringFormat() { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Center });
+
+            Rect = new RectangleF(0, 0, this.Width, this.Height);
+            e.Graphics.DrawString(text, Font, new SolidBrush(ForeColors), Rect, new StringFormat() { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Center });
             using (GraphicsPath GraphPath = GetRoundPath(Rect, radiusValue))
             {
                 this.Region = new Region(GraphPath);
@@ -44,6 +57,7 @@ namespace Ovan_P1
                     //pen.Alignment = PenAlignment.Inset;
                     //e.Graphics.DrawPath(pen, GraphPath);
                 }
+
             }
         }
     }

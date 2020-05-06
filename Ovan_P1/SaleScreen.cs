@@ -4,15 +4,19 @@ using System.Data;
 using System.Data.SQLite;
 using System.Drawing;
 using System.Drawing.Printing;
+using System.Printing;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using System.ComponentModel;
+using System.Management;
+using System.Configuration;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Threading;
 using System.IO;
 using System.IO.Ports;
+using Microsoft.Win32;
 
 namespace Ovan_P1
 {
@@ -20,6 +24,8 @@ namespace Ovan_P1
     {
 
         //  Form FormPanel = null;
+        ComModule comModule = new ComModule();
+
         Form1 mainFormGlobal = null;
         Panel LeftPanelGlobal = null;
         Panel MainBodyPanelGlobal = null;
@@ -27,6 +33,8 @@ namespace Ovan_P1
         Constant constants = new Constant();
         CustomButton customButton = new CustomButton();
         MessageDialog messageDialog = new MessageDialog();
+        DBClass dbClass = new DBClass();
+        PasswordInput passwordInput = new PasswordInput();
 
         CreatePanel createPanel = new CreatePanel();
         CreateLabel createLabel = new CreateLabel();
@@ -48,6 +56,7 @@ namespace Ovan_P1
         private Button[] orderIncreaseButton = new Button[100];
         private Button[] orderDecreaseButton = new Button[100];
         private Button_WOC[] categoryButton = new Button_WOC[100];
+        private Button ticketingButtonGlobal = null;
         private Button receiptButtonGlobal = null;
 
 
@@ -69,6 +78,7 @@ namespace Ovan_P1
         private int[] productIDArray = new int[100];
         private int[] realProductIDArray = new int[100];
         private int[] categoryIDArray = new int[50];
+        private string[] categoryBackImageArray = new string[50];
         private int startIndex = 0;
         private int lastIndex = 4;
         private int categoryDisAmount = 0;
@@ -118,9 +128,19 @@ namespace Ovan_P1
     	string Other2 = "";
 
         int lineNumber = 0;
-        int lineNumberPrint = 0;
+        int lineNumbers = 0;
 
         string currentDir = "";
+
+        string storeEndTime = "00:00";
+        string openTime = "00:00";
+
+        DateTime sumDayTime1 = new DateTime(int.Parse(DateTime.Now.ToString("yyyy")), int.Parse(DateTime.Now.ToString("MM")), int.Parse(DateTime.Now.ToString("dd")), 00, 00, 00);
+        DateTime sumDayTime2 = new DateTime(int.Parse(DateTime.Now.ToString("yyyy")), int.Parse(DateTime.Now.ToString("MM")), int.Parse(DateTime.Now.ToString("dd")), 23, 59, 59);
+        DateTime openDayTime = new DateTime(int.Parse(DateTime.Now.ToString("yyyy")), int.Parse(DateTime.Now.ToString("MM")), int.Parse(DateTime.Now.ToString("dd")), 00, 00, 00);
+
+        string sumDate = DateTime.Now.ToString("yyyy-MM-dd");
+
 
         int height = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Height;
         int width = System.Windows.Forms.SystemInformation.PrimaryMonitorSize.Width;
@@ -128,89 +148,69 @@ namespace Ovan_P1
 
         [DllImport("winspool.drv", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern bool SetDefaultPrinter(string Name);
-        public SaleScreen(Form1 panel)
+        public SaleScreen(Form1 mainFrom, Panel panel)
         {
-            mainFormGlobal = panel;
+            mainFormGlobal = mainFrom;
             orderDialog.initValue(this);
             InitIntArray(productRestAmountArray);
+            passwordInput.initSaleScreen(this);
+
             currentDir = Directory.GetCurrentDirectory();
 
-            SerialPort serialPort = new SerialPort();
-            string[] ports = SerialPort.GetPortNames();
-            foreach(string port in ports)
-            {
-                Console.WriteLine(port);
-            }
-            //foreach (var item in PrinterSettings.InstalledPrinters)
-            //{
-            //    MessageBox.Show(item.ToString());
-            //}
-
             sqlite_conn = CreateConnection(constants.dbName);
+            dbClass.CreateSaleTB(sqlite_conn);
+            if (sqlite_conn.State == ConnectionState.Closed)
+            {
+                sqlite_conn.Open();
+            }
             SQLiteCommand sqlite_cmd;
             SQLiteDataReader sqlite_datareader;
             DateTime now = DateTime.Now;
             string week = now.ToString("ddd");
             string currentTime = now.ToString("HH:mm");
 
-
-            string Createsql = "CREATE TABLE IF NOT EXISTS " + constants.tbNames[3] + " (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, prdID INTEGER NOT NULL, prdRealID INT(10) NOT NULL DEFAULT 0, prdName VARCHAR(200) NOT NULL, prdPrice INTEGER NOT NULL DEFAULT 0, prdAmount INTEGER NOT NULL DEFAULT 0, ticketNo INTEGER NOT NULL DEFAULT 0, saleDate DATETIME, sumFlag BOOLEAN NOT NULL DEFAULT 'false', sumDate DATETIME, categoryID  INTEGER NOT NULL DEFAULT 0, serialNo INTEGER NOT NULL DEFAULT 1)";
-            sqlite_cmd = sqlite_conn.CreateCommand();
-            sqlite_cmd.CommandText = Createsql;
-            sqlite_cmd.ExecuteNonQuery();
-
-            string Createticketesql = "CREATE TABLE IF NOT EXISTS " + constants.tbNames[4] + " (PurchaseType INT(2) NOT NULL DEFAULT 1, ReturnTime INT(4) NOT NULL DEFAULT 30, MultiPurchase INT(2) NOT NULL DEFAULT 1, PurchaseAmount INT(4) NOT NULL DEFAULT 10, SerialNo INT(2) NOT NULL DEFAULT 1, StartSerialNo INT(4) NOT NULL DEFAULT 0, NoAfterTight INT(4) NOT NULL DEFAULT 1, FontSize INT(2) NOT NULL DEFAULT 1, ValidDate INT(2) NOT NULL DEFAULT 1, TicketMsg1 VARCHAR(16) NOT NULL, TicketMsg2 VARCHAR(16) NOT NULL)";
-            sqlite_cmd = sqlite_conn.CreateCommand();
-            sqlite_cmd.CommandText = Createticketesql;
-            sqlite_cmd.ExecuteNonQuery();
-
-            string CreateReceiptesql = "CREATE TABLE IF NOT EXISTS " + constants.tbNames[5] + " (ReceiptValid VARCHAR(8) NOT NULL, TicketTime VARCHAR(4) NOT NULL, StoreName VARCHAR(64) NOT NULL, Address VARCHAR(64) NOT NULL, PhoneNumber VARCHAR(64) NOT NULL, Other1 VARCHAR(64) NOT NULL, Other2 VARCHAR(64) NOT NULL)";
-            sqlite_cmd = sqlite_conn.CreateCommand();
-            sqlite_cmd.CommandText = CreateReceiptesql;
-            sqlite_cmd.ExecuteNonQuery();
-
-            string selectTicketSql = "SELECT * FROM " + constants.tbNames[4];
-            sqlite_cmd = sqlite_conn.CreateCommand();
-            sqlite_cmd.CommandText = selectTicketSql;
-            sqlite_datareader = sqlite_cmd.ExecuteReader();
-            while (sqlite_datareader.Read())
-            {
-                if (!sqlite_datareader.IsDBNull(0))
-                {
-                    PurchaseType = sqlite_datareader.GetInt32(0);
-                    ReturnTime = sqlite_datareader.GetInt32(1);
-                    MultiPurchase = sqlite_datareader.GetInt32(2);
-                    PurchaseAmount = sqlite_datareader.GetInt32(3);
-                    SerialNo = sqlite_datareader.GetInt32(4);
-                    StartSerialNo = sqlite_datareader.GetInt32(5);
-                    NoAfterTight = sqlite_datareader.GetInt32(6);
-                    FontSize = sqlite_datareader.GetInt32(7);
-                    ValidDate = sqlite_datareader.GetInt32(8);
-                    TicketMsg1 = sqlite_datareader.GetString(9);
-                    TicketMsg2 = sqlite_datareader.GetString(10);
-                }
-            }
-
-            string selectReceiptSql = "SELECT * FROM " + constants.tbNames[5];
-            sqlite_cmd = sqlite_conn.CreateCommand();
-            sqlite_cmd.CommandText = selectReceiptSql;
-            sqlite_datareader = sqlite_cmd.ExecuteReader();
-            while (sqlite_datareader.Read())
-            {
-                if (!sqlite_datareader.IsDBNull(0))
-                {
-                    ReceiptValid = sqlite_datareader.GetString(0);
-                    TicketTime = sqlite_datareader.GetString(1);
-                    StoreName = sqlite_datareader.GetString(2);
-                    Address = sqlite_datareader.GetString(3);
-                    PhoneNumber = sqlite_datareader.GetString(4);
-                    Other1 = sqlite_datareader.GetString(5);
-                    Other2 = sqlite_datareader.GetString(6);
-                }
-            }
-
             try
             {
+                string selectTicketSql = "SELECT * FROM " + constants.tbNames[4];
+                sqlite_cmd = sqlite_conn.CreateCommand();
+                sqlite_cmd.CommandText = selectTicketSql;
+                sqlite_datareader = sqlite_cmd.ExecuteReader();
+                while (sqlite_datareader.Read())
+                {
+                    if (!sqlite_datareader.IsDBNull(0))
+                    {
+                        PurchaseType = sqlite_datareader.GetInt32(0);
+                        ReturnTime = sqlite_datareader.GetInt32(1);
+                        MultiPurchase = sqlite_datareader.GetInt32(2);
+                        PurchaseAmount = sqlite_datareader.GetInt32(3);
+                        SerialNo = sqlite_datareader.GetInt32(4);
+                        StartSerialNo = sqlite_datareader.GetInt32(5);
+                        NoAfterTight = sqlite_datareader.GetInt32(6);
+                        FontSize = sqlite_datareader.GetInt32(7);
+                        ValidDate = sqlite_datareader.GetInt32(8);
+                        TicketMsg1 = sqlite_datareader.GetString(9);
+                        TicketMsg2 = sqlite_datareader.GetString(10);
+                    }
+                }
+
+                string selectReceiptSql = "SELECT * FROM " + constants.tbNames[5];
+                sqlite_cmd = sqlite_conn.CreateCommand();
+                sqlite_cmd.CommandText = selectReceiptSql;
+                sqlite_datareader = sqlite_cmd.ExecuteReader();
+                while (sqlite_datareader.Read())
+                {
+                    if (!sqlite_datareader.IsDBNull(0))
+                    {
+                        ReceiptValid = sqlite_datareader.GetString(0);
+                        TicketTime = sqlite_datareader.GetString(1);
+                        StoreName = sqlite_datareader.GetString(2);
+                        Address = sqlite_datareader.GetString(3);
+                        PhoneNumber = sqlite_datareader.GetString(4);
+                        Other1 = sqlite_datareader.GetString(5);
+                        Other2 = sqlite_datareader.GetString(6);
+                    }
+                }
+
                 string queryCmd = "SELECT * FROM " + constants.tbNames[0] + " ORDER BY id";
                 sqlite_cmd = sqlite_conn.CreateCommand();
                 sqlite_cmd.CommandText = queryCmd;
@@ -241,41 +241,39 @@ namespace Ovan_P1
                         }
                     }
                 }
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine(ex);
-                messageDialog.ShowErrorMessage(constants.systemErrorMsg, constants.systemSubErrorMsg);
-                this.BackShow();
-            }
 
-            string selectGeneralSql = "SELECT * FROM " + constants.tbNames[12];
-            sqlite_cmd = sqlite_conn.CreateCommand();
-            sqlite_cmd.CommandText = selectGeneralSql;
-            sqlite_datareader = sqlite_cmd.ExecuteReader();
-            while (sqlite_datareader.Read())
-            {
-                if (!sqlite_datareader.IsDBNull(0))
+                string selectGeneralSql = "SELECT * FROM " + constants.tbNames[12];
+                sqlite_cmd = sqlite_conn.CreateCommand();
+                sqlite_cmd.CommandText = selectGeneralSql;
+                sqlite_datareader = sqlite_cmd.ExecuteReader();
+                while (sqlite_datareader.Read())
                 {
-                    colorPatternValue = sqlite_datareader.GetInt32(0);
-                    menuTitle1 = sqlite_datareader.GetString(1);
-                    menuTitle2 = sqlite_datareader.GetString(2);
+                    if (!sqlite_datareader.IsDBNull(0))
+                    {
+                        colorPatternValue = sqlite_datareader.GetInt32(0);
+                        menuTitle1 = sqlite_datareader.GetString(1);
+                        menuTitle2 = sqlite_datareader.GetString(2);
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                string errorMsg1 = "Data loading is failed.";
+                string errorMsg2 = "Please go to Menu Reading section and get loading data again.";
+                messageDialog.ShowErrorMessage(errorMsg1, errorMsg2 + "\n ErrorNo: 004");
+                this.BackShow();
+                return;
+            }
 
-            Panel LeftPanel = createPanel.CreateMainPanel(panel, 0, 0, 3 * width / 4, height, BorderStyle.FixedSingle, Color.FromArgb(255, 255, 255, 204));
+
+            Panel LeftPanel = createPanel.CreateMainPanel(mainFrom, 0, 0, 3 * width / 4, height, BorderStyle.FixedSingle, Color.FromArgb(255, 255, 255, 204));
             LeftPanelGlobal = LeftPanel;
-            Panel RightPanel = createPanel.CreateMainPanel(panel, width * 3 / 4, 0, width / 4, height, BorderStyle.FixedSingle, Color.White);
-            FlowLayoutPanel FlowButtonLayout = createPanel.CreateFlowLayoutPanel(LeftPanel, 0, height / 7, LeftPanel.Width / 6, height * 4 / 7, Color.Transparent, new Padding(20, 10, 0, 0));
-            FlowLayoutPanel FlowTitleLayout = createPanel.CreateFlowLayoutPanel(LeftPanel, LeftPanel.Width / 6, 0, (LeftPanel.Width * 5) / 6, height / 7, Color.Transparent, new Padding(10, 70, 0, 0));
-            Panel MenuBodyLayout = createPanel.CreateSubPanel(LeftPanel, LeftPanel.Width / 6, height / 7, (LeftPanel.Width * 5) / 6, height * 6 / 7, BorderStyle.None, Color.Transparent);
-            MainBodyPanelGlobal = MenuBodyLayout;
 
             /**  Top Screen Title */
-            
+            FlowLayoutPanel FlowTitleLayout = createPanel.CreateFlowLayoutPanel(LeftPanel, LeftPanel.Width / 6, 0, (LeftPanel.Width * 5) / 6, height / 7, Color.Transparent, new Padding(10, 70, 0, 0));
 
             Label MainTitle = new Label();
-          //  MainTitle.Location = new Point(FlowTitleLayout.Left+200, FlowTitleLayout.Height/2-24);
+            //  MainTitle.Location = new Point(FlowTitleLayout.Left+200, FlowTitleLayout.Height/2-24);
             MainTitle.Width = FlowTitleLayout.Width;
             MainTitle.Height = FlowTitleLayout.Height - 70;
             MainTitle.Font = new Font("Series", 24, FontStyle.Bold);
@@ -284,18 +282,42 @@ namespace Ovan_P1
             //LeftPanel.Controls.Remove(FlowTitleLayout);
             FlowTitleLayout.Controls.Add(MainTitle);
 
-
-
             /** Main Product Panel layout */
+            Panel MenuBodyLayout = createPanel.CreateSubPanel(LeftPanel, LeftPanel.Width / 6, height / 7, (LeftPanel.Width * 5) / 6, height * 6 / 7, BorderStyle.None, Color.Transparent);
+            MainBodyPanelGlobal = MenuBodyLayout;
 
-            //CreateMainProductPanel(MenuBodyLayout);
-            //CreateSubProductPanel(MenuBodyLayout);
+
+            FlowLayoutPanel FlowButtonLayout = createPanel.CreateFlowLayoutPanel(LeftPanel, 0, height / 7, LeftPanel.Width / 6, height * 4 / 7, Color.Transparent, new Padding(20, 10, 0, 0));
+            try
+            {
+                CreateCategoryList(FlowButtonLayout);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                MessageBox.Show(ex.ToString());
+                messageDialog.ShowErrorMessage(constants.systemErrorMsg, constants.systemSubErrorMsg + "error2");
+                this.BackShow();
+                return;
+
+            }
+
+
+            Image backImage = Image.FromFile(constants.backButton);
+
+            Button backButton = customButton.CreateButtonWithImage(backImage, "backButton", "", LeftPanel.Width / 12 - 50, LeftPanel.Height - 150, 100, 100, 3, 100);
+            backButton.BackgroundImageLayout = ImageLayout.Stretch;
+            backButton.Padding = new Padding(0);
+            LeftPanel.Controls.Add(backButton);
+            backButton.Click += new EventHandler(BackShowMainMenu);
+
+            Panel RightPanel = createPanel.CreateMainPanel(mainFrom, width * 3 / 4, 0, width / 4, height, BorderStyle.FixedSingle, Color.White);
 
             /** right panel  */
             RightPanel.Padding = new Padding(10, 0, 10, 0);
 
             // Top Button Create
-            Image upButtonImage = Image.FromFile(@"D:\\ovan\\Ovan_P1\\images\\upButton.png");
+            Image upButtonImage = constants.upButtonImage;
             string upButtonName = constants.upButtonName;
             int upButtonLeft = 10;
             int upButtonTop = 50;
@@ -326,13 +348,13 @@ namespace Ovan_P1
                 orderAmountLabel[i] = productNumberLabel;
                 orderProductNameLabel[i] = bookProductLabel;
 
-                Image increaseButtonImage = Image.FromFile(@"D:\\ovan\\Ovan_P1\\images\\increaseButton.png");
+                Image increaseButtonImage = constants.increaseButtonImage;
                 Button productIncreaseButton = customButton.CreateButtonWithImage(increaseButtonImage, "prdIncrease_" + i, "", 0, (productIncreaseColumnPanel.Height / 5 + 10) * i, productIncreaseColumnPanel.Width - 6, productIncreaseColumnPanel.Height / 5 - 6, 0, 1);
                 productIncreaseColumnPanel.Controls.Add(productIncreaseButton);
                 orderIncreaseButton[i] = productIncreaseButton;
                 productIncreaseButton.Click += new EventHandler(this.orderAmountChange);
 
-                Image decreaseButtonImage = Image.FromFile(@"D:\\ovan\\Ovan_P1\\images\\decreaseButton.png");
+                Image decreaseButtonImage = constants.decreaseButtonImage;
                 Button productDecreaseButton = customButton.CreateButtonWithImage(decreaseButtonImage, "prdDecrease_" + i, "", 0, (productDecreaseColumnPanel.Height / 5 + 10) * i, productDecreaseColumnPanel.Width - 6, productDecreaseColumnPanel.Height / 5 - 6, 0, 1);
                 productDecreaseColumnPanel.Controls.Add(productDecreaseButton);
                 orderDecreaseButton[i] = productDecreaseButton;
@@ -342,7 +364,7 @@ namespace Ovan_P1
 
 
             // Bottom Button Create
-            Image downButtonImage = Image.FromFile(@"D:\\ovan\\Ovan_P1\\images\\downButton.png");
+            Image downButtonImage = constants.downButtonImage;
             string downButtonName = constants.downButtonName;
             int downButtonLeft = 10;
             int downButtonTop = TableBackPanel.Bottom + 10;
@@ -371,6 +393,8 @@ namespace Ovan_P1
                 if(m == 1)
                 {
                     orderPriceTotalLabel = transactionResult;
+                    orderPriceTotalLabel.TextChanged += new System.EventHandler(DepositAmountChange);
+
                 }
                 else if(m == 0)
                 {
@@ -386,8 +410,10 @@ namespace Ovan_P1
             Panel PaymentButtonPanel = createPanel.CreateSubPanel(RightPanel, 10, TransactionPanel.Bottom + 30, RightPanel.Width - TransactionPanel.Width / 6, RightPanel.Height - TransactionPanel.Bottom -30, BorderStyle.None, Color.White);
             FlowLayoutPanel paymentButtonTopPanel = createPanel.CreateFlowLayoutPanel(PaymentButtonPanel, 5, 5, PaymentButtonPanel.Width - 10, 70, Color.White, new Padding(0, 0, 0, 0));
             FlowLayoutPanel paymentButtonBottomPanel = createPanel.CreateFlowLayoutPanel(PaymentButtonPanel, 5, paymentButtonTopPanel.Bottom + 5, PaymentButtonPanel.Width - 10, 70, Color.White, new Padding(0, 0, 0, 0));
-            Button ticketingButton = customButton.CreateButton(constants.ticketingButtonText, "ticketingButton", 0, 5, paymentButtonTopPanel.Width / 2 - 10, paymentButtonTopPanel.Height - 10, Color.FromArgb(255, 0, 176, 80), Color.FromArgb(255, 85, 142, 213), 5, 14, 20, FontStyle.Bold, Color.White);
+            Button ticketingButton = customButton.CreateButton(constants.ticketingButtonText, "ticketingButton", 0, 5, paymentButtonTopPanel.Width / 2 - 10, paymentButtonTopPanel.Height - 10, Color.FromArgb(255, 217, 217, 217), Color.FromArgb(255, 85, 142, 213), 5, 14, 20, FontStyle.Bold, Color.Black);
+            ticketingButton.Enabled = true;
             paymentButtonTopPanel.Controls.Add(ticketingButton);
+            ticketingButtonGlobal = ticketingButton;
             ticketingButton.Click += new EventHandler(this.ShowTicketing);
 
             Button cancelButton = customButton.CreateButton(constants.cancelButtonText, "cancelButton", paymentButtonTopPanel.Width / 2 + 10, 5, paymentButtonTopPanel.Width / 2 - 10, paymentButtonTopPanel.Height - 10, Color.FromArgb(255, 255, 0, 0), Color.FromArgb(255, 185, 205, 229), 5, 14, 20, FontStyle.Bold, Color.White);
@@ -400,17 +426,45 @@ namespace Ovan_P1
             receiptButtonGlobal = receiptButton;
             receiptButton.Click += new EventHandler(this.ReceiptRun);
 
-            CreateCategoryList(FlowButtonLayout);
-
             if (categoryDisAmount == 0)
             {
-                messageDialog.ShowErrorMessage(constants.systemErrorMsg, constants.systemSubErrorMsg);
+                string errorMsg1 = "Category Data loading is failed. There is no salable category in this time";
+                string errorMsg2 = "Please go to Menu Reading section and get loading data again.";
+                messageDialog.ShowErrorMessage(errorMsg1, errorMsg2 + "\n ErrorNo: 005");
                 this.BackShow();
             }
 
+            comModule.Initialize(this);
         }
 
+        private void DepositAmountChange(object sender, EventArgs e)
+        {
+            if (orderPriceTotalLabel.Text != "")
+                comModule.OrderChange(orderPriceTotalLabel.Text);
+        }
 
+        public void SetDepositAmount(int amount)
+        {
+            if (orderPriceEnterLabel.InvokeRequired)
+            {
+                orderPriceEnterLabel.Invoke(new MethodInvoker(delegate
+                {
+                    orderPriceEnterLabel.Text = amount.ToString();
+                }));
+            }
+            if(amount >= orderTotalPrice)
+            {
+                if (ticketingButtonGlobal.InvokeRequired)
+                {
+                    ticketingButtonGlobal.Invoke(new MethodInvoker(delegate
+                    {
+                        ticketingButtonGlobal.BackColor = Color.FromArgb(255, 0, 176, 81);
+                        ticketingButtonGlobal.ForeColor = Color.White;
+                        ticketingButtonGlobal.Enabled = true;
+                    }));
+                }
+            }
+        }
         private void CreateCategoryList(FlowLayoutPanel listPanel)
         {
             DateTime now = DateTime.Now;
@@ -425,112 +479,121 @@ namespace Ovan_P1
             SQLiteDataReader sqlite_datareader;
             SQLiteCommand sqlite_cmd;
             sqlite_cmd = sqlite_conn.CreateCommand();
-            try
+            string queryCmd = "SELECT * FROM " + constants.tbNames[0] + " ORDER BY id";
+            sqlite_cmd.CommandText = queryCmd;
+
+            sqlite_datareader = sqlite_cmd.ExecuteReader();
+            int k = 0;
+            while (sqlite_datareader.Read())
             {
-                string queryCmd = "SELECT * FROM " + constants.tbNames[0] + " ORDER BY id";
-                sqlite_cmd.CommandText = queryCmd;
-
-                sqlite_datareader = sqlite_cmd.ExecuteReader();
-                int k = 0;
-                while (sqlite_datareader.Read())
+                bool saleFlag = false;
+                string openTime = "";
+                if (week == "Sat")
                 {
-                    bool saleFlag = false;
-                    string openTime = "";
-                    if (week == "Sat")
+                    openTime = sqlite_datareader.GetString(4);
+                }
+                else if (week == "Sun")
+                {
+                    openTime = sqlite_datareader.GetString(5);
+                }
+                else
+                {
+                    openTime = sqlite_datareader.GetString(3);
+                }
+                string[] openTimeArr = openTime.Split('/');
+                foreach (string openTimeArrItem in openTimeArr)
+                {
+                    string[] openTimeSubArr = openTimeArrItem.Split('-');
+                    if (String.Compare(openTimeSubArr[0], currentTime) <= 0 && String.Compare(openTimeSubArr[1], currentTime) >= 0)
                     {
-                        openTime = sqlite_datareader.GetString(4);
-                    }
-                    else if (week == "Sun")
-                    {
-                        openTime = sqlite_datareader.GetString(5);
-                    }
-                    else
-                    {
-                        openTime = sqlite_datareader.GetString(3);
-                    }
-                    string[] openTimeArr = openTime.Split('/');
-                    foreach (string openTimeArrItem in openTimeArr)
-                    {
-                        string[] openTimeSubArr = openTimeArrItem.Split('-');
-                        if (String.Compare(openTimeSubArr[0], currentTime) <= 0 && String.Compare(openTimeSubArr[1], currentTime) >= 0)
-                        {
-                            saleFlag = true;
-                            break;
-                        }
-                    }
-                    if (saleFlag)
-                    {
-                        if (k == 0)
-                        {
-                            selectedCategoryID = sqlite_datareader.GetInt32(1);
-                            selectedCategoryLayout = sqlite_datareader.GetInt32(7);
-                            CreateProductsList();
-                        }
-                        categoryIDArray[k] = sqlite_datareader.GetInt32(1);
-                        string categoryBackImg = sqlite_datareader.GetString(9);
-                        string categoryButtonText = sqlite_datareader.GetString(2);
-                        string categoryButtonName = "saleCategoryBtn_" + k + "_" + sqlite_datareader.GetInt32(1).ToString() + "_" + sqlite_datareader.GetInt32(7).ToString();
-                        Color backColor = colorPattn[k % 4 + 4];
-                        Color borderColor = colorPattn[k % 4];
-
-                        if (selectedCategoryIndex == k)
-                        {
-                            backColor = colorPattn[k % 4];
-                            borderColor = Color.Red;
-                            LeftPanelGlobal.BackColor = colorPattn[k % 4 + 4];
-                        }
-                        int btnLeft = listPanel.Left + 10;
-                        int btnTop = (listPanel.Top + 10) + (listPanel.Height / 5) * k;
-                        int btnWidth = listPanel.Width - 25;
-                        int btnHeight = listPanel.Height / categoryDisAmount - 10;
-                        if(categoryDisAmount < 6)
-                        {
-                            btnHeight = listPanel.Height / 6 - 10;
-                        }
-
-                        Button_WOC btn = new Button_WOC();
-                        btn.Location = new Point(btnLeft, btnTop);
-                        btn.Size = new Size(btnWidth, btnHeight);
-                        btn.Text = categoryButtonText;
-                        if (sqlite_datareader.GetInt32(10) == 1)
-                        {
-                            btn.Text = constants.saleStopText;
-                            btn.ForeColor = Color.Red;
-                            btn.TextColor = Color.Red;
-                            btn.Enabled = false;
-                        }
-
-                        btn.Name = categoryButtonName;
-                        btn.BackColor = colorPattn[4];
-                        btn.ButtonColor = backColor;
-                        btn.FlatAppearance.BorderSize = 0;
-                        btn.FlatStyle = FlatStyle.Flat;
-                        if(categoryBackImg != "")
-                        {
-                            btn.BackgroundImage = Image.FromFile(categoryBackImg);
-                            btn.BackgroundImageLayout = ImageLayout.Stretch;
-                        }
-                        btn.OnHoverButtonColor = colorPattn[k % 4 + 4];
-                        btn.OnHoverBorderColor = borderColor;
-                        btn.BorderColor = borderColor;
-                        btn.Font = new Font("Seri", 18F, FontStyle.Bold);
-                        categoryButton[k] = btn;
-                        listPanel.Controls.Add(btn);
-                        btn.Invalidate();
-
-                        btn.Click += new EventHandler(this.SelectCategory);
-                        //btn.MouseEnter += new EventHandler(this.HoverChange);
-                        k++;
-                        //categoryDisAmount = k;
+                        saleFlag = true;
+                        break;
                     }
                 }
+                if (saleFlag)
+                {
+                    if (k == 0)
+                    {
+                        selectedCategoryID = sqlite_datareader.GetInt32(1);
+                        selectedCategoryLayout = sqlite_datareader.GetInt32(7);
+
+                        if (selectedCategoryLayout == 13)
+                        {
+                            CreateProductsList13();
+                        }
+                        else if (selectedCategoryLayout == 11)
+                        {
+                            CreateProductsList11();
+                        }
+                        else
+                        {
+                            CreateProductsList();
+                        }
+                    }
+                    categoryIDArray[k] = sqlite_datareader.GetInt32(1);
+                    categoryBackImageArray[k] = sqlite_datareader.GetString(9);
+
+                    string categoryButtonText = sqlite_datareader.GetString(2);
+                    string categoryButtonName = "saleCategoryBtn_" + k + "_" + sqlite_datareader.GetInt32(1).ToString() + "_" + sqlite_datareader.GetInt32(7).ToString();
+                    Color backColor = colorPattn[k % 4 + 4];
+                    Color borderColor = colorPattn[k % 4];
+
+                    if (selectedCategoryIndex == k)
+                    {
+                        backColor = colorPattn[k % 4];
+                        borderColor = Color.Red;
+                    }
+                    int btnLeft = listPanel.Left + 10;
+                    int btnTop = (listPanel.Top + 10) + (listPanel.Height / 5) * k;
+                    int btnWidth = listPanel.Width - 25;
+                    int btnHeight = listPanel.Height / categoryDisAmount - 10;
+                    if(categoryDisAmount < 6)
+                    {
+                        btnHeight = listPanel.Height / 6 - 10;
+                    }
+
+                    Button_WOC btn = new Button_WOC();
+                    btn.Location = new Point(btnLeft, btnTop);
+                    btn.Size = new Size(btnWidth, btnHeight);
+                    btn.Text = categoryButtonText;
+                    if (sqlite_datareader.GetInt32(10) == 1)
+                    {
+                        btn.Text = constants.saleStopText;
+                        btn.ForeColor = Color.Red;
+                        btn.TextColor = Color.Red;
+                        btn.Enabled = false;
+                    }
+
+                    btn.Name = categoryButtonName;
+                    btn.BackColor = Color.Transparent;
+                    btn.ButtonColor = backColor;
+                    btn.FlatAppearance.BorderSize = 0;
+                    btn.FlatStyle = FlatStyle.Flat;
+                    btn.OnHoverButtonColor = colorPattn[k % 4 + 4];
+                    btn.OnHoverBorderColor = borderColor;
+                    btn.BorderColor = borderColor;
+                    btn.Font = new Font("Seri", 18F, FontStyle.Bold);
+                    categoryButton[k] = btn;
+                    listPanel.Controls.Add(btn);
+                    btn.Invalidate();
+
+                    btn.Click += new EventHandler(this.SelectCategory);
+
+                    //btn.MouseEnter += new EventHandler(this.HoverChange);
+                    k++;
+                    //categoryDisAmount = k;
+                }
             }
-            catch (Exception ex)
+            if (categoryBackImageArray[0] != "" && categoryBackImageArray[0] != null)
             {
-                //MessageBox.Show(ex.ToString());
-                messageDialog.ShowErrorMessage(constants.systemErrorMsg, constants.systemSubErrorMsg);
-                this.BackShow();
+                LeftPanelGlobal.BackgroundImage = Image.FromFile(categoryBackImageArray[0]);
+                LeftPanelGlobal.BackgroundImageLayout = ImageLayout.Stretch;
             }
+            else
+            {
+                LeftPanelGlobal.BackColor = colorPattn[4];
+            }
+
 
         }
 
@@ -554,13 +617,22 @@ namespace Ovan_P1
                 {
                     categoryButton[i].ButtonColor = colorPattn[i % 4 + 4];
                     categoryButton[i].BorderColor = colorPattn[i % 4];
-                    categoryButton[i].BackColor = colorPattn[selectedID % 4 + 4];
+                    categoryButton[i].BackColor = Color.Transparent;
                 }
             }
             btnTemp.ButtonColor = colorPattn[selectedID % 4];
             btnTemp.BorderColor = Color.Red;
-            btnTemp.BackColor = colorPattn[selectedID % 4 + 4];
-            LeftPanelGlobal.BackColor = colorPattn[selectedID % 4 + 4];
+            btnTemp.BackColor = Color.Transparent;
+            if(categoryBackImageArray[selectedID] != "")
+            {
+                LeftPanelGlobal.BackgroundImage = Image.FromFile(categoryBackImageArray[selectedID]);
+                LeftPanelGlobal.BackgroundImageLayout = ImageLayout.Stretch;
+            }
+            else
+            {
+                LeftPanelGlobal.BackgroundImage = null;
+                LeftPanelGlobal.BackColor = colorPattn[selectedID % 4 + 4];
+            }
 
             btnTemp.Invalidate();
 
@@ -697,7 +769,7 @@ namespace Ovan_P1
                                 SQLiteDataReader sqlite_datareader1;
                                 SQLiteCommand sqlite_cmd1;
                                 sqlite_cmd1 = sqlite_conn.CreateCommand();
-                                string queryCmd1 = "SELECT SUM(prdAmount) as prdRestAmount FROM " + constants.tbNames[3] + " WHERE categoryID=@CategoryID and prdID=@prdID";
+                                string queryCmd1 = "SELECT SUM(prdAmount) as prdRestAmount FROM " + constants.tbNames[3] + " WHERE categoryID=@CategoryID and prdID=@prdID and sumFlag='false'";
                                 sqlite_cmd1.CommandText = queryCmd1;
                                 sqlite_cmd1.Parameters.AddWithValue("@CategoryID", selectedCategoryID);
                                 sqlite_cmd1.Parameters.AddWithValue("@prdID", productIDArray[i]);
@@ -766,7 +838,7 @@ namespace Ovan_P1
                     p.Paint += new PaintEventHandler(panelbordercolor_Paint);
                 }
                 int h = p.Width - 100 > p.Height - 60 ? (p.Height - 60) / 5 : (p.Width - 100) / 5 - 10;
-                h = (h == 0) ? 11 : h;
+                h = (h <= 0) ? 11 : h;
                 int y = (p.Height - 60) / 5;
                 if (p.Width - 100 < p.Height - 60) y = (p.Height - 60 - h - 3) / 4;
                 int ftSize = 2 * h / 3;
@@ -961,7 +1033,7 @@ namespace Ovan_P1
                                 SQLiteDataReader sqlite_datareader1;
                                 SQLiteCommand sqlite_cmd1;
                                 sqlite_cmd1 = sqlite_conn.CreateCommand();
-                                string queryCmd1 = "SELECT SUM(prdAmount) as prdRestAmount FROM " + constants.tbNames[3] + " WHERE categoryID=@CategoryID and prdID=@prdID";
+                                string queryCmd1 = "SELECT SUM(prdAmount) as prdRestAmount FROM " + constants.tbNames[3] + " WHERE categoryID=@CategoryID and prdID=@prdID and sumFlag='false'";
                                 sqlite_cmd1.CommandText = queryCmd1;
                                 sqlite_cmd1.Parameters.AddWithValue("@CategoryID", selectedCategoryID);
                                 sqlite_cmd1.Parameters.AddWithValue("@prdID", productIDArray[i]);
@@ -1029,7 +1101,7 @@ namespace Ovan_P1
 
                 // Get font size to fit the specified card...
                 int h = p.Width - 100 > p.Height - 60 ? (p.Height - 60) / 5 : (p.Width - 100) / 5 - 10;
-                h = (h == 0) ? 11 : h;
+                h = (h <= 0) ? 11 : h;
                 int y = (p.Height - 60) / 5;
                 if (p.Width - 100 < p.Height - 60) y = (p.Height - 60 - h - 3) / 4;
 
@@ -1234,7 +1306,7 @@ namespace Ovan_P1
                                 SQLiteDataReader sqlite_datareader1;
                                 SQLiteCommand sqlite_cmd1;
                                 sqlite_cmd1 = sqlite_conn.CreateCommand();
-                                string queryCmd1 = "SELECT SUM(prdAmount) as prdRestAmount FROM " + constants.tbNames[3] + " WHERE categoryID=@CategoryID and prdID=@prdID";
+                                string queryCmd1 = "SELECT SUM(prdAmount) as prdRestAmount FROM " + constants.tbNames[3] + " WHERE categoryID=@CategoryID and prdID=@prdID and sumFlag='false'";
                                 sqlite_cmd1.CommandText = queryCmd1;
                                 sqlite_cmd1.Parameters.AddWithValue("@CategoryID", selectedCategoryID);
                                 sqlite_cmd1.Parameters.AddWithValue("@prdID", productIDArray[i]);
@@ -1278,7 +1350,7 @@ namespace Ovan_P1
                 p.Paint += new PaintEventHandler(panelbordercolor_Paint);
 
                 int h = p.Width - 100 > p.Height - 60 ? (p.Height - 60) / 5 : (p.Width - 100) / 5 - 10;
-                h = (h == 0) ? 11 : h;
+                h = (h <= 0) ? 11 : h;
                 int y = (p.Height - 60) / 5;
                 if (p.Width - 100 < p.Height - 60) y = (p.Height - 60 - h - 3) / 4;
                 int ftSize = 2 * h / 3;
@@ -1677,7 +1749,7 @@ namespace Ovan_P1
             orderAmountArray[selectedIndex] = orderAmount.ToString();
             orderAmountLabel[selectedIndex - startIndex].Text = orderAmount.ToString();
             orderPriceTotalLabel.Text = orderTotalPrice.ToString();
-            orderPriceEnterLabel.Text = "150000";
+            //orderPriceEnterLabel.Text = "150000";
         }
 
         private void orderDelete(object sender, EventArgs e)
@@ -1719,7 +1791,7 @@ namespace Ovan_P1
                 productRestAmountArray[selectedCategoryIndex, selectedPrdIndex] -= int.Parse(msgValue[1]);
                 orderTotalPrice += int.Parse(msgValue[2]);
                 orderPriceTotalLabel.Text = orderTotalPrice.ToString();
-                orderPriceEnterLabel.Text = "150000";
+                orderPriceEnterLabel.Text = "15000";
             }
             else
             {
@@ -1747,7 +1819,7 @@ namespace Ovan_P1
                 }
                 orderTotalPrice += int.Parse(msgValue[2]);
                 orderPriceTotalLabel.Text = orderTotalPrice.ToString();
-                orderPriceEnterLabel.Text = "150000";
+                //orderPriceEnterLabel.Text = "15000";
                 currentSelectedId++;
             }
         }
@@ -1773,14 +1845,33 @@ namespace Ovan_P1
             this.ResumeLayout(false);
 
         }
-        PaperSize paperSize = new PaperSize("papersize", 500, 800);//set the paper size
-        //PrintDocument printDocument1 = new PrintDocument();
-        //PrintPreviewDialog printPreviewDialog1 = new PrintPreviewDialog();
-        //PrintDialog printDialog1 = new PrintDialog();
+        PaperSize paperSize = new PaperSize("papersize", 203, 800);//set the paper size
 
         public void Ticketing()
         {
             orderRestPriceLabel.Text = (int.Parse(orderPriceEnterLabel.Text) - int.Parse(orderPriceTotalLabel.Text)).ToString();
+
+            ticketingButtonGlobal.BackColor = Color.FromArgb(255, 217, 217, 217);
+            ticketingButtonGlobal.ForeColor = Color.Black;
+            ticketingButtonGlobal.Enabled = false;
+
+            int iChange = int.Parse(orderPriceEnterLabel.Text) - int.Parse(orderPriceTotalLabel.Text);
+            if (iChange > 0)
+                comModule.TicketRun(iChange);
+
+
+            orderTotalTicketForReceipt = currentSelectedId;
+            orderTotalPriceForReceipt = orderTotalPrice;
+
+            PrintRun();
+
+
+        }
+
+        private void OrderDataSaving()
+        {
+            DateTime now = DateTime.Now;
+
             if (sqlite_conn.State == ConnectionState.Closed)
             {
                 sqlite_conn.Open();
@@ -1788,15 +1879,49 @@ namespace Ovan_P1
             SQLiteCommand sqlite_cmd;
             SQLiteDataReader sqlite_datareader;
             SQLiteDataReader sqlite_datareader1;
-            string Createsql = "CREATE TABLE IF NOT EXISTS " + constants.tbNames[3] + " (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, prdID INTEGER NOT NULL, prdRealID INT(10) NOT NULL DEFAULT 0, prdName VARCHAR(200) NOT NULL, prdPrice INTEGER NOT NULL DEFAULT 0, prdAmount INTEGER NOT NULL DEFAULT 0, ticketNo INTEGER NOT NULL DEFAULT 0, saleDate DATETIME, sumFlag BOOLEAN NOT NULL DEFAULT 'false', sumDate DATETIME, categoryID INTEGER NOT NULL DEFAULT 0, serialNo INTEGER NOT NULL DEFAULT 1)";
+
+            string week = now.ToString("ddd");
+            string currentTime = now.ToString("HH:mm");
+
+            string storeEndqurey = "SELECT * FROM " + constants.tbNames[6];
             sqlite_cmd = sqlite_conn.CreateCommand();
-            sqlite_cmd.CommandText = Createsql;
-            sqlite_cmd.ExecuteNonQuery();
-            DateTime now = DateTime.Now;
+            sqlite_cmd.CommandText = storeEndqurey;
+            sqlite_datareader = sqlite_cmd.ExecuteReader();
+            while (sqlite_datareader.Read())
+            {
+                if (!sqlite_datareader.IsDBNull(0))
+                {
+                    if (week == "Sat")
+                    {
+                        storeEndTime = (sqlite_datareader.GetString(6)).Split('/')[1];
+                        openTime = (sqlite_datareader.GetString(4)).Split('/')[0].Split('-')[0];
+                    }
+                    else if (week == "Sun")
+                    {
+                        storeEndTime = (sqlite_datareader.GetString(6)).Split('/')[2];
+                        openTime = (sqlite_datareader.GetString(5)).Split('/')[0].Split('-')[0];
+                    }
+                    else
+                    {
+                        storeEndTime = (sqlite_datareader.GetString(6)).Split('/')[0];
+                        openTime = (sqlite_datareader.GetString(3)).Split('/')[0].Split('-')[0];
+                    }
+
+                }
+            }
+
+            sumDayTime1 = constants.sumDayTimeStart(storeEndTime);
+            sumDayTime2 = constants.sumDayTimeEnd(storeEndTime);
+            openDayTime = constants.openDateTime(openTime, storeEndTime);
+            sumDate = constants.sumDate(storeEndTime);
+
+
             currentTicketNo = 1;
-            string ticketsql = "SELECT MAX(ticketNo) FROM " + constants.tbNames[3] + " WHERE sumFlag='false'";
+            string ticketsql = "SELECT MAX(ticketNo) FROM " + constants.tbNames[3] + " WHERE saleDate>=@sumDate1 and saleDate<=@sumDate2";
             sqlite_cmd = sqlite_conn.CreateCommand();
             sqlite_cmd.CommandText = ticketsql;
+            sqlite_cmd.Parameters.AddWithValue("@sumDate1", sumDayTime1);
+            sqlite_cmd.Parameters.AddWithValue("@sumDate2", sumDayTime2);
             sqlite_datareader = sqlite_cmd.ExecuteReader();
             while (sqlite_datareader.Read())
             {
@@ -1823,7 +1948,7 @@ namespace Ovan_P1
                 else
                 {
                     currentSerialNo = sqlite_datareader.GetInt32(0) + 1;
-                    if(currentSerialNo == 10000)
+                    if (currentSerialNo == 10000)
                     {
                         currentSerialNo = 1;
                     }
@@ -1862,7 +1987,7 @@ namespace Ovan_P1
                         restAmount = sqlite_datareader1.GetInt32(1);
                     }
                 }
-                if(restAmount == 0)
+                if (restAmount == 0)
                 {
                     sqlite_cmd = sqlite_conn.CreateCommand();
                     string queryCmd2 = "UPDATE " + constants.tbNames[2] + " SET SoldFlag=1 WHERE ProductID=@productID";
@@ -1872,10 +1997,8 @@ namespace Ovan_P1
                 }
             }
             sqlite_conn.Close();
-            //PrintRun();
-            Task.Delay(ReturnTime).ContinueWith(t => PrintRun());
-
         }
+
         delegate void SetTextCallback(string text);
 
         private void SetText(string text)
@@ -1893,6 +2016,98 @@ namespace Ovan_P1
                 TempLabel.Text = text;
             }
         }
+        public static PageSettings GetPrinterPageInfo()
+        {
+            return GetPrinterPageInfo(null);
+        }
+        public static PageSettings GetPrinterPageInfo(String printerName)
+        {
+            PrinterSettings settings;
+
+            // If printer name is not set, look for default printer
+            if (String.IsNullOrEmpty(printerName))
+            {
+                foreach (var printer in PrinterSettings.InstalledPrinters)
+                {
+                    settings = new PrinterSettings();
+
+                    settings.PrinterName = printer.ToString();
+
+                    if (settings.IsDefaultPrinter)
+                        return settings.DefaultPageSettings;
+                }
+
+                return null; // <- No default printer  
+            }
+
+            // printer by its name 
+            settings = new PrinterSettings();
+
+            settings.PrinterName = printerName;
+
+            return settings.DefaultPageSettings;
+        }
+
+        internal static void SpotTroubleUsingProperties(ref String statusReport, PrintQueue pq)
+        {
+            
+            if (pq.HasPaperProblem)
+            {
+                statusReport = statusReport + "Has a paper problem. ";
+            }
+            if (!(pq.HasToner))
+            {
+                statusReport = statusReport + "Is out of toner. ";
+            }
+            if (pq.IsDoorOpened)
+            {
+                statusReport = statusReport + "Has an open door. ";
+            }
+            if (pq.IsInError)
+            {
+                statusReport = statusReport + "Is in an error state. ";
+            }
+            if (pq.IsNotAvailable)
+            {
+                statusReport = statusReport + "Is not available. ";
+            }
+            if (pq.IsOffline)
+            {
+                statusReport = statusReport + "Is off line. ";
+            }
+            if (pq.IsOutOfMemory)
+            {
+                statusReport = statusReport + "Is out of memory. ";
+            }
+            if (pq.IsOutOfPaper)
+            {
+                statusReport = statusReport + "Is out of paper.";
+            }
+            if (pq.IsOutputBinFull)
+            {
+                statusReport = statusReport + "Has a full output bin. ";
+            }
+            if (pq.IsPaperJammed)
+            {
+                statusReport = statusReport + "Has a paper jam. ";
+            }
+            if (pq.IsPaused)
+            {
+                statusReport = statusReport + "Is paused. ";
+            }
+            if (pq.IsTonerLow)
+            {
+                statusReport = statusReport + "Is low on toner. ";
+            }
+            if (pq.NeedUserIntervention)
+            {
+                statusReport = statusReport + "Needs user intervention. ";
+            }
+            
+            // Check if queue is even available at this time of day
+            // The following method is defined in the complete example.
+            //ReportAvailabilityAtThisTime(ref statusReport, pq);
+        }//end SpotTroubleUsingProperties
         private void PrintRun()
         {
             PrintDocument ticketPrintDocument = new PrintDocument();
@@ -1900,146 +2115,60 @@ namespace Ovan_P1
             PrintDialog ticketPrintDialog = new PrintDialog();
             if (PurchaseType == 0)
             {
+                lineNumbers = 0;
                 paperSize = new PaperSize("papersize", constants.singleticketPrintPaperWidth, constants.singleticketPrintPaperHeight);
                 ticketPrintDocument.PrintPage += new PrintPageEventHandler(TicketSingle_PrintPage);
             }
             else
             {
-                paperSize = new PaperSize("papersize", constants.multiticketPrintPaperWidth, constants.multiticketPrintPaperHeight + 70 * currentSelectedId);
+                paperSize = new PaperSize("papersize", constants.multiticketPrintPaperWidth, constants.multiticketPrintPaperHeight + 60 * currentSelectedId);
                 ticketPrintDocument.PrintPage += new PrintPageEventHandler(TicketMultiple_PrintPage);
             }
 
-            ticketPrintDocument.EndPrint += new PrintEventHandler(EndPrintPage);
+            ticketPrintDocument.BeginPrint += new PrintEventHandler(BeginPrintPage);
 
             ticketPrintPreviewDialog.Document = ticketPrintDocument;
             ticketPrintDialog.Document = ticketPrintDocument;
 
-            //PrinterSettings settings = new PrinterSettings();
-            //string defaultPrinterName = settings.PrinterName;
-            //MessageBox.Show(defaultPrinterName);
-
-            ((ToolStripButton)((ToolStrip)ticketPrintPreviewDialog.Controls[1]).Items[0]).Enabled = true;
+            PrinterSettings settings = new PrinterSettings();
 
             ticketPrintDocument.DefaultPageSettings.PaperSize = paperSize;
-            ticketPrintPreviewDialog.ShowDialog();
-            //if(ticketPrintDialog.ShowDialog() == DialogResult.OK)
-            //{
-            //ticketPrintDocument.Print();
-            //}
 
-            if (sqlite_conn.State == ConnectionState.Closed)
+            string defaultPrinterName = settings.PrinterName;
+            //MessageBox.Show(defaultPrinterName);
+
+            PageSettings page = GetPrinterPageInfo();
+            page.PaperSize = paperSize;
+            page.Margins = new Margins(0, 0, 0, 50);
+            ticketPrintDocument.EndPrint += new PrintEventHandler(EndPrintPage);
+
+
+            try
             {
-                sqlite_conn.Open();
+                ticketPrintDocument.Print();
             }
-            SQLiteCommand sqlite_cmd;
-            SQLiteDataReader sqlite_datareader;
-
-            DateTime now = DateTime.Now;
-            string week = now.ToString("ddd");
-            string currentTime = now.ToString("HH:mm");
-            for (int i = 0; i < categoryDisAmount; i++)
+            catch (InvalidPrinterException ex)
             {
-                sqlite_cmd = sqlite_conn.CreateCommand();
-                string queryCmd = "SELECT * FROM " + constants.tbNames[2] + " WHERE CategoryID=@CategoryID ORDER BY CardNumber";
-                sqlite_cmd.CommandText = queryCmd;
-                sqlite_cmd.Parameters.AddWithValue("@CategoryID", categoryIDArray[i]);
-
-                sqlite_datareader = sqlite_cmd.ExecuteReader();
-                int k = 0;
-                while (sqlite_datareader.Read())
-                {
-                    string openTime = "";
-                    if (week == "Sat")
-                    {
-                        openTime = sqlite_datareader.GetString(5);
-                    }
-                    else if (week == "Sun")
-                    {
-                        openTime = sqlite_datareader.GetString(6);
-                    }
-                    else
-                    {
-                        openTime = sqlite_datareader.GetString(4);
-                    }
-                    string[] openTimeArr = openTime.Split('/');
-                    foreach (string openTimeArrItem in openTimeArr)
-                    {
-                        string[] openTimeSubArr = openTimeArrItem.Split('-');
-                        if (String.Compare(openTimeSubArr[0], currentTime) <= 0 && String.Compare(openTimeSubArr[1], currentTime) >= 0)
-                        {
-                            SQLiteDataReader sqlite_datareader1;
-                            SQLiteCommand sqlite_cmd1;
-                            sqlite_cmd1 = sqlite_conn.CreateCommand();
-                            string queryCmd1 = "SELECT SUM(prdAmount) as prdRestAmount FROM " + constants.tbNames[3] + " WHERE categoryID=@CategoryID and prdID=@prdID";
-                            sqlite_cmd1.CommandText = queryCmd1;
-                            sqlite_cmd1.Parameters.AddWithValue("@CategoryID", categoryIDArray[i]);
-                            sqlite_cmd1.Parameters.AddWithValue("@prdID", sqlite_datareader.GetInt32(0));
-
-                            sqlite_datareader1 = sqlite_cmd1.ExecuteReader();
-                            while (sqlite_datareader1.Read())
-                            {
-                                if (!sqlite_datareader1.IsDBNull(0))
-                                {
-                                    productRestAmountArray[i, k] = productLimitedCntArray[i, k] - sqlite_datareader1.GetInt32(0);
-                                }
-                                else
-                                {
-                                    productRestAmountArray[i, k] = productLimitedCntArray[i, k];
-                                }
-                            }
-
-                            break;
-                        }
-                    }
-                    k++;
-                }
+                Console.WriteLine("printer Exception : " + ex);
             }
-            orderCategoryIDArray = new int[100];
-            orderProductIDArray = new int[100];
-            orderProductNameArray = new string[100];
-            orderProductPriceArray = new string[100];
-            orderAmountArray = new string[100];
-            orderProuctIndexArray = new int[100];
-            TempLabel = orderPriceEnterLabel;
-            SetText("");
-            TempLabel = orderPriceTotalLabel;
-            SetText("");
-            TempLabel = orderRestPriceLabel;
-            SetText("");
-            //orderPriceTotalLabel.Text = "";
-            orderTotalTicketForReceipt = currentSelectedId;
-            orderTotalPriceForReceipt = orderTotalPrice;
-            orderTotalPrice = 0;
-            currentSelectedId = 0;
-            CreateOrderTable(0);
 
-            sqlite_conn.Close();
-            if(ReceiptValid == "true")
+            if (connectStatus == "disconnect")
             {
-                if (receiptButtonGlobal.InvokeRequired)
-                {
-                    receiptButtonGlobal.Invoke(new MethodInvoker(delegate
-                    {
-                        receiptButtonGlobal.BackColor = Color.FromArgb(255, 255, 192, 0);
-                        receiptButtonGlobal.ForeColor = Color.White;
-                        receiptButtonGlobal.Enabled = true;
-                    }));
-                }
-
-                Thread.Sleep(int.Parse(TicketTime));
-                if (receiptButtonGlobal.InvokeRequired)
-                {
-                    receiptButtonGlobal.Invoke(new MethodInvoker(delegate
-                    {
-                        receiptButtonGlobal.BackColor = Color.FromArgb(255, 217, 217, 217);
-                        receiptButtonGlobal.ForeColor = Color.Black;
-                        receiptButtonGlobal.Enabled = false;
-                    }));
-                }
+                messageDialog.ShowPrintErrorMessage(constants.printOfflineErrorMsg, constants.printSubErrorMsg);
             }
-            
+            if (statusVal == "Is out of paper.")
+            {
+                messageDialog.ShowPrintErrorMessage(constants.printErrorMsg, constants.printSubErrorMsg);
+            }
+
         }
 
+        private void BeginPrintPage(object sender, EventArgs e)
+        {
+            PrintQueue print_queue = LocalPrintServer.GetDefaultPrintQueue();
+            Console.WriteLine("begin++++" + print_queue.IsOutOfPaper);
+
+        }
         private void CancelOrder(object sender, EventArgs e)
         {
             if (sqlite_conn.State == ConnectionState.Closed)
@@ -2122,358 +2251,334 @@ namespace Ovan_P1
 
             sqlite_conn.Close();
 
+            comModule.OrderCancel();
         }
 
         private void TicketSingle_PrintPage(object sender, PrintPageEventArgs e)
         {
             DateTime now = DateTime.Now;
             PrintDocument ticketPrintDocument = (PrintDocument)sender;
-            if(ticketPrintDocument.PrintController.IsPreview == false)
+            while (lineNumbers < currentSelectedId)
             {
-                while (lineNumberPrint < currentSelectedId)
+                float currentY = 0;// declare  one variable for height measurement
+                RectangleF rect1 = new RectangleF(5, currentY, constants.singleticketPrintPaperWidth - 10, 30);
+                StringFormat format1 = new StringFormat();
+                format1.Alignment = StringAlignment.Near;
+                e.Graphics.DrawString(now.ToString("yyyy/MM/dd  HH:mm:ss"), new Font("Seri", constants.fontSizeMedium, FontStyle.Regular), Brushes.Black, rect1, format1);
+                currentY += 30;
+                if (SerialNo == 1)
                 {
-                    float currentY = 10;// declare  one variable for height measurement
-                    RectangleF rect1 = new RectangleF(30, currentY, constants.singleticketPrintPaperWidth - 50, 30);
-                    StringFormat format1 = new StringFormat();
-                    format1.Alignment = StringAlignment.Near;
-                    e.Graphics.DrawString(now.ToString("yyyy/MM/dd  HH:mm:ss"), new Font("Seri", constants.fontSizeMedium, FontStyle.Regular), Brushes.Black, rect1, format1);
-                    currentY += 30;
-                    if (SerialNo == 1)
-                    {
-                        RectangleF rect2 = new RectangleF(30, currentY, constants.singleticketPrintPaperWidth - 50, 30);
-                        StringFormat format2 = new StringFormat();
-                        format2.Alignment = StringAlignment.Near;
-                        e.Graphics.DrawString(currentSerialNo.ToString("0000"), new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect2, format2);
-                        currentY += 30;
-                    }
-                    int totalPrice = int.Parse(orderProductPriceArray[lineNumberPrint]) * int.Parse(orderAmountArray[lineNumberPrint]);
-                    RectangleF rect3 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
-                    StringFormat format3 = new StringFormat();
-                    format3.Alignment = StringAlignment.Center;
-                    e.Graphics.DrawString(orderProductNameArray[lineNumberPrint], new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect3, format3);
-                    currentY += 30;
-
-                    RectangleF rect4 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
-                    StringFormat format4 = new StringFormat();
-                    format4.Alignment = StringAlignment.Center;
-                    e.Graphics.DrawString(totalPrice.ToString() + constants.unit, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect4, format4);
-                    currentY += 30;
-
-                    string validText = "当日限り有効";
-                    if (ValidDate != 0)
-                    {
-                        DateTime validDates = now.AddDays(2);
-                        validText = validDates.ToString("yyyy/MM/dd") + "まで有効";
-                    }
-                    RectangleF rect5 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
-                    StringFormat format5 = new StringFormat();
-                    format5.Alignment = StringAlignment.Center;
-                    e.Graphics.DrawString(validText, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect5, format5);
-                    currentY += 35;
-
-                    RectangleF rect6 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
-                    StringFormat format6 = new StringFormat();
-                    format6.Alignment = StringAlignment.Center;
-                    e.Graphics.DrawString(TicketMsg1, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect6, format6);
-                    currentY += 35;
-
-                    RectangleF rect7 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
-                    StringFormat format7 = new StringFormat();
-                    format7.Alignment = StringAlignment.Center;
-                    e.Graphics.DrawString(TicketMsg2, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect7, format7);
-                    currentY += 35;
-
-                    RectangleF rect8 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth - 50, 30);
-                    StringFormat format8 = new StringFormat();
-                    format8.Alignment = StringAlignment.Far;
-                    e.Graphics.DrawString(currentTicketNo.ToString("0000000000"), new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect8, format8);
-                    currentY += 35;
-
-                    lineNumberPrint++;
-                    if (lineNumberPrint == currentSelectedId)
-                    {
-                        e.HasMorePages = false;
-                    }
-                    else
-                    {
-                        e.HasMorePages = true;
-                        return;
-                    }
-
+                    RectangleF rect2 = new RectangleF(5, currentY, constants.singleticketPrintPaperWidth - 10, 20);
+                    StringFormat format2 = new StringFormat();
+                    format2.Alignment = StringAlignment.Near;
+                    e.Graphics.DrawString(currentSerialNo.ToString("0000"), new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect2, format2);
+                    currentY += 20;
                 }
-            }
-            else
-            {
-                while (lineNumber < currentSelectedId)
+                int totalPrice = int.Parse(orderProductPriceArray[lineNumbers]) * int.Parse(orderAmountArray[lineNumber]);
+                RectangleF rect3 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 25);
+                StringFormat format3 = new StringFormat();
+                format3.Alignment = StringAlignment.Center;
+                e.Graphics.DrawString(orderProductNameArray[lineNumbers], new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect3, format3);
+                currentY += 25;
+
+                RectangleF rect4 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
+                StringFormat format4 = new StringFormat();
+                format4.Alignment = StringAlignment.Center;
+                e.Graphics.DrawString(totalPrice.ToString() + constants.unit, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect4, format4);
+                currentY += 30;
+
+                string validText = "当日限り有効";
+                if (ValidDate != 0)
                 {
-                    float currentY = 10;// declare  one variable for height measurement
-                    RectangleF rect1 = new RectangleF(30, currentY, constants.singleticketPrintPaperWidth - 50, 30);
-                    StringFormat format1 = new StringFormat();
-                    format1.Alignment = StringAlignment.Near;
-                    e.Graphics.DrawString(now.ToString("yyyy/MM/dd  HH:mm:ss"), new Font("Seri", constants.fontSizeMedium, FontStyle.Regular), Brushes.Black, rect1, format1);
-                    currentY += 30;
-                    if (SerialNo == 1)
-                    {
-                        RectangleF rect2 = new RectangleF(30, currentY, constants.singleticketPrintPaperWidth - 50, 30);
-                        StringFormat format2 = new StringFormat();
-                        format2.Alignment = StringAlignment.Near;
-                        e.Graphics.DrawString(currentSerialNo.ToString("0000"), new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect2, format2);
-                        currentY += 30;
-                    }
-                    int totalPrice = int.Parse(orderProductPriceArray[lineNumber]) * int.Parse(orderAmountArray[lineNumber]);
-                    RectangleF rect3 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
-                    StringFormat format3 = new StringFormat();
-                    format3.Alignment = StringAlignment.Center;
-                    e.Graphics.DrawString(orderProductNameArray[lineNumber], new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect3, format3);
-                    currentY += 30;
-
-                    RectangleF rect4 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
-                    StringFormat format4 = new StringFormat();
-                    format4.Alignment = StringAlignment.Center;
-                    e.Graphics.DrawString(totalPrice.ToString() + constants.unit, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect4, format4);
-                    currentY += 30;
-
-                    string validText = "当日限り有効";
-                    if (ValidDate != 0)
-                    {
-                        DateTime validDates = now.AddDays(2);
-                        validText = validDates.ToString("yyyy/MM/dd") + "まで有効";
-                    }
-                    RectangleF rect5 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
-                    StringFormat format5 = new StringFormat();
-                    format5.Alignment = StringAlignment.Center;
-                    e.Graphics.DrawString(validText, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect5, format5);
-                    currentY += 35;
-
-                    RectangleF rect6 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
-                    StringFormat format6 = new StringFormat();
-                    format6.Alignment = StringAlignment.Center;
-                    e.Graphics.DrawString(TicketMsg1, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect6, format6);
-                    currentY += 35;
-
-                    RectangleF rect7 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
-                    StringFormat format7 = new StringFormat();
-                    format7.Alignment = StringAlignment.Center;
-                    e.Graphics.DrawString(TicketMsg2, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect7, format7);
-                    currentY += 35;
-
-                    RectangleF rect8 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth - 50, 30);
-                    StringFormat format8 = new StringFormat();
-                    format8.Alignment = StringAlignment.Far;
-                    e.Graphics.DrawString(currentTicketNo.ToString("0000000000"), new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect8, format8);
-                    currentY += 35;
-
-                    lineNumber++;
-                    if (lineNumber == currentSelectedId)
-                    {
-                        e.HasMorePages = false;
-                    }
-                    else
-                    {
-                        e.HasMorePages = true;
-                        return;
-                    }
-
+                    DateTime validDates = now.AddDays(2);
+                    validText = validDates.ToString("yyyy/MM/dd") + "まで有効";
                 }
+                RectangleF rect5 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
+                StringFormat format5 = new StringFormat();
+                format5.Alignment = StringAlignment.Center;
+                e.Graphics.DrawString(validText, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect5, format5);
+                currentY += 30;
+
+                RectangleF rect6 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
+                StringFormat format6 = new StringFormat();
+                format6.Alignment = StringAlignment.Center;
+                e.Graphics.DrawString(TicketMsg1, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect6, format6);
+                currentY += 30;
+
+                RectangleF rect7 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
+                StringFormat format7 = new StringFormat();
+                format7.Alignment = StringAlignment.Center;
+                e.Graphics.DrawString(TicketMsg2, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect7, format7);
+                currentY += 30;
+
+                RectangleF rect8 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth - 10, 30);
+                StringFormat format8 = new StringFormat();
+                format8.Alignment = StringAlignment.Far;
+                e.Graphics.DrawString(currentTicketNo.ToString("0000000000"), new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect8, format8);
+                currentY += 30;
+
+                lineNumbers++;
+                if (lineNumbers == currentSelectedId)
+                {
+                    e.HasMorePages = false;
+                }
+                else
+                {
+                    e.HasMorePages = true;
+                    return;
+                }
+
             }
         }
         private void TicketMultiple_PrintPage(object sender, PrintPageEventArgs e)
         {
             DateTime now = DateTime.Now;
             PrintDocument ticketPrintDocument = (PrintDocument)sender;
-            if (ticketPrintDocument.PrintController.IsPreview == false)
+            float currentY = 0;// declare  one variable for height measurement
+            RectangleF rect1 = new RectangleF(5, currentY, constants.singleticketPrintPaperWidth - 5, 30);
+            StringFormat format1 = new StringFormat();
+            format1.Alignment = StringAlignment.Near;
+            e.Graphics.DrawString(now.ToString("yyyy/MM/dd  HH:mm:ss"), new Font("Seri", constants.fontSizeMedium, FontStyle.Regular), Brushes.Red, rect1, format1);
+            currentY += 20;
+            if (SerialNo == 1)
             {
-                float currentY = 30;// declare  one variable for height measurement
-                RectangleF rect1 = new RectangleF(30, currentY, constants.singleticketPrintPaperWidth - 50, 30);
-                StringFormat format1 = new StringFormat();
-                format1.Alignment = StringAlignment.Near;
-                e.Graphics.DrawString(now.ToString("yyyy/MM/dd  HH:mm:ss"), new Font("Seri", constants.fontSizeSmall, FontStyle.Regular), Brushes.Black, rect1, format1);
+                RectangleF rect2 = new RectangleF(5, currentY, constants.singleticketPrintPaperWidth - 5, 30);
+                StringFormat format2 = new StringFormat();
+                format2.Alignment = StringAlignment.Near;
+                e.Graphics.DrawString(currentSerialNo.ToString("0000"), new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Red, rect2, format2);
                 currentY += 20;
-                if (SerialNo == 1)
-                {
-                    RectangleF rect2 = new RectangleF(30, currentY, constants.singleticketPrintPaperWidth - 50, 30);
-                    StringFormat format2 = new StringFormat();
-                    format2.Alignment = StringAlignment.Near;
-                    e.Graphics.DrawString(currentSerialNo.ToString("0000"), new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect2, format2);
-                    currentY += 30;
-                }
-                currentY += 10;
-                int totalSum = 0;
+            }
+            currentY += 10;
+            int totalSum = 0;
+            while (lineNumber < currentSelectedId)
+            {
+                int totalPrice = int.Parse(orderProductPriceArray[lineNumber]) * int.Parse(orderAmountArray[lineNumber]);
+                totalSum += totalPrice;
+                RectangleF rect3_1 = new RectangleF(10, currentY, constants.singleticketPrintPaperWidth * 3 / 5 - 20, 30);
+                StringFormat format3_1 = new StringFormat();
+                format3_1.Alignment = StringAlignment.Near;
+                e.Graphics.DrawString(orderProductNameArray[lineNumber], new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Blue, rect3_1, format3_1);
 
-                while (lineNumberPrint < currentSelectedId)
-                {
-                    int totalPrice = int.Parse(orderProductPriceArray[lineNumberPrint]) * int.Parse(orderAmountArray[lineNumberPrint]);
-                    totalSum += totalPrice;
-                    RectangleF rect3_1 = new RectangleF(50, currentY, (constants.singleticketPrintPaperWidth - 100) * 2 / 5, 30);
-                    StringFormat format3_1 = new StringFormat();
-                    format3_1.Alignment = StringAlignment.Near;
-                    e.Graphics.DrawString(orderProductNameArray[lineNumberPrint], new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect3_1, format3_1);
+                RectangleF rect3_2 = new RectangleF(constants.singleticketPrintPaperWidth * 3 / 5 - 10, currentY, (constants.singleticketPrintPaperWidth - 20) / 5, 30);
+                StringFormat format3_2 = new StringFormat();
+                format3_2.Alignment = StringAlignment.Far;
+                e.Graphics.DrawString("x" + orderAmountArray[lineNumber], new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Blue, rect3_2, format3_2);
 
-                    RectangleF rect3_2 = new RectangleF(50 + (constants.singleticketPrintPaperWidth - 100) * 2 / 5, currentY, (constants.singleticketPrintPaperWidth - 100) / 5, 30);
-                    StringFormat format3_2 = new StringFormat();
-                    format3_2.Alignment = StringAlignment.Far;
-                    e.Graphics.DrawString("x" + orderAmountArray[lineNumberPrint], new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect3_2, format3_2);
+                RectangleF rect3_3 = new RectangleF(constants.singleticketPrintPaperWidth * 4 / 5 - 15, currentY, constants.singleticketPrintPaperWidth / 5 + 15, 30);
+                StringFormat format3_3 = new StringFormat();
+                format3_3.Alignment = StringAlignment.Far;
+                e.Graphics.DrawString(totalPrice.ToString() + constants.unit, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Blue, rect3_3, format3_3);
+                currentY += 20;
 
-                    RectangleF rect3_3 = new RectangleF(50 + (constants.singleticketPrintPaperWidth - 100) * 3 / 5, currentY, (constants.singleticketPrintPaperWidth - 100) * 2 / 5, 30);
-                    StringFormat format3_3 = new StringFormat();
-                    format3_3.Alignment = StringAlignment.Far;
-                    e.Graphics.DrawString(totalPrice.ToString(), new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect3_3, format3_3);
-                    currentY += 20;
-
-                    RectangleF rect4 = new RectangleF(50, currentY, (constants.singleticketPrintPaperWidth - 100) * 2 / 5, 30);
-                    StringFormat format4 = new StringFormat();
-                    format4.Alignment = StringAlignment.Center;
-                    e.Graphics.DrawString(orderProductPriceArray[lineNumberPrint] + constants.unit, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect4, format4);
-                    currentY += 30;
-
-
-                    lineNumberPrint++;
-                    e.HasMorePages = false;
-
-                }
-                currentY += 10;
-                RectangleF rect4_1 = new RectangleF(50 + (constants.singleticketPrintPaperWidth - 100) * 2 / 5, currentY, (constants.singleticketPrintPaperWidth - 100) * 1 / 5, 30);
-                StringFormat format4_1 = new StringFormat();
-                format4_1.Alignment = StringAlignment.Center;
-                e.Graphics.DrawString(constants.sumLabel, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect4_1, format4_1);
-
-                RectangleF rect4_2 = new RectangleF(50 + (constants.singleticketPrintPaperWidth - 100) * 3 / 5, currentY, (constants.singleticketPrintPaperWidth - 100) * 2 / 5, 30);
-                StringFormat format4_2 = new StringFormat();
-                format4_2.Alignment = StringAlignment.Far;
-                e.Graphics.DrawString(totalSum.ToString() + constants.unit, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect4_2, format4_2);
-                currentY += 40;
-
-
-                string validText = "当日限り有効";
-                if (ValidDate != 0)
-                {
-                    DateTime validDates = now.AddDays(2);
-                    validText = validDates.ToString("yyyy/MM/dd") + "まで有効";
-                }
-                RectangleF rect5 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
-                StringFormat format5 = new StringFormat();
-                format5.Alignment = StringAlignment.Center;
-                e.Graphics.DrawString(validText, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect5, format5);
-                currentY += 40;
-
-                RectangleF rect6 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
-                StringFormat format6 = new StringFormat();
-                format6.Alignment = StringAlignment.Center;
-                e.Graphics.DrawString(TicketMsg1, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect6, format6);
+                RectangleF rect4 = new RectangleF(10, currentY, (constants.singleticketPrintPaperWidth - 10) * 3 / 5, 30);
+                StringFormat format4 = new StringFormat();
+                format4.Alignment = StringAlignment.Center;
+                e.Graphics.DrawString(orderProductPriceArray[lineNumber] + constants.unit, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Blue, rect4, format4);
                 currentY += 25;
 
-                RectangleF rect7 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
-                StringFormat format7 = new StringFormat();
-                format7.Alignment = StringAlignment.Center;
-                e.Graphics.DrawString(TicketMsg2, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect7, format7);
-                currentY += 35;
 
-                RectangleF rect8 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth - 50, 30);
-                StringFormat format8 = new StringFormat();
-                format8.Alignment = StringAlignment.Far;
-                e.Graphics.DrawString(currentTicketNo.ToString("0000000000"), new Font("Seri", constants.fontSizeSmall, FontStyle.Regular), Brushes.Black, rect8, format8);
-                currentY += 35;
+                lineNumber++;
+                e.HasMorePages = false;
 
             }
-            else
+            currentY += 10;
+
+            RectangleF rect4_1 = new RectangleF(5 + (constants.singleticketPrintPaperWidth - 10) * 2 / 5, currentY, (constants.singleticketPrintPaperWidth - 10) * 1 / 5, 30);
+            StringFormat format4_1 = new StringFormat();
+            format4_1.Alignment = StringAlignment.Center;
+            e.Graphics.DrawString(constants.sumLabel, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Blue, rect4_1, format4_1);
+
+            RectangleF rect4_2 = new RectangleF(5 + (constants.singleticketPrintPaperWidth - 10) * 3 / 5, currentY, (constants.singleticketPrintPaperWidth - 10) * 2 / 5, 30);
+            StringFormat format4_2 = new StringFormat();
+            format4_2.Alignment = StringAlignment.Far;
+            e.Graphics.DrawString(totalSum.ToString() + constants.unit, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Blue, rect4_2, format4_2);
+            currentY += 35;
+
+
+            string validText = "当日限り有効";
+            if (ValidDate != 0)
             {
-                float currentY = 30;// declare  one variable for height measurement
-                RectangleF rect1 = new RectangleF(30, currentY, constants.singleticketPrintPaperWidth - 50, 30);
-                StringFormat format1 = new StringFormat();
-                format1.Alignment = StringAlignment.Near;
-                e.Graphics.DrawString(now.ToString("yyyy/MM/dd  HH:mm:ss"), new Font("Seri", constants.fontSizeSmall, FontStyle.Regular), Brushes.Black, rect1, format1);
-                currentY += 20;
-                if (SerialNo == 1)
-                {
-                    RectangleF rect2 = new RectangleF(30, currentY, constants.singleticketPrintPaperWidth - 50, 30);
-                    StringFormat format2 = new StringFormat();
-                    format2.Alignment = StringAlignment.Near;
-                    e.Graphics.DrawString(currentSerialNo.ToString("0000"), new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect2, format2);
-                    currentY += 30;
-                }
-                currentY += 10;
-                int totalSum = 0;
-                while (lineNumber < currentSelectedId)
-                {
-                    int totalPrice = int.Parse(orderProductPriceArray[lineNumber]) * int.Parse(orderAmountArray[lineNumber]);
-                    totalSum += totalPrice;
-                    RectangleF rect3_1 = new RectangleF(50, currentY, (constants.singleticketPrintPaperWidth - 100) * 2 / 5, 30);
-                    StringFormat format3_1 = new StringFormat();
-                    format3_1.Alignment = StringAlignment.Near;
-                    e.Graphics.DrawString(orderProductNameArray[lineNumber], new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect3_1, format3_1);
-
-                    RectangleF rect3_2 = new RectangleF(50 + (constants.singleticketPrintPaperWidth - 100) * 2 / 5, currentY, (constants.singleticketPrintPaperWidth - 100) / 5, 30);
-                    StringFormat format3_2 = new StringFormat();
-                    format3_2.Alignment = StringAlignment.Far;
-                    e.Graphics.DrawString("x" + orderAmountArray[lineNumber], new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect3_2, format3_2);
-
-                    RectangleF rect3_3 = new RectangleF(50 + (constants.singleticketPrintPaperWidth - 100) * 3 / 5, currentY, (constants.singleticketPrintPaperWidth - 100) * 2 / 5, 30);
-                    StringFormat format3_3 = new StringFormat();
-                    format3_3.Alignment = StringAlignment.Far;
-                    e.Graphics.DrawString(totalPrice.ToString(), new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect3_3, format3_3);
-                    currentY += 20;
-
-                    RectangleF rect4 = new RectangleF(50, currentY, (constants.singleticketPrintPaperWidth - 100) * 2 / 5, 30);
-                    StringFormat format4 = new StringFormat();
-                    format4.Alignment = StringAlignment.Center;
-                    e.Graphics.DrawString(orderProductPriceArray[lineNumber] + constants.unit, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect4, format4);
-                    currentY += 30;
-
-
-                    lineNumber++;
-                    e.HasMorePages = false;
-
-                }
-                currentY += 10;
-
-                RectangleF rect4_1 = new RectangleF(50 + (constants.singleticketPrintPaperWidth - 100) * 2 / 5, currentY, (constants.singleticketPrintPaperWidth - 100) * 1 / 5, 30);
-                StringFormat format4_1 = new StringFormat();
-                format4_1.Alignment = StringAlignment.Center;
-                e.Graphics.DrawString(constants.sumLabel, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect4_1, format4_1);
-
-                RectangleF rect4_2 = new RectangleF(50 + (constants.singleticketPrintPaperWidth - 100) * 3 / 5, currentY, (constants.singleticketPrintPaperWidth - 100) * 2 / 5, 30);
-                StringFormat format4_2 = new StringFormat();
-                format4_2.Alignment = StringAlignment.Far;
-                e.Graphics.DrawString(totalSum.ToString() + constants.unit, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect4_2, format4_2);
-                currentY += 40;
-
-
-                string validText = "当日限り有効";
-                if (ValidDate != 0)
-                {
-                    DateTime validDates = now.AddDays(2);
-                    validText = validDates.ToString("yyyy/MM/dd") + "まで有効";
-                }
-                RectangleF rect5 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
-                StringFormat format5 = new StringFormat();
-                format5.Alignment = StringAlignment.Center;
-                e.Graphics.DrawString(validText, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect5, format5);
-                currentY += 40;
-
-                RectangleF rect6 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
-                StringFormat format6 = new StringFormat();
-                format6.Alignment = StringAlignment.Center;
-                e.Graphics.DrawString(TicketMsg1, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect6, format6);
-                currentY += 25;
-
-                RectangleF rect7 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
-                StringFormat format7 = new StringFormat();
-                format7.Alignment = StringAlignment.Center;
-                e.Graphics.DrawString(TicketMsg2, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Black, rect7, format7);
-                currentY += 35;
-
-                RectangleF rect8 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth - 50, 30);
-                StringFormat format8 = new StringFormat();
-                format8.Alignment = StringAlignment.Far;
-                e.Graphics.DrawString(currentTicketNo.ToString("0000000000"), new Font("Seri", constants.fontSizeMedium, FontStyle.Regular), Brushes.Black, rect8, format8);
-                currentY += 35;
+                DateTime validDates = now.AddDays(2);
+                validText = validDates.ToString("yyyy/MM/dd") + " まで有効";
             }
+            RectangleF rect5 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
+            StringFormat format5 = new StringFormat();
+            format5.Alignment = StringAlignment.Center;
+            e.Graphics.DrawString(validText, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Blue, rect5, format5);
+            currentY += 30;
+
+            RectangleF rect6 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
+            StringFormat format6 = new StringFormat();
+            format6.Alignment = StringAlignment.Center;
+            e.Graphics.DrawString(TicketMsg1, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Blue, rect6, format6);
+            currentY += 25;
+
+            RectangleF rect7 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth, 30);
+            StringFormat format7 = new StringFormat();
+            format7.Alignment = StringAlignment.Center;
+            e.Graphics.DrawString(TicketMsg2, new Font("Seri", constants.fontSizeMedium, FontStyle.Bold), Brushes.Blue, rect7, format7);
+            currentY += 35;
+
+            RectangleF rect8 = new RectangleF(0, currentY, constants.singleticketPrintPaperWidth - 5, 30);
+            StringFormat format8 = new StringFormat();
+            format8.Alignment = StringAlignment.Far;
+            e.Graphics.DrawString(currentTicketNo.ToString("0000000000"), new Font("Seri", constants.fontSizeMedium, FontStyle.Regular), Brushes.Blue, rect8, format8);
+            currentY += 35;
         }
 
+
+        PrintQueue pq = LocalPrintServer.GetDefaultPrintQueue();
+
+        string statusVal = null;
+        string connectStatus = "";
+        //int countNum = 0;
         private void EndPrintPage(object sender, PrintEventArgs e)
         {
+            SpotTroubleUsingProperties(ref statusVal, pq);
+            Console.WriteLine("status" + statusVal);
+
+            //countNum++;
+            //Console.WriteLine()
+            ManagementScope scope = new ManagementScope(@"\root\cimv2");
+            scope.Connect();
+
+            // Select Printers from WMI Object Collections
+            ManagementObjectSearcher searcher = new
+             ManagementObjectSearcher("SELECT * FROM Win32_Printer");
+
+            string printerName = "";
+            foreach (ManagementObject printer in searcher.Get())
+            {
+
+
+                printerName = printer["Name"].ToString().ToLower();
+                if (printerName.Equals(@"hwasung hmk-060"))
+                {
+                    /*foreach (PropertyData prop in printer.Properties)
+                    {
+                        Console.WriteLine("sss {0}: {1}", prop.Name, prop.Value);
+                    }*/
+
+                    Console.WriteLine("printer status--->" + printer["PrinterStatus"]);
+
+
+                    Console.WriteLine("Printer = " + printer["Name"]);
+                    if (printer["WorkOffline"].ToString().ToLower().Equals("true"))
+                    {
+                        // printer is offline by user
+                        connectStatus = "disconnect";
+                        Console.WriteLine("Your Plug-N-Play printer is not connected.");
+                    }
+                    else
+                    {
+                        // printer is not offline
+                        connectStatus = "connect";
+                        Console.WriteLine("Your Plug-N-Play printer is connected.");
+                    }
+                }
+            }
+
+
             lineNumber = 0;
-            lineNumberPrint = 0;
+
+
+            if (ReceiptValid == "true")
+            {
+                receiptButtonGlobal.BackColor = Color.FromArgb(255, 255, 192, 0);
+                receiptButtonGlobal.ForeColor = Color.White;
+                receiptButtonGlobal.Enabled = true;
+                Task.Delay(int.Parse(TicketTime) * 1000).ContinueWith(t => ReceiptButtonChange());
+            }
+
+            OrderDataSaving();
+
+            if (sqlite_conn.State == ConnectionState.Closed)
+            {
+                sqlite_conn.Open();
+            }
+            SQLiteCommand sqlite_cmd;
+            SQLiteDataReader sqlite_datareader;
+
+            DateTime now = DateTime.Now;
+            string week = now.ToString("ddd");
+            string currentTime = now.ToString("HH:mm");
+            for (int i = 0; i < categoryDisAmount; i++)
+            {
+                sqlite_cmd = sqlite_conn.CreateCommand();
+                string queryCmd = "SELECT * FROM " + constants.tbNames[2] + " WHERE CategoryID=@CategoryID ORDER BY CardNumber";
+                sqlite_cmd.CommandText = queryCmd;
+                sqlite_cmd.Parameters.AddWithValue("@CategoryID", categoryIDArray[i]);
+
+                sqlite_datareader = sqlite_cmd.ExecuteReader();
+                int k = 0;
+                while (sqlite_datareader.Read())
+                {
+                    string openTime = "";
+                    if (week == "Sat")
+                    {
+                        openTime = sqlite_datareader.GetString(5);
+                    }
+                    else if (week == "Sun")
+                    {
+                        openTime = sqlite_datareader.GetString(6);
+                    }
+                    else
+                    {
+                        openTime = sqlite_datareader.GetString(4);
+                    }
+                    string[] openTimeArr = openTime.Split('/');
+                    foreach (string openTimeArrItem in openTimeArr)
+                    {
+                        string[] openTimeSubArr = openTimeArrItem.Split('-');
+                        if (String.Compare(openTimeSubArr[0], currentTime) <= 0 && String.Compare(openTimeSubArr[1], currentTime) >= 0)
+                        {
+                            SQLiteDataReader sqlite_datareader1;
+                            SQLiteCommand sqlite_cmd1;
+                            sqlite_cmd1 = sqlite_conn.CreateCommand();
+                            string queryCmd1 = "SELECT SUM(prdAmount) as prdRestAmount FROM " + constants.tbNames[3] + " WHERE categoryID=@CategoryID and prdID=@prdID";
+                            sqlite_cmd1.CommandText = queryCmd1;
+                            sqlite_cmd1.Parameters.AddWithValue("@CategoryID", categoryIDArray[i]);
+                            sqlite_cmd1.Parameters.AddWithValue("@prdID", sqlite_datareader.GetInt32(0));
+
+                            sqlite_datareader1 = sqlite_cmd1.ExecuteReader();
+                            while (sqlite_datareader1.Read())
+                            {
+                                if (!sqlite_datareader1.IsDBNull(0))
+                                {
+                                    productRestAmountArray[i, k] = productLimitedCntArray[i, k] - sqlite_datareader1.GetInt32(0);
+                                }
+                                else
+                                {
+                                    productRestAmountArray[i, k] = productLimitedCntArray[i, k];
+                                }
+                            }
+
+                            break;
+                        }
+                    }
+                    k++;
+                }
+            }
+            orderCategoryIDArray = new int[100];
+            orderProductIDArray = new int[100];
+            orderProductNameArray = new string[100];
+            orderProductPriceArray = new string[100];
+            orderAmountArray = new string[100];
+            orderProuctIndexArray = new int[100];
+            TempLabel = orderPriceEnterLabel;
+            SetText("");
+            TempLabel = orderPriceTotalLabel;
+            SetText("");
+            TempLabel = orderRestPriceLabel;
+            SetText("");
+            //orderPriceTotalLabel.Text = "";
+            orderTotalPrice = 0;
+            currentSelectedId = 0;
+            CreateOrderTable(0);
+
+            sqlite_conn.Close();
+
+
         }
         private void ReceiptRun(object sender, EventArgs e)
         {
@@ -2501,22 +2606,22 @@ namespace Ovan_P1
             PrintDialog receiptPrintDialog = new PrintDialog();
             paperSize = new PaperSize("papersize", constants.receiptPrintPaperWidth, constants.receiptPrintPaperHeight);
             receiptPrintDocument.PrintPage += new PrintPageEventHandler(Receipt_PrintPage);
-            receiptPrintDocument.EndPrint += new PrintEventHandler(EndPrintPage);
 
             receiptPrintPreviewDialog.Document = receiptPrintDocument;
             receiptPrintDialog.Document = receiptPrintDocument;
 
-            //PrinterSettings settings = new PrinterSettings();
-            //string defaultPrinterName = settings.PrinterName;
+            PrinterSettings settings = new PrinterSettings();
+            string defaultPrinterName = settings.PrinterName;
             //MessageBox.Show(defaultPrinterName);
 
-            ((ToolStripButton)((ToolStrip)receiptPrintPreviewDialog.Controls[1]).Items[0]).Enabled = true;
+            //((ToolStripButton)((ToolStrip)receiptPrintPreviewDialog.Controls[1]).Items[0]).Enabled = true;
 
             receiptPrintDocument.DefaultPageSettings.PaperSize = paperSize;
-            receiptPrintPreviewDialog.ShowDialog();
+            receiptPrintDocument.DefaultPageSettings.Margins = new Margins(0, 0, 0, 50);
+            //receiptPrintPreviewDialog.ShowDialog();
             //if(receiptPrintDialog.ShowDialog() == DialogResult.OK)
             //{
-            //receiptPrintDocument.Print();
+            receiptPrintDocument.Print();
             //}
 
             receiptButtonGlobal.BackColor = Color.FromArgb(255, 217, 217, 217);
@@ -2524,20 +2629,39 @@ namespace Ovan_P1
             receiptButtonGlobal.Enabled = false;
         }
 
+
+        private void ReceiptButtonChange()
+        {
+            if (ReceiptValid == "true")
+            {
+
+                Thread.Sleep(int.Parse(TicketTime) * 1000);
+                if (receiptButtonGlobal.InvokeRequired)
+                {
+                    receiptButtonGlobal.Invoke(new MethodInvoker(delegate
+                    {
+                        receiptButtonGlobal.BackColor = Color.FromArgb(255, 217, 217, 217);
+                        receiptButtonGlobal.ForeColor = Color.Black;
+                        receiptButtonGlobal.Enabled = false;
+                    }));
+                }
+            }
+        }
+
         private void Receipt_PrintPage(object sender, PrintPageEventArgs e)
         {
             DateTime now = DateTime.Now;
-            float currentY = 30;// declare  one variable for height measurement
+            float currentY = 0;// declare  one variable for height measurement
             RectangleF rect1 = new RectangleF(0, currentY, constants.receiptPrintPaperWidth, 30);
             StringFormat format1 = new StringFormat();
             format1.Alignment = StringAlignment.Center;
-            e.Graphics.DrawString(constants.receiptButtonText, new Font("Seri", constants.fontSizeMedium, FontStyle.Regular), Brushes.Black, rect1, format1);
+            e.Graphics.DrawString(constants.receiptButtonText, new Font("Seri", constants.fontSizeBig, FontStyle.Regular), Brushes.Black, rect1, format1);
             currentY += 30;
 
             RectangleF rect2 = new RectangleF(0, currentY, constants.receiptPrintPaperWidth, 30);
             StringFormat format2 = new StringFormat();
             format2.Alignment = StringAlignment.Center;
-            e.Graphics.DrawString(now.ToString("yyyy/MM/dd  HH:mm:ss"), new Font("Seri", constants.fontSizeSmall, FontStyle.Regular), Brushes.Black, rect2, format2);
+            e.Graphics.DrawString(now.ToString("yyyy/MM/dd  HH:mm:ss"), new Font("Seri", constants.fontSizeMedium, FontStyle.Regular), Brushes.Black, rect2, format2);
             currentY += 30;
 
             RectangleF rect3 = new RectangleF(0, currentY, constants.receiptPrintPaperWidth, 30);
@@ -2593,6 +2717,32 @@ namespace Ovan_P1
             mainMenu.CreateMainMenuScreen(mainFormGlobal, mainPanelGlobal);
         }
 
+
+        
+
+        private void BackShowMainMenu(object sender, EventArgs e)
+        {
+            Button temp = (Button)sender;
+            passwordInput.CreateNumberInputDialog("salescreen", temp.Name);
+        }
+
+        public void getPassword(string objectName, string passwords)
+        {
+            RegistryKey key = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\WinRegistry");
+            string pwd = "";
+            if (key != null && key.GetValue("POSPassword") != null)
+            {
+                pwd = key.GetValue("POSPassword").ToString();
+            }
+            else if (key == null)
+            {
+                pwd = "";
+            }
+            if (pwd == passwords)
+            {
+                this.BackShow();
+            }
+        }
 
 
         static SQLiteConnection CreateConnection(string dbName)
